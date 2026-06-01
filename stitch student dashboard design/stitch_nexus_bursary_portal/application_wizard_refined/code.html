@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>McMCA | New Application</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=Hanken+Grotesk:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .dark .glass-panel {
+            background: rgba(23, 31, 51, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .step-pulse {
+            box-shadow: 0 0 20px rgba(0, 219, 233, 0.4);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#23005b",
+                        "outline": "#849495",
+                        "surface-container-highest": "#2d3449",
+                        "on-tertiary-fixed-variant": "#8f0041",
+                        "error-container": "#93000a",
+                        "primary": "#006970",
+                        "primary-container": "#dbfcff",
+                        "secondary-fixed-dim": "#d1bcff",
+                        "tertiary": "#66002c",
+                        "on-surface": "#131b2e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#004f54",
+                        "on-secondary": "#ffffff",
+                        "background": "#f8faff",
+                        "primary-fixed-dim": "#00dbe9",
+                        "on-secondary-fixed-variant": "#5700c9",
+                        "surface-container-low": "#edf2ff",
+                        "surface": "#f8faff",
+                        "tertiary-container": "#ffccd6",
+                        "surface-container-high": "#e1e7f5",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#dde4f0",
+                        "inverse-primary": "#00dbe9",
+                        "on-tertiary-container": "#bb0058",
+                        "secondary": "#7000ff",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#002022",
+                        "surface-dim": "#d7deee",
+                        "inverse-surface": "#2d3449",
+                        "secondary-fixed": "#e9ddff",
+                        "on-secondary-container": "#23005b",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#3f0019",
+                        "outline-variant": "#c0c8cc",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#f1f4fb",
+                        "tertiary-fixed": "#ffd9e0",
+                        "on-primary-container": "#002022",
+                        "on-surface-variant": "#414849",
+                        "surface-bright": "#fcfcff",
+                        "on-background": "#131b2e",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#006970",
+                        "primary-fixed": "#7df4ff",
+                        "tertiary-fixed-dim": "#ffb1c3",
+                        "secondary-container": "#e9ddff",
+                        "inverse-on-surface": "#f1f0f4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "3xl": "2rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "1.5rem",
+                        "xl": "4rem",
+                        "lg": "2.5rem",
+                        "sm": "1rem",
+                        "container-padding": "2.5rem",
+                        "gutter": "2rem",
+                        "xs": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Sora", "sans-serif"],
+                        "body": ["Hanken Grotesk", "sans-serif"],
+                        "label": ["JetBrains Mono", "monospace"]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body overflow-x-hidden min-h-screen flex flex-col">
+<!-- Desktop SideNavBar -->
+<nav class="hidden lg:flex flex-col h-screen w-72 fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant/30 p-6 gap-2 z-50">
+<div class="flex items-center gap-4 px-2 mb-10">
+<div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-on-primary shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div>
+<h2 class="font-headline text-lg font-bold text-primary tracking-tight">McMCA Portal</h2>
+<p class="font-label text-[10px] text-outline uppercase tracking-widest">Student Finance</p>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary-container hover:text-primary rounded-2xl transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">grid_view</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 p-4 bg-primary text-on-primary rounded-2xl shadow-xl shadow-primary/20 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-medium">Applications</span>
+</a>
+<a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary-container hover:text-primary rounded-2xl transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">folder_open</span>
+<span class="font-medium">Documents</span>
+</a>
+<a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary-container hover:text-primary rounded-2xl transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">notifications</span>
+<span class="font-medium">Notifications</span>
+</a>
+</div>
+<div class="mt-auto pt-6 border-t border-outline-variant/30 flex flex-col gap-1.5">
+<a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary-container hover:text-primary rounded-2xl transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-4 p-4 text-on-surface-variant hover:bg-primary-container hover:text-primary rounded-2xl transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-xl">help</span>
+<span class="font-medium">Support</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="lg:ml-72 flex-1 p-8 lg:p-12 relative flex flex-col items-center">
+<!-- Background Elements -->
+<div class="fixed top-[-5%] right-[-5%] w-[800px] h-[800px] bg-primary-container/30 rounded-full blur-[140px] pointer-events-none z-0"></div>
+<div class="w-full max-w-5xl relative z-10">
+<!-- Back Link -->
+<a class="inline-flex items-center gap-2 mb-10 text-primary font-label text-xs uppercase tracking-widest hover:gap-3 transition-all group" href="#">
+<span class="material-symbols-outlined text-lg">arrow_back</span>
+<span>Back to Applications</span>
+</a>
+<!-- Header -->
+<header class="mb-16 text-center max-w-2xl mx-auto">
+<h1 class="font-headline text-4xl lg:text-5xl font-bold text-on-surface mb-4 tracking-tight">New Bursary Application</h1>
+<p class="text-on-surface-variant text-lg font-body leading-relaxed">Submit your financial assistance request for the 2030 academic cycle through our streamlined application process.</p>
+</header>
+<!-- Spaced Stepper Indicator -->
+<div class="mb-20 max-w-3xl mx-auto">
+<div class="flex justify-between items-center relative">
+<!-- Progress Line -->
+<div class="absolute top-6 left-0 w-full h-[2px] bg-outline-variant/40 -z-10 rounded-full">
+<div class="h-full w-[15%] bg-primary transition-all duration-1000"></div>
+</div>
+<!-- Step 1 -->
+<div class="flex flex-col items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary step-pulse shadow-lg">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">person</span>
+</div>
+<span class="font-label text-[10px] text-primary font-bold uppercase tracking-widest">Student Info</span>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high border-2 border-outline-variant/40 flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-xl">family_restroom</span>
+</div>
+<span class="font-label text-[10px] text-outline font-bold uppercase tracking-widest">Guardian</span>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-surface-container-high border-2 border-outline-variant/40 flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-xl">fact_check</span>
+</div>
+<span class="font-label text-[10px] text-outline font-bold uppercase tracking-widest">Review</span>
+</div>
+</div>
+</div>
+<!-- Spacious Form Panel -->
+<div class="glass-panel p-10 lg:p-16 rounded-3xl shadow-2xl mb-12">
+<form class="space-y-12">
+<!-- Section Header -->
+<div class="flex items-center gap-4 pb-4 border-b border-outline-variant/20">
+<div class="w-1.5 h-8 bg-secondary rounded-full"></div>
+<h3 class="font-headline text-2xl font-semibold text-on-surface">Personal Information</h3>
+</div>
+<!-- Form Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+<div class="space-y-3">
+<label class="font-label text-[11px] text-on-surface-variant font-bold uppercase tracking-widest ml-1">Full Legal Name</label>
+<div class="relative group">
+<input class="w-full bg-white border-2 border-outline-variant/50 rounded-2xl px-5 py-4 text-on-surface placeholder:text-outline focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-300" placeholder="e.g., Alex Rivera" type="text"/>
+</div>
+</div>
+<div class="space-y-3">
+<label class="font-label text-[11px] text-on-surface-variant font-bold uppercase tracking-widest ml-1">Student ID Number</label>
+<input class="w-full bg-white border-2 border-outline-variant/50 rounded-2xl px-5 py-4 text-on-surface placeholder:text-outline focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-300" placeholder="2030-XXXX-XXXX" type="text"/>
+</div>
+<div class="space-y-3">
+<label class="font-label text-[11px] text-on-surface-variant font-bold uppercase tracking-widest ml-1">Institutional Email</label>
+<input class="w-full bg-white border-2 border-outline-variant/50 rounded-2xl px-5 py-4 text-on-surface placeholder:text-outline focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-300" placeholder="alex.rivera@mcmca.edu" type="email"/>
+</div>
+<div class="space-y-3">
+<label class="font-label text-[11px] text-on-surface-variant font-bold uppercase tracking-widest ml-1">Program of Study</label>
+<div class="relative">
+<select class="w-full bg-white border-2 border-outline-variant/50 rounded-2xl px-5 py-4 text-on-surface focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-300 appearance-none">
+<option>Select Program</option>
+<option>Quantum Computing &amp; Ethics</option>
+<option>Lunar Resource Management</option>
+<option>Cyber-Physical Architecture</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Help Callout -->
+<div class="bg-primary-container/40 border border-primary/10 p-6 rounded-2xl flex items-start gap-4">
+<span class="material-symbols-outlined text-primary mt-0.5">info</span>
+<div>
+<p class="font-semibold text-primary mb-1">Verification Tip</p>
+<p class="text-on-surface-variant text-sm leading-relaxed">Please ensure your Student ID matches your biometric identity card. Automated verification will be performed upon submission.</p>
+</div>
+</div>
+<!-- Nav Buttons -->
+<div class="flex flex-col sm:flex-row items-center justify-between pt-12 gap-6 border-t border-outline-variant/20">
+<button class="w-full sm:w-auto px-8 py-4 rounded-2xl border-2 border-outline-variant font-label text-xs uppercase tracking-[0.2em] font-bold text-outline hover:border-error hover:text-error transition-all duration-300" type="button">
+                            Cancel
+                        </button>
+<div class="flex w-full sm:w-auto gap-4">
+<button class="flex-1 sm:flex-none px-8 py-4 rounded-2xl bg-surface-variant font-label text-xs uppercase tracking-[0.2em] font-bold text-outline opacity-40 cursor-not-allowed" disabled="" type="button">
+                                Previous
+                            </button>
+<button class="flex-1 sm:flex-none px-12 py-4 rounded-2xl bg-primary text-on-primary font-bold shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-3 group" type="button">
+<span class="font-label text-xs uppercase tracking-[0.2em]">Continue</span>
+<span class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</form>
+</div>
+<!-- Context Cards -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
+<div class="md:col-span-8 glass-panel p-8 rounded-3xl flex flex-col sm:flex-row items-center gap-8 group">
+<div class="relative flex-shrink-0">
+<img class="w-32 h-32 rounded-2xl object-cover shadow-xl group-hover:scale-105 transition-transform duration-500" data-alt="Futuristic students collaborating" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMc6_nsaxapRB0mNW_cajZncdHP9xoFf359fQFQs3ejKL5wP7aAqIWHMvdxWxrFDX0VDa8qFL4KnmusJqHBIviH4lOFrdRCMoB2jCPd4tn12lbDxzJOCBCU_nyK7PnplGmyZhUg6FGRph8HWRiJj9H50aIyISI1EJ3rad9xqRYjqxiSHEI4c9dzCs-2keopPGEEPKbtYgUrXv0PiwmrT6LAo-DPsx0-CwQD8uF0sAUVNsNdRQGkcCiOtQmMp4k5F_cq5HCLcUQEA"/>
+<div class="absolute inset-0 rounded-2xl bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div>
+<h4 class="font-headline text-xl font-bold text-primary mb-2">Need help with your application?</h4>
+<p class="text-on-surface-variant leading-relaxed">Our virtual finance advisor is available 24/7 to guide you through the document submission requirements and eligibility criteria.</p>
+</div>
+</div>
+<div class="md:col-span-4 glass-panel p-8 rounded-3xl flex flex-col justify-center items-center text-center">
+<div class="w-14 h-14 rounded-full bg-primary-container flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined text-2xl">calendar_today</span>
+</div>
+<p class="font-label text-[10px] uppercase text-outline tracking-widest mb-1">Next Deadline</p>
+<p class="font-headline text-2xl font-bold text-on-surface">Oct 24, 2030</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-10 mt-auto bg-surface-container border-t border-outline-variant/30 relative z-10">
+<div class="max-w-5xl mx-auto px-8 flex flex-col lg:flex-row justify-between items-center gap-8">
+<span class="font-label text-[10px] tracking-widest text-outline uppercase font-bold">© 2030 McMCA Bursary Systems</span>
+<div class="flex gap-10">
+<a class="text-outline font-label text-[10px] hover:text-primary transition-colors uppercase font-bold tracking-widest" href="#">Privacy Policy</a>
+<a class="text-outline font-label text-[10px] hover:text-primary transition-colors uppercase font-bold tracking-widest" href="#">Terms of Service</a>
+<a class="text-outline font-label text-[10px] hover:text-primary transition-colors uppercase font-bold tracking-widest" href="#">Accessibility</a>
+</div>
+</div>
+</footer>
+<!-- Mobile Bottom Navigation -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-xl border-t border-outline-variant/30 z-50 flex justify-around items-center h-20 px-4">
+<a class="flex flex-col items-center gap-1 text-outline" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[9px] font-bold uppercase tracking-tighter">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="text-[9px] font-bold uppercase tracking-tighter">Apply</span>
+</a>
+<div class="w-14 h-14 -mt-12 rounded-2xl bg-primary flex items-center justify-center text-on-primary shadow-xl shadow-primary/30 border-4 border-background">
+<span class="material-symbols-outlined text-2xl">add</span>
+</div>
+<a class="flex flex-col items-center gap-1 text-outline" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-[9px] font-bold uppercase tracking-tighter">Alerts</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-outline" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[9px] font-bold uppercase tracking-tighter">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for inputs
+        document.querySelectorAll('input, select').forEach(field => {
+            field.addEventListener('focus', () => {
+                field.parentElement.classList.add('scale-[1.01]');
+            });
+            field.addEventListener('blur', () => {
+                field.parentElement.classList.remove('scale-[1.01]');
+            });
+        });
+    </script>
+</body></html>

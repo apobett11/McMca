@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>McMCA | Applications Overview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&amp;family=Sora:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(23, 31, 51, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .nebula-bg {
+            background: radial-gradient(circle at 0% 0%, rgba(0, 219, 233, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 100% 100%, rgba(112, 0, 255, 0.08) 0%, transparent 40%),
+                        #0b1326;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(132, 148, 149, 0.3);
+            border-radius: 10px;
+        }
+        .row-hover:hover {
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px -5px rgba(0,0,0,0.3);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#23005b",
+                        "outline": "#849495",
+                        "surface-container-highest": "#2d3449",
+                        "on-tertiary-fixed-variant": "#8f0041",
+                        "error-container": "#93000a",
+                        "primary": "#dbfcff",
+                        "primary-container": "#00f0ff",
+                        "secondary-fixed-dim": "#d1bcff",
+                        "tertiary": "#fff3f4",
+                        "on-surface": "#dae2fd",
+                        "surface-container-lowest": "#060e20",
+                        "on-primary-fixed-variant": "#004f54",
+                        "on-secondary": "#3c0090",
+                        "background": "#0b1326",
+                        "primary-fixed-dim": "#00dbe9",
+                        "on-secondary-fixed-variant": "#5700c9",
+                        "surface-container-low": "#131b2e",
+                        "surface": "#0b1326",
+                        "tertiary-container": "#ffccd6",
+                        "surface-container-high": "#222a3d",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#2d3449",
+                        "inverse-primary": "#006970",
+                        "on-tertiary-container": "#bb0058",
+                        "secondary": "#d1bcff",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed": "#002022",
+                        "surface-dim": "#0b1326",
+                        "inverse-surface": "#dae2fd",
+                        "secondary-fixed": "#e9ddff",
+                        "on-secondary-container": "#ddcdff",
+                        "on-primary": "#00363a",
+                        "on-tertiary-fixed": "#3f0019",
+                        "outline-variant": "#3b494b",
+                        "on-tertiary": "#66002c",
+                        "surface-container": "#171f33",
+                        "tertiary-fixed": "#ffd9e0",
+                        "on-primary-container": "#006970",
+                        "on-surface-variant": "#b9cacb",
+                        "surface-bright": "#31394d",
+                        "on-background": "#dae2fd",
+                        "on-error": "#690005",
+                        "surface-tint": "#00dbe9",
+                        "primary-fixed": "#7df4ff",
+                        "tertiary-fixed-dim": "#ffb1c3",
+                        "secondary-container": "#7000ff",
+                        "inverse-on-surface": "#283044"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "1.5rem",
+                        "xl": "4rem",
+                        "lg": "2.5rem",
+                        "sm": "1rem",
+                        "container-padding": "2rem",
+                        "gutter": "1.5rem",
+                        "xs": "0.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Sora"],
+                        "headline-xl": ["Sora"],
+                        "body-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "label-md": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-xl": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden nebula-bg min-h-screen">
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container-low/95 backdrop-blur-xl border-r border-white/5 z-50 p-6 gap-4">
+<div class="mb-10 flex flex-col gap-1">
+<h1 class="font-headline-lg text-2xl font-bold text-primary-fixed-dim tracking-tight">McMCA</h1>
+<span class="font-label-md text-xs text-outline uppercase tracking-widest">Student Finance</span>
+</div>
+<nav class="flex flex-col gap-3">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary-fixed-dim transition-colors">grid_view</span>
+<span class="font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-xl shadow-lg shadow-secondary-container/20 transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-body-md font-semibold">Applications</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary-fixed-dim transition-colors">folder_open</span>
+<span class="font-body-md">Documents</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-white/5 rounded-xl transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary-fixed-dim transition-colors">notifications</span>
+<span class="font-body-md">Notifications</span>
+</a>
+</nav>
+<div class="mt-8">
+<button class="w-full bg-primary-fixed-dim text-on-primary-fixed py-4 rounded-2xl font-bold text-body-md shadow-xl shadow-primary-fixed-dim/20 hover:brightness-110 active:scale-95 transition-all">
+            New Application
+        </button>
+</div>
+<div class="mt-auto pt-6 flex flex-col gap-3 border-t border-white/5">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:ml-64 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center h-20 px-lg w-full sticky top-0 bg-surface/60 backdrop-blur-md border-b border-white/5 z-40">
+<div class="flex items-center gap-4">
+<button class="lg:hidden p-2 text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="hidden md:block">
+<h2 class="font-headline-lg text-xl">Applications</h2>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="hidden sm:flex gap-6 items-center">
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors">search</span>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-primary transition-colors">notifications</span>
+</div>
+<div class="flex items-center gap-4 border-l border-white/10 pl-8">
+<div class="text-right hidden sm:block">
+<p class="font-label-md text-[10px] text-primary-fixed-dim uppercase tracking-tighter">Parent Account</p>
+<p class="font-body-md font-bold">Jonathan Sterling</p>
+</div>
+<img alt="User profile" class="w-11 h-11 rounded-full border-2 border-primary-fixed-dim/20 object-cover shadow-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDb5aydFsgDqGt_BzC1gKuKj2rxM_2JpS5ko69xHTGW8rMM56tThu5xyRODvmQX3Ye6cTj12OJTeCeCRgPzCV74nCcjbUV_YmxXfbhqb69P3LVU7T9sXcFxXT6qqKtZrhbdd9tJT0EfYcKarIOLzKVWp7a7cgzCpSreNMKYi41Y3rKuG6L9dI8LEvVwsxu2tVsaGdE5oRrbggfNC16rQTkfhOVPaf-I8QWfJEhPMbs82-37t8UGxvo9DUlIibn7LKOkYUq-zcdXg"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-lg md:p-xl flex-1 max-w-full">
+<!-- Hero Section -->
+<section class="mb-lg">
+<h2 class="font-headline-xl text-on-surface mb-3">Applications overview</h2>
+<p class="font-body-lg text-on-surface-variant max-w-3xl opacity-80">
+                Centralized management for your children's financial aid. Track the 2030-2031 bursary lifecycle, verify documentation, and finalize award agreements.
+            </p>
+</section>
+<!-- Filters Section -->
+<section class="mb-xl">
+<div class="glass-panel rounded-[2rem] overflow-hidden transition-all duration-300 shadow-2xl">
+<div class="p-lg">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-fixed-dim">tune</span>
+</div>
+<h3 class="font-headline-lg text-lg">Filter Applications</h3>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 text-on-surface-variant hover:text-on-surface font-semibold transition-colors">Clear All</button>
+<button class="px-8 py-2.5 bg-surface-container-highest text-on-surface rounded-xl font-bold hover:bg-surface-container-high transition-all">Search</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-xs text-outline uppercase ml-1">Status</label>
+<select class="bg-surface-container-low border-white/5 text-on-surface rounded-2xl h-14 px-5 focus:ring-2 focus:ring-primary-fixed-dim transition-all appearance-none cursor-pointer">
+<option>All Application Statuses</option>
+<option>Processing</option>
+<option>Approved</option>
+<option>Action Required</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-xs text-outline uppercase ml-1">Academic Level</label>
+<select class="bg-surface-container-low border-white/5 text-on-surface rounded-2xl h-14 px-5 focus:ring-2 focus:ring-primary-fixed-dim transition-all appearance-none cursor-pointer">
+<option>All Levels</option>
+<option>Secondary High</option>
+<option>Undergraduate</option>
+<option>Postgraduate</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-xs text-outline uppercase ml-1">Academic Cycle</label>
+<select class="bg-surface-container-low border-white/5 text-on-surface rounded-2xl h-14 px-5 focus:ring-2 focus:ring-primary-fixed-dim transition-all appearance-none cursor-pointer">
+<option>2030 - 2031 Cycle</option>
+<option>2029 - 2030 Cycle</option>
+<option>Historical Archives</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Applications Table Section -->
+<section class="glass-panel rounded-[2.5rem] overflow-hidden shadow-2xl border-white/10">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse min-w-[900px]">
+<thead>
+<tr class="bg-surface-container-high/50">
+<th class="py-6 px-10 font-label-md text-xs text-on-surface uppercase tracking-widest border-b border-white/10">Student</th>
+<th class="py-6 px-10 font-label-md text-xs text-on-surface uppercase tracking-widest border-b border-white/10">Institution</th>
+<th class="py-6 px-10 font-label-md text-xs text-on-surface uppercase tracking-widest border-b border-white/10 text-center">Cycle</th>
+<th class="py-6 px-10 font-label-md text-xs text-on-surface uppercase tracking-widest border-b border-white/10">Status</th>
+<th class="py-6 px-10 font-label-md text-xs text-on-surface uppercase tracking-widest border-b border-white/10 text-right">Award Amount</th>
+<th class="py-6 px-10 font-label-md text-xs text-on-surface uppercase tracking-widest border-b border-white/10 text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<!-- Row 1 -->
+<tr class="row-hover transition-all group">
+<td class="py-10 px-10">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-primary-fixed-dim/20 flex items-center justify-center text-primary-fixed-dim font-bold text-lg shadow-inner">ES</div>
+<span class="font-body-md text-lg font-bold tracking-tight">Elena Sterling</span>
+</div>
+</td>
+<td class="py-10 px-10">
+<div class="flex flex-col">
+<span class="font-body-md font-semibold">St. Jude Academy</span>
+<span class="font-body-md text-sm text-outline">Secondary High School</span>
+</div>
+</td>
+<td class="py-10 px-10 text-center">
+<span class="bg-surface-container-low px-4 py-1.5 rounded-lg text-sm font-label-md">2030 - 31</span>
+</td>
+<td class="py-10 px-10">
+<div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-bold border border-emerald-500/20">
+<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]"></span>
+                                    Approved
+                                </div>
+</td>
+<td class="py-10 px-10 text-right font-headline-lg text-xl text-primary-fixed-dim">
+                                $4,200.00
+                            </td>
+<td class="py-10 px-10 text-center">
+<button class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all group/btn">
+<span class="material-symbols-outlined">analytics</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="row-hover transition-all group">
+<td class="py-10 px-10">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-secondary-fixed-dim/20 flex items-center justify-center text-secondary-fixed-dim font-bold text-lg shadow-inner">MS</div>
+<span class="font-body-md text-lg font-bold tracking-tight">Marcus Sterling</span>
+</div>
+</td>
+<td class="py-10 px-10">
+<div class="flex flex-col">
+<span class="font-body-md font-semibold">Quantum Tech Institute</span>
+<span class="font-body-md text-sm text-outline">Undergraduate Program</span>
+</div>
+</td>
+<td class="py-10 px-10 text-center">
+<span class="bg-surface-container-low px-4 py-1.5 rounded-lg text-sm font-label-md">2030 - 31</span>
+</td>
+<td class="py-10 px-10">
+<div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-amber-500/10 text-amber-400 text-sm font-bold border border-amber-500/20">
+<span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)] animate-pulse"></span>
+                                    In Review
+                                </div>
+</td>
+<td class="py-10 px-10 text-right font-headline-lg text-xl text-on-surface-variant">
+                                $8,500.00
+                            </td>
+<td class="py-10 px-10 text-center">
+<button class="w-12 h-12 rounded-2xl bg-white/5 hover:bg-primary-fixed-dim hover:text-on-primary-fixed transition-all">
+<span class="material-symbols-outlined">analytics</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="row-hover transition-all group">
+<td class="py-10 px-10">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-2xl bg-error-container/40 flex items-center justify-center text-error font-bold text-lg shadow-inner">AS</div>
+<span class="font-body-md text-lg font-bold tracking-tight">Alice Sterling</span>
+</div>
+</td>
+<td class="py-10 px-10">
+<div class="flex flex-col">
+<span class="font-body-md font-semibold">North Ridge University</span>
+<span class="font-body-md text-sm text-outline">Postgraduate Research</span>
+</div>
+</td>
+<td class="py-10 px-10 text-center">
+<span class="bg-surface-container-low px-4 py-1.5 rounded-lg text-sm font-label-md">2030 - 31</span>
+</td>
+<td class="py-10 px-10">
+<div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-error-container/30 text-error text-sm font-bold border border-error/30">
+<span class="material-symbols-outlined text-sm">priority_high</span>
+                                    Action Required
+                                </div>
+</td>
+<td class="py-10 px-10 text-right font-headline-lg text-xl text-on-surface-variant">
+                                $12,000.00
+                            </td>
+<td class="py-10 px-10 text-center">
+<button class="w-12 h-12 rounded-2xl bg-secondary-container text-on-secondary-container shadow-lg shadow-secondary-container/30 hover:brightness-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer -->
+<div class="px-10 py-8 bg-surface-container-high/40 flex justify-between items-center border-t border-white/5">
+<span class="font-body-md text-outline">Displaying <span class="text-on-surface font-bold">3</span> active applications</span>
+<div class="flex gap-4">
+<button class="p-3 bg-surface-container-low hover:bg-surface-container text-outline hover:text-on-surface rounded-xl transition-all disabled:opacity-20" disabled="">
+<span class="material-symbols-outlined">west</span>
+</button>
+<button class="p-3 bg-surface-container-low hover:bg-surface-container text-outline hover:text-on-surface rounded-xl transition-all disabled:opacity-20" disabled="">
+<span class="material-symbols-outlined">east</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer -->
+<footer class="w-full py-10 mt-xl bg-surface-container-lowest/50 border-t border-white/5 flex flex-col md:flex-row justify-between items-center px-lg md:px-xl gap-6">
+<div class="flex flex-col gap-1 items-center md:items-start">
+<div class="font-label-md text-xs tracking-widest text-primary-fixed-dim/60">McMCA BURSARY SYSTEMS</div>
+<div class="font-body-md text-sm text-outline">© 2030 McMCA. Empowering education.</div>
+</div>
+<div class="flex gap-8">
+<a class="text-sm text-outline hover:text-primary-fixed-dim transition-colors" href="#">Privacy Policy</a>
+<a class="text-sm text-outline hover:text-primary-fixed-dim transition-colors" href="#">Terms of Use</a>
+<a class="text-sm text-outline hover:text-primary-fixed-dim transition-colors" href="#">System Status</a>
+</div>
+</footer>
+</main>
+<script>
+    // Simple interactive enhancements
+    document.querySelectorAll('button, a').forEach(el => {
+        el.addEventListener('mousedown', function() {
+            this.classList.add('scale-95');
+        });
+        el.addEventListener('mouseup', function() {
+            this.classList.remove('scale-95');
+        });
+        el.addEventListener('mouseleave', function() {
+            this.classList.remove('scale-95');
+        });
+    });
+</script>
+</body></html>
