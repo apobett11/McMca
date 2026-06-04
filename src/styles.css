@@ -1,37 +1,143 @@
-/* McMCA — Aetheric Portal Design System (stitch student dashboard design) */
-
+/* ——— Refined Design System Variables ——— */
 :root {
-  --font-headline: 'Sora', system-ui, sans-serif;
-  --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-headline: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --font: var(--font-body);
 
-  --white: #ffffff;
-  --green: #4ade80;
-  --red: #ffb4ab;
-  --purple: #d1bcff;
-  --cyan: #00dbe9;
+  /* Premium Backgrounds */
+  --background: #F7F9FC;
+  --surface-secondary: #FFFFFF;
+  --surface-elevated: rgba(255,255,255,0.72);
+  --muted-surface: #EEF2F7;
 
-  --radius-sm: 0.25rem;
-  --radius: 0.5rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --tap: 48px;
+  /* Text System */
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --text-disabled: #D1D5DB;
 
-  --sidebar-w: 288px;
-  --content-max: 720px;
-  --page-max: 1440px;
+  /* Accent Colors */
+  --primary: #2563EB;
+  --secondary: #7C3AED;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #06B6D4;
 
-  --text-xs: 0.75rem;
-  --text-sm: 0.8125rem;
-  --text-base: 1rem;
-  --text-md: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.5rem;
-  --text-2xl: 2rem;
+  /* Luxury Gold (for Premium Cards) */
+  --gold-primary: #C9A227;
+  --gold-soft: #D6B85A;
+  --gold-muted: #B08D2F;
+  --gold-champagne: #E5D3A1;
+  --gold-glow: rgba(212,175,55,0.18);
+  --gold-shadow: 0px 12px 40px rgba(201,162,39,0.10);
 
-  --ease: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  --section-gap: 2.5rem;
+  /* Spacing & Layout */
+  --section-gap: 2rem;
+  --radius-xl: 20px;
+  --radius: 12px;
+  --shadow-base: 0px 8px 30px rgba(15, 23, 42, 0.06);
+
+  /* Typography Scale */
+  --text-h1: 40px;
+  --text-h2: 30px;
+  --text-h3: 22px;
+  --text-base: 15px;
+  --text-sm: 14px;
+  --text-xs: 12px;
+}
+
+[data-theme='dark'] {
+  --background: #0B1220;
+  --surface-secondary: #111827;
+  --surface-elevated: rgba(17,24,39,0.72);
+  --muted-surface: #1E293B;
+
+  --text-primary: #F9FAFB;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-disabled: #64748B;
+
+  --primary: #3B82F6;
+  --secondary: #8B5CF6;
+  --success: #22C55E;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --info: #22D3EE;
+
+  --gold-primary: #D4AF37;
+  --gold-soft: #E0C46C;
+  --gold-muted: #B8942E;
+  --gold-champagne: #F3E2A9;
+  --gold-glow: rgba(212,175,55,0.22);
+}
+
+body {
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+h1 { font-size: var(--text-h1); font-weight: 600; }
+h2 { font-size: var(--text-h2); font-weight: 600; }
+h3 { font-size: var(--text-h3); font-weight: 500; }
+
+.card {
+  background: var(--surface-elevated);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem 2rem;
+  box-shadow: var(--shadow);
+  transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 2rem;
+}
+
+.card__content {
+  flex: 1;
+}
+
+.card__content strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.card__content p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-2);
+}
+
+.section-header {
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.premium-gold-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(248,250,252,0.88));
+  border: 1px solid rgba(201,162,39,0.1);
+  box-shadow: var(--gold-shadow);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  color: #111827;
+}
+
+[data-theme='dark'] .premium-gold-card {
+  background: linear-gradient(145deg, rgba(17,24,39,0.96), rgba(15,23,42,0.92));
+  color: var(--text-primary);
 }
 
 /* ——— Theme: Dark (default) ——— */
@@ -564,16 +670,68 @@ h1.section-card__title {
   border: 1px solid var(--border);
 }
 
-/* ——— Cards ——— */
-.card {
-  background: var(--surface-elevated);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem 2rem;
-  box-shadow: var(--shadow);
-  transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
+.student-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.student-card__top {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.student-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.student-card__identity {
+  flex: 1;
+}
+
+.student-card__name {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+}
+
+.student-card__school {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.student-card__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-container-low);
+  border-radius: var(--radius);
+}
+
+.student-card__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-card__stat-label {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.student-card__amount {
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .card:hover {
@@ -3253,9 +3411,24 @@ h1.section-card__title {
 }
 
 @media (max-width: 479px) {
-  .chief-hero__chips {
-    grid-template-columns: 1fr;
+  :root {
+    --section-gap: 1.5rem;
   }
+  .main {
+    padding: 0 12px;
+  }
+  .card {
+    padding: 16px;
+    border-radius: var(--radius);
+  }
+  .site-header__inner {
+    padding: 8px;
+    gap: 4px;
+  }
+  .brand__word {
+    display: none;
+  }
+}
 }
 
 /* ——— Student operational portal (spec §7–14) ——— */
