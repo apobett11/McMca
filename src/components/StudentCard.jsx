@@ -14,66 +14,52 @@ export function StudentCard({ student }) {
 
   return (
     <article
-      className={`student-card ${accent}`.trim()}
+      className={`card student-card ${accent}`.trim()}
       aria-labelledby={`student-${student.id}-name`}
+      style={{
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px'
+      }}
     >
-      <div className="student-card__top">
-        <div className={`student-card__avatar ${avatarMod}`} aria-hidden="true">
+      <div className="student-card__top" style={{display: 'flex', gap: '16px', alignItems: 'flex-start'}}>
+        <div className={`student-card__avatar ${avatarMod}`} aria-hidden="true" style={{
+            width: '48px', height: '48px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontWeight: '700', fontSize: '1.25rem'
+        }}>
           {student.fullName.charAt(0)}
         </div>
-        <div className="student-card__identity">
-          <h3 className="student-card__name" id={`student-${student.id}-name`}>
+        <div className="student-card__identity" style={{flex: 1}}>
+          <h3 className="student-card__name" id={`student-${student.id}-name`} style={{margin: '0 0 4px', fontSize: '1.125rem'}}>
             {student.fullName}
           </h3>
-          <p className="student-card__school">{student.school}</p>
-          <p className="student-card__meta">
-            {student.educationLevel} · {student.grade}
-          </p>
+          <p className="student-card__school" style={{margin: 0, fontSize: '0.875rem', color: 'var(--text-2)'}}>{student.school}</p>
         </div>
-        <span className={getAccessBadgeClass(student.accessType)}>{student.accessType}</span>
       </div>
 
-      <div className="student-card__stats">
-        <div className="student-card__stat">
-          <span className="student-card__stat-label">Application</span>
-          <span className={getApplicationBadgeClass(student.applicationStatus)}>
+      <div className="student-card__stats" style={{
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '16px', background: 'var(--surface-container-low)', borderRadius: '16px'
+      }}>
+        <div className="student-card__stat" style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+          <span className="student-card__stat-label" style={{fontSize: '0.75rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Application</span>
+          <span className={getApplicationBadgeClass(student.applicationStatus)} style={{fontSize: '0.875rem', fontWeight: '600'}}>
             {student.applicationStatus}
           </span>
         </div>
-        <div className="student-card__stat">
-          <span className="student-card__stat-label">Allocated</span>
-          <span className="student-card__amount">{student.amountAllocated}</span>
-        </div>
-        <div className="student-card__stat">
-          <span className="student-card__stat-label">Profile</span>
-          <span className={getProfileBadgeClass(student.profileStatus)}>{student.profileStatus}</span>
-        </div>
-        <div className="student-card__stat">
-          <span className="student-card__stat-label">Documents</span>
-          <span className={getDocumentBadgeClass(student.documentStatus)}>
-            {student.documentStatus}
-          </span>
-        </div>
-      </div>
-
-      <div className="student-card__feed">
-        <div className="student-card__feed-item student-card__feed-item--notify">
-          <Icon name="bell" size={16} label="Latest notification" />
-          <span>{student.latestNotification}</span>
-        </div>
-        <div className="student-card__feed-item">
-          <Icon name="clock" size={16} label="Latest activity" />
-          <span>{student.latestActivity}</span>
+        <div className="student-card__stat" style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+          <span className="student-card__stat-label" style={{fontSize: '0.75rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Allocated</span>
+          <span className="student-card__amount" style={{fontSize: '0.875rem', fontWeight: '600'}}>{student.amountAllocated}</span>
         </div>
       </div>
 
       <Link
-        className="btn btn--primary student-card__cta"
+        className="btn btn--primary"
         to="/student/dashboard"
         aria-label={`View ${student.fullName}'s student dashboard`}
+        style={{marginTop: 'auto', borderRadius: '999px'}}
       >
-        <Icon name="arrowRight" size={18} />
-        View profile
+        View Profile
+        <Icon name="arrowRight" size={16} />
       </Link>
     </article>
   );

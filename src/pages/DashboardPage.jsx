@@ -53,59 +53,52 @@ export function DashboardPage() {
           <p className="parent-hero__greeting">
             {greeting}, {PARENT.fullName.split(' ')[0]}
           </p>
-          <h1 className="parent-hero__title">Household overview</h1>
+          <h1 className="parent-hero__title">Household Overview</h1>
           <p className="parent-hero__sub">
-            Overview and navigation for linked student dashboards — applications, uploads, and
-            appeals happen inside each child&apos;s profile.
+            Your centralized view for student applications, status, and actions.
           </p>
         </div>
         <div className="parent-hero__chips" role="list">
           <div className="stat-chip stat-chip--blue" role="listitem">
             <span className="stat-chip__value">{stats.linked}</span>
-            <span className="stat-chip__label">Linked students</span>
+            <span className="stat-chip__label">Linked</span>
           </div>
           <div className="stat-chip stat-chip--orange" role="listitem">
             <span className="stat-chip__value">{stats.urgent}</span>
-            <span className="stat-chip__label">Need attention</span>
+            <span className="stat-chip__label">Attention</span>
           </div>
           <div className="stat-chip stat-chip--green" role="listitem">
             <span className="stat-chip__value">{stats.approved}</span>
-            <span className="stat-chip__label">Approved / disbursed</span>
+            <span className="stat-chip__label">Approved</span>
           </div>
         </div>
       </section>
 
       {stats.urgent > 0 ? (
-        <div className="alert-banner page-section--full" role="status">
-          <Icon name="bell" size={20} />
-          <div>
-            <strong>{stats.urgent} student(s) need attention</strong>
-            <p>Review missing documents or pending items — open their profile to take action.</p>
+        <div className="card card--alert page-section--full" role="status" style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px'}}>
+          <Icon name="bell" size={24} style={{color: 'var(--red)'}} />
+          <div style={{flex: 1}}>
+            <strong style={{display: 'block', marginBottom: '4px'}}>Action Required: {stats.urgent} student(s)</strong>
+            <p style={{margin: 0, fontSize: 'var(--text-sm)', color: 'var(--text-2)'}}>Review pending documents or required actions.</p>
           </div>
-          <Link className="btn btn--secondary btn--compact" to="/documents">
-            View documents
+          <Link className="btn btn--secondary" to="/documents" style={{width: 'auto', borderRadius: '999px'}}>
+            View items
           </Link>
         </div>
       ) : null}
 
-      <SectionCard
-        title="Linked students"
-        className="page-section--full"
-        id="linked-students"
-      >
-        <p className="section-card__lead section-card__lead--left">
-          Summary cards only — use <strong>View profile</strong> to open the operational student
-          dashboard.
-        </p>
+      <div style={{marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+        <h2 style={{margin: 0, fontSize: '1.25rem'}}>Linked Students</h2>
         <button
           type="button"
-          className="btn btn--accent"
+          className="btn btn--primary"
           onClick={() => setAddChildOpen(true)}
+          style={{width: 'auto', borderRadius: '999px', padding: '8px 20px'}}
         >
-          <Icon name="plus" size={20} />
+          <Icon name="plus" size={18} />
           Add child
         </button>
-      </SectionCard>
+      </div>
 
       {loading ? (
         <DashboardSkeleton />

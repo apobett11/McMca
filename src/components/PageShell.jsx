@@ -78,8 +78,8 @@ export function PageShell({
         onMenuOpen={() => setMenuOpen(true)}
         onNotificationsOpen={() => setNotificationsOpen(true)}
       />
-      <main className={mainClass} role="main">
-        <div className="main__content">{children}</div>
+      <main className={mainClass} role="main" style={{flex: '1', width: '100%', maxWidth: layout === 'dashboard' ? '1280px' : '720px', margin: '0 auto', padding: '0 24px'}}>
+        <div className="main__content" style={{padding: '32px 0 64px'}}>{children}</div>
       </main>
       {showFooter ? <Footer /> : null}
       {showBottomNav ? (
