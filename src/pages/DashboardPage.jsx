@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PremiumInfoCard } from '../components/PremiumInfoCard.jsx';
 import { PageShell } from '../components/PageShell.jsx';
 import { SectionCard } from '../components/SectionCard.jsx';
 import { StudentCard } from '../components/StudentCard.jsx';
@@ -76,31 +75,25 @@ export function DashboardPage() {
       </section>
 
       {stats.urgent > 0 ? (
-        <div className="card card--alert" role="status">
-          <Icon name="bell" size={24} />
-          <div className="card__content">
-            <strong>Action Required: {stats.urgent} student(s)</strong>
-            <p>Review pending documents or required actions.</p>
+        <div className="card card--alert page-section--full" role="status" style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px'}}>
+          <Icon name="bell" size={24} style={{color: 'var(--red)'}} />
+          <div style={{flex: 1}}>
+            <strong style={{display: 'block', marginBottom: '4px'}}>Action Required: {stats.urgent} student(s)</strong>
+            <p style={{margin: 0, fontSize: 'var(--text-sm)', color: 'var(--text-2)'}}>Review pending documents or required actions.</p>
           </div>
-          <Link className="btn btn--secondary" to="/documents">
+          <Link className="btn btn--secondary" to="/documents" style={{width: 'auto', borderRadius: '999px'}}>
             View items
           </Link>
         </div>
-      ) : (
-        <PremiumInfoCard
-          greeting="Welcome back"
-          reassurance="All applications are currently up-to-date and under review."
-          statValue={stats.approved}
-          statLabel="Approved applications"
-        />
-      )}
+      ) : null}
 
-      <div className="section-header">
-        <h2>Linked Students</h2>
+      <div style={{marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+        <h2 style={{margin: 0, fontSize: '1.25rem'}}>Linked Students</h2>
         <button
           type="button"
           className="btn btn--primary"
           onClick={() => setAddChildOpen(true)}
+          style={{width: 'auto', borderRadius: '999px', padding: '8px 20px'}}
         >
           <Icon name="plus" size={18} />
           Add child
