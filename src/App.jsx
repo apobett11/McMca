@@ -1,12 +1,15 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
+import { ProtectedRoute } from './lib/ProtectedRoute.jsx';
 
 import { DashboardPage } from './pages/DashboardPage.jsx';
 import { ApplicationsPage } from './pages/ApplicationsPage.jsx';
 import { DocumentsPage } from './pages/DocumentsPage.jsx';
 import { NotificationsPage } from './pages/NotificationsPage.jsx';
 import { ProfilePage } from './pages/ProfilePage.jsx';
+import { SupportPage } from './pages/SupportPage.jsx';
 
 import { ChiefDashboardPage } from './pages/chief/ChiefDashboardPage.jsx';
 import { ChiefApplicationsPage } from './pages/chief/ChiefApplicationsPage.jsx';
@@ -23,42 +26,47 @@ import { StudentNotificationsPage } from './pages/student/StudentNotificationsPa
 import { StudentAppealsPage } from './pages/student/StudentAppealsPage.jsx';
 import { StudentSupportPage } from './pages/student/StudentSupportPage.jsx';
 import { StudentProfilePage } from './pages/student/StudentProfilePage.jsx';
-import { MessagesPage } from './pages/MessagesPage.jsx';
+import { StudentMessagesPage } from './pages/student/StudentMessagesPage.jsx';
+import { LoginPage } from './pages/LoginPage.jsx';
 
 export function App() {
   return (
     <ThemeProvider>
-      <HashRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/applications" element={<ApplicationsPage />} />
-          <Route path="/documents" element={<DocumentsPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+      <AuthProvider>
+        <HashRouter>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/applications" element={<ApplicationsPage />} />
+            <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/support" element={<SupportPage />} />
 
-          <Route path="/student" element={<Navigate to="/student/dashboard" replace />} />
-          <Route path="/student/dashboard" element={<StudentDashboardPage />} />
-          <Route path="/student/applications" element={<StudentApplicationsPage />} />
-          <Route path="/student/documents" element={<StudentDocumentsPage />} />
-          <Route path="/student/new-application" element={<StudentWizardPage />} />
-          <Route path="/student/notifications" element={<StudentNotificationsPage />} />
-          <Route path="/student/appeals" element={<StudentAppealsPage />} />
-          <Route path="/student/support" element={<StudentSupportPage />} />
-          <Route path="/student/profile" element={<StudentProfilePage />} />
-          <Route path="/student/messages" element={<MessagesPage />} />
+            <Route path="/student" element={<Navigate to="/student/dashboard" replace />} />
+            <Route path="/student/dashboard" element={<ProtectedRoute requiredRole="student"><StudentDashboardPage /></ProtectedRoute>} />
+            <Route path="/student/applications" element={<ProtectedRoute requiredRole="student"><StudentApplicationsPage /></ProtectedRoute>} />
+            <Route path="/student/documents" element={<ProtectedRoute requiredRole="student"><StudentDocumentsPage /></ProtectedRoute>} />
+            <Route path="/student/new-application" element={<ProtectedRoute requiredRole="student"><StudentWizardPage /></ProtectedRoute>} />
+            <Route path="/student/notifications" element={<ProtectedRoute requiredRole="student"><StudentNotificationsPage /></ProtectedRoute>} />
+            <Route path="/student/appeals" element={<ProtectedRoute requiredRole="student"><StudentAppealsPage /></ProtectedRoute>} />
+            <Route path="/student/support" element={<ProtectedRoute requiredRole="student"><StudentSupportPage /></ProtectedRoute>} />
+            <Route path="/student/profile" element={<ProtectedRoute requiredRole="student"><StudentProfilePage /></ProtectedRoute>} />
+            <Route path="/student/messages" element={<ProtectedRoute requiredRole="student"><StudentMessagesPage /></ProtectedRoute>} />
+            <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/chief" element={<Navigate to="/chief/dashboard" replace />} />
-          <Route path="/chief/dashboard" element={<ChiefDashboardPage />} />
-          <Route path="/chief/applications" element={<ChiefApplicationsPage />} />
-          <Route path="/chief/applications/:applicationId" element={<ChiefApplicationReviewPage />} />
-          <Route path="/chief/appeals" element={<ChiefAppealsPage />} />
-          <Route path="/chief/appeals/:appealId" element={<ChiefAppealReviewPage />} />
-          <Route path="/chief/profile" element={<ChiefProfilePage />} />
+            <Route path="/chief" element={<Navigate to="/chief/dashboard" replace />} />
+            <Route path="/chief/dashboard" element={<ChiefDashboardPage />} />
+            <Route path="/chief/applications" element={<ChiefApplicationsPage />} />
+            <Route path="/chief/applications/:applicationId" element={<ChiefApplicationReviewPage />} />
+            <Route path="/chief/appeals" element={<ChiefAppealsPage />} />
+            <Route path="/chief/appeals/:appealId" element={<ChiefAppealReviewPage />} />
+            <Route path="/chief/profile" element={<ChiefProfilePage />} />
 
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </HashRouter>
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </HashRouter>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

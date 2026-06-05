@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/PageShell.jsx';
-import { PageIntro } from '../../components/student/PageIntro.jsx';
 import { Icon } from '../../components/Icon.jsx';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 import { STUDENT_SHELL } from '../studentShell.js';
 
 const STEPS = ['Student details', 'Guardian contact', 'Review and submit'];
+const CYCLES = ['2025/2026 Bursary Cycle', '2024/2025 Bursary Cycle'];
 
 export function StudentWizardPage() {
+  const { userId } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -23,31 +28,60 @@ export function StudentWizardPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function goNext() {
+  function canProceed() {
+    if (step === 0) return form.firstName.trim() && form.lastName.trim() && form.institution.trim();
+    if (step === 1) return form.guardianName.trim() && form.guardianPhone.trim();
+    return true;
+  }
+
+  async function goNext() {
     if (step < STEPS.length - 1) {
       setStep((s) => s + 1);
       return;
     }
-    setSubmitted(true);
-    window.alert(
-      'Your application would be submitted securely. This demo stops here — you will get confirmation and next steps when the backend is connected.'
-    );
-  }
-
-  function goBack() {
-    if (step > 0) setStep((s) => s - 1);
+    setSubmitting(true);
+    setError('');
+    try {
+      const { error: insertError } = await supabase
+        .from('applications')
+        .insert({
+          user_id: userId,
+          first_name: form.firstName,
+          last_name: form.lastName,
+          institution: form.institution,
+          cycle: form.cycle,
+          guardian_name: form.guardianName,
+          guardian_phone: form.guardianPhone,
+          status: 'submitted',
+          program_name: 'Bursary Application'
+        });
+      if (insertError) throw insertError;
+      navigate('/student/applications');
+    } catch (err) {
+      setError(err.message || 'Failed to submit application');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <PageShell pageTitle="New application" {...STUDENT_SHELL}>
+    <PageShell pageTitle="New application" layout="dashboard" {...STUDENT_SHELL}>
       <Link className="back-link" to="/student/applications">
         <Icon name="chevronLeft" size={18} />
         Back to applications
       </Link>
 
-      <PageIntro
-        lead="Complete each step below. You can save and return before submitting."
-      />
+      <div className="stitch-support-hero">
+        <h1 className="stitch-support-hero__title" style={{ fontSize: 32 }}>New Application</h1>
+        <p className="stitch-support-hero__desc">Complete each step below. Your information will be saved securely.</p>
+      </div>
+
+      {error && (
+        <div className="notice page-section--full" style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)', marginBottom: 16 }}>
+          <strong>Error</strong>
+          <p>{error}</p>
+        </div>
+      )}
 
       <section className="wizard-panel page-section--full" aria-label="Application wizard">
         <div className="wizard-progress" aria-hidden="true">
@@ -66,43 +100,20 @@ export function StudentWizardPage() {
           <>
             <div className="field">
               <label htmlFor="firstName">Student first name</label>
-              <input
-                id="firstName"
-                type="text"
-                placeholder="e.g. Brian"
-                value={form.firstName}
-                onChange={(e) => updateField('firstName', e.target.value)}
-              />
+              <input id="firstName" type="text" placeholder="e.g. Brian" value={form.firstName} onChange={(e) => updateField('firstName', e.target.value)} />
             </div>
             <div className="field">
               <label htmlFor="lastName">Student last name</label>
-              <input
-                id="lastName"
-                type="text"
-                placeholder="e.g. Kamau"
-                value={form.lastName}
-                onChange={(e) => updateField('lastName', e.target.value)}
-              />
+              <input id="lastName" type="text" placeholder="e.g. Kamau" value={form.lastName} onChange={(e) => updateField('lastName', e.target.value)} />
             </div>
             <div className="field">
               <label htmlFor="institution">Institution name</label>
-              <input
-                id="institution"
-                type="text"
-                placeholder="e.g. St. Mary Primary School"
-                value={form.institution}
-                onChange={(e) => updateField('institution', e.target.value)}
-              />
+              <input id="institution" type="text" placeholder="e.g. St. Mary Primary School" value={form.institution} onChange={(e) => updateField('institution', e.target.value)} />
             </div>
             <div className="field">
               <label htmlFor="cycle">Bursary cycle</label>
-              <select
-                id="cycle"
-                value={form.cycle}
-                onChange={(e) => updateField('cycle', e.target.value)}
-              >
-                <option>2025/2026 Bursary Cycle</option>
-                <option>2024/2025 Bursary Cycle</option>
+              <select id="cycle" value={form.cycle} onChange={(e) => updateField('cycle', e.target.value)}>
+                {CYCLES.map((c) => <option key={c}>{c}</option>)}
               </select>
             </div>
           </>
@@ -112,87 +123,48 @@ export function StudentWizardPage() {
           <>
             <div className="field">
               <label htmlFor="guardianName">Parent or guardian name</label>
-              <input
-                id="guardianName"
-                type="text"
-                placeholder="Full name"
-                value={form.guardianName}
-                onChange={(e) => updateField('guardianName', e.target.value)}
-              />
+              <input id="guardianName" type="text" placeholder="Full name" value={form.guardianName} onChange={(e) => updateField('guardianName', e.target.value)} />
             </div>
             <div className="field">
               <label htmlFor="guardianPhone">Phone number for updates</label>
-              <input
-                id="guardianPhone"
-                type="tel"
-                placeholder="e.g. 07XX XXX XXX"
-                value={form.guardianPhone}
-                onChange={(e) => updateField('guardianPhone', e.target.value)}
-              />
-              <p className="field__help">
-                We will use this for OTP verification and important alerts only.
-              </p>
+              <input id="guardianPhone" type="tel" placeholder="e.g. 07XX XXX XXX" value={form.guardianPhone} onChange={(e) => updateField('guardianPhone', e.target.value)} />
+              <p className="field__help">We will use this for OTP verification and important alerts only.</p>
             </div>
           </>
         ) : null}
 
         {step === 2 ? (
           <div role="region" aria-label="Review your details">
-            <p className="field__help" style={{ marginTop: 0 }}>
-              Please check your details before submitting.
-            </p>
+            <p className="field__help" style={{ marginTop: 0 }}>Please check your details before submitting.</p>
             <dl className="detail-grid">
-              <div className="detail-grid__row">
-                <dt>Student</dt>
-                <dd>
-                  {form.firstName || '—'} {form.lastName}
-                </dd>
-              </div>
-              <div className="detail-grid__row">
-                <dt>Institution</dt>
-                <dd>{form.institution || '—'}</dd>
-              </div>
-              <div className="detail-grid__row">
-                <dt>Cycle</dt>
-                <dd>{form.cycle}</dd>
-              </div>
-              <div className="detail-grid__row">
-                <dt>Guardian</dt>
-                <dd>{form.guardianName || '—'}</dd>
-              </div>
-              <div className="detail-grid__row">
-                <dt>Guardian phone</dt>
-                <dd>{form.guardianPhone || '—'}</dd>
-              </div>
+              <div className="detail-grid__row"><dt>Student</dt><dd>{form.firstName || '—'} {form.lastName}</dd></div>
+              <div className="detail-grid__row"><dt>Institution</dt><dd>{form.institution || '—'}</dd></div>
+              <div className="detail-grid__row"><dt>Cycle</dt><dd>{form.cycle}</dd></div>
+              <div className="detail-grid__row"><dt>Guardian</dt><dd>{form.guardianName || '—'}</dd></div>
+              <div className="detail-grid__row"><dt>Guardian phone</dt><dd>{form.guardianPhone || '—'}</dd></div>
             </dl>
           </div>
         ) : null}
 
         <div className="btn-row" style={{ marginTop: 14 }}>
           {step > 0 ? (
-            <button type="button" className="btn btn--secondary" onClick={goBack}>
+            <button type="button" className="btn btn--secondary" onClick={() => setStep((s) => s - 1)} style={{ borderRadius: 999, width: 'auto' }}>
               <Icon name="chevronLeft" size={18} />
               Previous
             </button>
           ) : null}
-          <button type="button" className="btn btn--primary" onClick={goNext}>
-            {step < STEPS.length - 1 ? 'Continue' : 'Submit application'}
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={goNext}
+            disabled={!canProceed() || submitting}
+            style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}
+          >
+            {submitting ? 'Submitting...' : step < STEPS.length - 1 ? 'Continue' : 'Submit application'}
             <Icon name="chevronRight" size={18} />
           </button>
         </div>
-
-        <p className="field__help" style={{ marginTop: 16 }}>
-          Tip: You can complete this form offline and submit when you have network access.
-        </p>
       </section>
-
-      {submitted ? (
-        <div className="notice block page-section--full" role="status">
-          <strong>Success</strong>
-          Your application has been recorded in this demo. You will receive confirmation when the
-          live system is connected.
-        </div>
-      ) : null}
     </PageShell>
   );
 }
