@@ -40,16 +40,16 @@ export function StudentNotificationsPage() {
           {notifs.map((item, idx) => (
             <li
               key={item.id || idx}
-              className={`feed-item feed-item--lively ${item.unread ? 'feed-item--unread' : ''} ${item.variant === 'warning' || item.type === 'warning' ? 'feed-item--urgent' : ''}`}
+              className={`feed-item feed-item--lively ${!item.is_read ? 'feed-item--unread' : ''}`}
             >
               <div className="feed-item__icon" aria-hidden="true">
-                <Icon name={TYPE_ICONS[item.variant || item.type] || 'bell'} size={18} />
+                <Icon name={TYPE_ICONS.info || 'bell'} size={18} />
               </div>
               <div>
-                <p className="feed-item__title">{item.title || item.subject}</p>
-                <p className="feed-item__body">{item.body || item.message}</p>
-                {item.time || item.created_at ? (
-                  <span className="feed-item__time">{item.time || new Date(item.created_at).toLocaleDateString()}</span>
+                <p className="feed-item__title">{item.title}</p>
+                <p className="feed-item__body">{item.message}</p>
+                {item.created_at ? (
+                  <span className="feed-item__time">{new Date(item.created_at).toLocaleDateString()}</span>
                 ) : null}
               </div>
             </li>

@@ -3,8 +3,7 @@ import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useSecureData } from '../../../lib/useSecureData';
-import { fetchStudentDocuments, fetchDocumentChecklist } from '../../../lib/queries';
-import { supabase } from '../../../lib/supabase';
+import { fetchStudentDocuments, uploadStudentDocument } from '../../../lib/queries';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
 const MAX_SIZE = 10 * 1024 * 1024;
@@ -102,49 +101,19 @@ export function StudentDocumentsPage() {
   const { userId } = useAuth();
   const [uploadOpen, setUploadOpen] = useState(false);
   const { data: documents, loading: docsLoading, refresh: refreshDocs } = useSecureData(fetchStudentDocuments);
-  const { data: checklist, loading: checkLoading } = useSecureData(fetchDocumentChecklist);
 
-  const loading = docsLoading || checkLoading;
+  const loading = docsLoading;
   const docList = documents || [];
-  const checkItems = checklist || [];
 
-  const verifiedCount = docList.filter(d => d.status === 'verified' || d.verification_status === 'verified').length;
-  const totalCount = Math.max(docList.length, checkItems.length || 4);
+  const verifiedCount = docList.filter(d => d.ai_verified === true).length;
+  const totalCount = Math.max(docList.length, 1);
   const progressPct = totalCount > 0 ? Math.round((verifiedCount / totalCount) * 100) : 0;
 
   const handleUpload = useCallback(async (docType, file) => {
     if (!userId) throw new Error('Not authenticated');
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${userId}/${Date.now()}_${docType}.${fileExt}`;
-    const { error: uploadError } = await supabase.storage
-      .from('student-documents')
-      .upload(filePath, file, {
-        contentType: file.type,
-        upsert: false
-      });
-    if (uploadError) throw uploadError;
-    const { error: insertError } = await supabase
-      .from('documents')
-      .insert({
-        user_id: userId,
-        document_type: docType,
-        file_path: filePath,
-        file_name: file.name,
-        file_size: file.size,
-        mime_type: file.type,
-        status: 'uploaded',
-        verification_status: 'pending'
-      });
-    if (insertError) throw insertError;
+    await uploadStudentDocument(userId, null, docType, file);
     refreshDocs();
   }, [userId, refreshDocs]);
-
-  function getStatusBadge(status) {
-    if (status === 'verified') return <span className="doc-checklist__status doc-checklist__status--ok">Verified</span>;
-    if (status === 'pending' || status === 'uploaded') return <span className="stitch-docs-checklist__item-status stitch-docs-checklist__item-status--pending">Pending</span>;
-    if (status === 'rejected') return <span className="doc-checklist__status doc-checklist__status--missing">Rejected</span>;
-    return <span className="doc-checklist__status doc-checklist__status--missing">{status || 'Missing'}</span>;
-  }
 
   return (
     <StudentLayout pageTitle="Documents" layout="dashboard">
@@ -249,7 +218,7 @@ export function StudentDocumentsPage() {
                         <Icon name="documents" size={20} />
                       </div>
                       <div>
-                        <p style={{ fontWeight: 700, margin: 0, fontSize: 14 }}>{doc.file_name || doc.name}</p>
+                        <p style={{ fontWeight: 700, margin: 0, fontSize: 14 }}>{doc.original_filename || doc.document_type}</p>
                         <p style={{ fontSize: 12, color: '#434654', margin: '4px 0 0' }}>
                           {doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)} MB` : ''}
                           {doc.uploaded_at && ` · ${new Date(doc.uploaded_at).toLocaleDateString()}`}
@@ -257,7 +226,7 @@ export function StudentDocumentsPage() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      {getStatusBadge(doc.verification_status || doc.status)}
+                      {doc.ai_verified ? <span className="doc-checklist__status doc-checklist__status--ok">Verified</span> : <span className="stitch-docs-checklist__item-status stitch-docs-checklist__item-status--pending">Pending</span>}
                     </div>
                   </div>
                 ))}

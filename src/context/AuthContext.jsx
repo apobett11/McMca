@@ -9,47 +9,72 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        fetchUserRole(s.user.id);
+  async function fetchUserRole(userId) {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('auth_user_id', userId)
+        .single();
+      if (!error && data) {
+        setRole(data.role);
+        return data.role;
       } else {
-        setLoading(false);
+        setRole(null);
+        return null;
       }
-    });
+    } catch {
+      setRole(null);
+      return null;
+    }
+  }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+  useEffect(() => {
+    let active = true;
+
+    async function initAuth() {
+      try {
+        setLoading(true);
+        const { data: { session: s } } = await supabase.auth.getSession();
+        if (!active) return;
+
+        setSession(s);
+        setUser(s?.user ?? null);
+
+        if (s?.user) {
+          await fetchUserRole(s.user.id);
+        } else {
+          setRole(null);
+        }
+      } catch (err) {
+        console.error('Error during auth initialization', err);
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
+      if (!active) return;
+      setLoading(true);
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        fetchUserRole(s.user.id);
+        await fetchUserRole(s.user.id);
       } else {
         setRole(null);
       }
       setLoading(false);
     });
 
-    return () => subscription?.unsubscribe();
+    return () => {
+      active = false;
+      subscription?.unsubscribe();
+    };
   }, []);
-
-  async function fetchUserRole(userId) {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single();
-      if (!error && data) {
-        setRole(data.role);
-      } else {
-        setRole('student');
-      }
-    } catch {
-      setRole('student');
-    }
-  }
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();

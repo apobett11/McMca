@@ -14,9 +14,44 @@ export function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      // STEP 1: Authenticate user
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       if (signInError) throw signInError;
-      navigate('/student/dashboard');
+
+      // STEP 2: Fetch authenticated user
+      const {
+        data: { user },
+        error: userError
+      } = await supabase.auth.getUser();
+      if (userError || !user) throw userError || new Error('No user found');
+
+      // STEP 3: Fetch role from public.user_roles
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('auth_user_id', user.id)
+        .single();
+
+      if (roleError || !roleData) {
+        throw roleError || new Error('No role associated with this user');
+      }
+
+      // STEP 4: Render dashboard according to role
+      const role = roleData.role;
+      if (role === 'student') {
+        navigate('/student/dashboard');
+      } else if (role === 'parent') {
+        navigate('/parent/dashboard');
+      } else if (role === 'chief') {
+        navigate('/chief/dashboard');
+      } else if (role === 'mca') {
+        navigate('/mca/dashboard');
+      } else {
+        throw new Error('Invalid user role');
+      }
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {

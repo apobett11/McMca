@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
@@ -19,6 +20,7 @@ function ProfileSkeleton() {
 
 export function StudentProfilePage() {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { data: profile, loading, refresh } = useSecureData(fetchStudentProfile);
   const { data: parentLink } = useSecureData(fetchLinkedParent);
   const [editing, setEditing] = useState(false);
@@ -29,11 +31,8 @@ export function StudentProfilePage() {
   useEffect(() => {
     if (profile) {
       setForm({
-        phone: profile.phone || '',
-        address: profile.address || '',
-        emergency_contact: profile.emergency_contact || '',
-        emergency_phone: profile.emergency_phone || '',
-        bio: profile.bio || ''
+        phone_number: profile.phone_number || '',
+        email: profile.email || ''
       });
     }
   }, [profile]);
@@ -56,6 +55,7 @@ export function StudentProfilePage() {
 
   async function handleSignOut() {
     await signOut();
+    navigate('/login');
   }
 
   if (loading) {
@@ -66,13 +66,12 @@ export function StudentProfilePage() {
     );
   }
 
-  const studentName = profile?.full_name || profile?.firstName || user?.user_metadata?.full_name || 'Student';
+  const studentName = [profile?.first_name, profile?.middle_name, profile?.last_name].filter(Boolean).join(' ') || user?.user_metadata?.full_name || 'Student';
   const initials = studentName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  const institution = profile?.institution || profile?.institutionName || '—';
-  const studentId = profile?.student_id || profile?.studentId || user?.id?.slice(0, 8) || '—';
+  const institution = profile?.school_name || '—';
+  const studentId = profile?.admission_number || '—';
   const email = profile?.email || user?.email || '—';
-  const phone = profile?.phone || '—';
-  const cycle = profile?.cycle || '2025/2026 Bursary Cycle';
+  const phone = profile?.phone_number || '—';
   const parentData = parentLink?.parent_profiles || null;
 
   return (
@@ -109,7 +108,7 @@ export function StudentProfilePage() {
               </span>
               <span className="stitch-profile-header__badge">
                 <Icon name="calendar" size={14} />
-                {cycle}
+                Bursary Cycle
               </span>
             </div>
           </div>
@@ -150,46 +149,18 @@ export function StudentProfilePage() {
                   <label className="stitch-profile-form__label">Phone</label>
                   <input
                     className="stitch-profile-form__input"
-                    value={form.phone}
-                    onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))}
+                    value={form.phone_number}
+                    onChange={(e) => setForm(f => ({ ...f, phone_number: e.target.value }))}
                     placeholder="Enter phone number"
                   />
                 </div>
-                <div className="stitch-profile-form__field stitch-profile-form__field--full">
-                  <label className="stitch-profile-form__label">Address</label>
-                  <input
-                    className="stitch-profile-form__input"
-                    value={form.address}
-                    onChange={(e) => setForm(f => ({ ...f, address: e.target.value }))}
-                    placeholder="Enter address"
-                  />
-                </div>
                 <div className="stitch-profile-form__field">
-                  <label className="stitch-profile-form__label">Emergency Contact</label>
+                  <label className="stitch-profile-form__label">Email</label>
                   <input
                     className="stitch-profile-form__input"
-                    value={form.emergency_contact}
-                    onChange={(e) => setForm(f => ({ ...f, emergency_contact: e.target.value }))}
-                    placeholder="Contact name"
-                  />
-                </div>
-                <div className="stitch-profile-form__field">
-                  <label className="stitch-profile-form__label">Emergency Phone</label>
-                  <input
-                    className="stitch-profile-form__input"
-                    value={form.emergency_phone}
-                    onChange={(e) => setForm(f => ({ ...f, emergency_phone: e.target.value }))}
-                    placeholder="Emergency phone"
-                  />
-                </div>
-                <div className="stitch-profile-form__field stitch-profile-form__field--full">
-                  <label className="stitch-profile-form__label">Bio</label>
-                  <textarea
-                    className="stitch-profile-form__textarea"
-                    value={form.bio}
-                    onChange={(e) => setForm(f => ({ ...f, bio: e.target.value }))}
-                    placeholder="Short bio"
-                    rows={3}
+                    value={form.email}
+                    onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="Enter email"
                   />
                 </div>
                 <div className="stitch-profile-form__field stitch-profile-form__field--full" style={{ display: 'flex', gap: 12, flexDirection: 'row' }}>
@@ -223,10 +194,6 @@ export function StudentProfilePage() {
                   <dt>Email</dt>
                   <dd>{email}</dd>
                 </div>
-                <div className="detail-grid__row">
-                  <dt>Bursary cycle</dt>
-                  <dd>{cycle}</dd>
-                </div>
               </dl>
             )}
           </section>
@@ -242,11 +209,11 @@ export function StudentProfilePage() {
               <dl className="detail-grid">
                 <div className="detail-grid__row">
                   <dt>Parent name</dt>
-                  <dd>{parentData.full_name || parentData.fullName || '—'}</dd>
+                  <dd>{parentData.first_name || parentData.full_name || '—'}</dd>
                 </div>
                 <div className="detail-grid__row">
                   <dt>Phone</dt>
-                  <dd>{parentData.phone || '—'}</dd>
+                  <dd>{parentData.phone_number || parentData.phone || '—'}</dd>
                 </div>
                 <div className="detail-grid__row">
                   <dt>Email</dt>

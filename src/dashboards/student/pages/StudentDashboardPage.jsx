@@ -45,13 +45,12 @@ function computeReadiness(profile, application) {
   if (!profile) return { pct: 0, label: 'Not started', desc: 'Begin your profile to get started' };
   let score = 0;
   const checks = [];
-  if (profile.full_name) { score += 15; checks.push('name'); }
-  if (profile.phone) { score += 15; checks.push('phone'); }
+  if (profile.first_name) { score += 15; checks.push('name'); }
+  if (profile.phone_number) { score += 15; checks.push('phone'); }
   if (profile.email) { score += 10; checks.push('email'); }
-  if (profile.institution) { score += 15; checks.push('institution'); }
-  if (profile.address) { score += 10; checks.push('address'); }
+  if (profile.school_name) { score += 15; checks.push('institution'); }
   if (application) { score += 20; checks.push('application'); }
-  if (application?.status === 'submitted' || application?.status === 'Under Review' || application?.status === 'Approved' || application?.status === 'Funds Sent') { score += 15; checks.push('submitted'); }
+  if (application?.application_status === 'submitted' || application?.application_status === 'Under Review' || application?.application_status === 'Approved' || application?.application_status === 'Funds Sent') { score += 15; checks.push('submitted'); }
   const pct = Math.min(100, score);
   let desc = 'Profile completion optimal';
   if (pct < 40) desc = 'Several items need your attention';
@@ -72,19 +71,18 @@ export function StudentDashboardPage() {
   const error = profileErr || appErr;
 
   const readiness = useMemo(() => computeReadiness(profile, application), [profile, application]);
-  const studentName = profile?.full_name || profile?.firstName || user?.user_metadata?.full_name || 'Student';
-  const institutionName = profile?.institution || profile?.institutionName || '';
-  const cycle = application?.cycle || profile?.cycle || '2025/2026 Bursary Cycle';
-  const statusConfig = application ? getStatusConfig(application.status) : null;
+  const studentName = [profile?.first_name, profile?.middle_name, profile?.last_name].filter(Boolean).join(' ') || user?.user_metadata?.full_name || 'Student';
+  const institutionName = profile?.school_name || '';
+  const statusConfig = application ? getStatusConfig(application.application_status || 'Draft') : null;
   const previewAlerts = (notifications || []).slice(0, 3);
   const previewActivity = (activity || []).slice(0, 3);
-  const hasUnread = previewAlerts.some((n) => n.unread);
+  const hasUnread = previewAlerts.some((n) => !n.is_read);
 
   if (loading) return <StudentLayout pageTitle="Dashboard" layout="dashboard" notificationBadge={false}><SkeletonLoader /></StudentLayout>;
   if (error) return <StudentLayout pageTitle="Dashboard" layout="dashboard"><ErrorState message={error.message} onRetry={() => { refreshProfile(); refreshApp(); }} /></StudentLayout>;
 
-  const nextAction = application?.next_action || (application ? null : { required: true, title: 'Start your application', route: '/student/new-application' });
-  const timelineStages = application?.timeline_stages || application?.timelineStages || [];
+  const nextAction = application ? null : { required: true, title: 'Start your application', route: '/student/new-application' };
+  const timelineStages = [];
 
   return (
     <StudentLayout
@@ -97,7 +95,7 @@ export function StudentDashboardPage() {
         <section className="dash-greeting-section">
           <div className="dash-greeting">
             <h1 className="dash-greeting__title">{greeting}, {studentName}</h1>
-            <p className="dash-greeting__meta">{institutionName} &bull; {cycle}</p>
+            <p className="dash-greeting__meta">{institutionName}</p>
           </div>
           <div className="dash-readiness ambient-shadow">
             <div className="dash-readiness__ring">
@@ -116,7 +114,7 @@ export function StudentDashboardPage() {
             <div>
               <span className="stitch-primary-card__badge">Active Process</span>
               <h2 className="stitch-primary-card__title">
-                {application?.program_name || application?.programName || (application ? 'Application In Progress' : 'No Active Application')}
+                {application ? 'Application In Progress' : 'No Active Application'}
               </h2>
             </div>
             {nextAction?.route && (
@@ -202,12 +200,12 @@ export function StudentDashboardPage() {
             <div className="dash-activity__list">
               {previewActivity.length > 0 ? previewActivity.map((item, idx) => (
                 <div key={idx} className="dash-activity__item">
-                  <div className="dash-activity__item-icon"><Icon name={item.icon || 'info'} size={20} /></div>
+                  <div className="dash-activity__item-icon"><Icon name="info" size={20} /></div>
                   <div className="dash-activity__item-body">
-                    <p className="dash-activity__item-title">{item.title || item.action}</p>
-                    <p className="stitch-body-text">{item.body || item.description}</p>
+                    <p className="dash-activity__item-title">{item.activity_description || item.activity_type}</p>
+                    <p className="stitch-body-text">{item.activity_description}</p>
                   </div>
-                  {item.time || item.created_at ? <span className="stitch-label stitch-label--muted">{item.time || new Date(item.created_at).toLocaleDateString()}</span> : null}
+                  {item.created_at ? <span className="stitch-label stitch-label--muted">{new Date(item.created_at).toLocaleDateString()}</span> : null}
                 </div>
               )) : (
                 <div className="dash-activity__item">

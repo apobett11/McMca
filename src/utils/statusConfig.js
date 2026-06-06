@@ -62,9 +62,31 @@ export const STATUS_CONFIG = {
   }
 };
 
+const DB_TO_DISPLAY = {
+  draft: 'Draft',
+  submitted: 'Submitted',
+  under_review: 'Under Review',
+  chief_approved: 'Chief Approved',
+  mca_review: 'MCA Review',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  funds_sent: 'Funds Sent',
+  disbursed: 'Disbursed',
+  appealed: 'Appealed'
+};
+
 export function getStatusConfig(status) {
+  if (!status) {
+    return {
+      label: 'Unknown',
+      hint: 'Status update',
+      tone: 'neutral',
+      icon: 'info'
+    };
+  }
+  const displayKey = DB_TO_DISPLAY[status.toLowerCase()] || status;
   return (
-    STATUS_CONFIG[status] || {
+    STATUS_CONFIG[displayKey] || {
       label: status,
       hint: 'Status update',
       tone: 'neutral',

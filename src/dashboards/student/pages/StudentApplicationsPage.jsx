@@ -28,14 +28,14 @@ export function StudentApplicationsPage() {
 
   function getStatusClass(status) {
     const map = {
-      Submitted: 'stitch-status-badge--review',
+      submitted: 'stitch-status-badge--review',
       'Under Review': 'stitch-status-badge--review',
-      'Chief Approved': 'stitch-status-badge--admitted',
-      Approved: 'stitch-status-badge--admitted',
+      chief_approved: 'stitch-status-badge--admitted',
+      approved: 'stitch-status-badge--admitted',
       'Funds Sent': 'stitch-status-badge--admitted',
-      Disbursed: 'stitch-status-badge--admitted',
-      Rejected: 'stitch-status-badge--declined',
-      Draft: 'stitch-status-badge--withdrawn'
+      disbursed: 'stitch-status-badge--admitted',
+      rejected: 'stitch-status-badge--declined',
+      draft: 'stitch-status-badge--withdrawn'
     };
     return map[status] || 'stitch-status-badge--withdrawn';
   }
@@ -66,13 +66,13 @@ export function StudentApplicationsPage() {
             <div className="stitch-apps-active__card-content">
               <div className="stitch-apps-active__card-left">
                 <span className="stitch-apps-active__badge">
-                  {activeApp.cycle || activeApp.year || 'Current Cycle'}
+                  Bursary Application
                 </span>
                 <h3 className="stitch-apps-active__card-title">
-                  {activeApp.program_name || activeApp.programName || 'Bursary Application'}
+                  {activeApp.institution_name || 'Bursary Application'}
                 </h3>
                 <p className="stitch-apps-active__card-id">
-                  Tracking: {activeApp.tracking_code || activeApp.trackingCode || activeApp.id}
+                  Tracking: {activeApp.id}
                 </p>
                 {activeApp.timeline_stages || activeApp.timelineStages ? (
                   <div className="stitch-apps-progress">
@@ -99,19 +99,14 @@ export function StudentApplicationsPage() {
               <div className="stitch-apps-active__next-step">
                 <p className="stitch-apps-active__next-step-label">
                   <Icon name="info" size={16} />
-                  {activeApp.next_action?.title ? 'NEXT STEP' : 'STATUS'}
+                  STATUS
                 </p>
                 <p className="stitch-apps-active__next-step-title">
-                  {activeApp.next_action?.title || getStatusConfig(activeApp.status).label}
+                  {getStatusConfig(activeApp.application_status).label}
                 </p>
                 <p className="stitch-apps-active__next-step-desc">
-                  {activeApp.next_action?.message || getStatusConfig(activeApp.status).hint}
+                  {getStatusConfig(activeApp.application_status).hint}
                 </p>
-                {activeApp.next_action?.route && (
-                  <Link to={activeApp.next_action.route} className="stitch-apps-active__next-step-btn">
-                    {activeApp.next_action.cta || 'Continue'}
-                  </Link>
-                )}
               </div>
             </div>
           </div>
@@ -140,7 +135,7 @@ export function StudentApplicationsPage() {
               </thead>
               <tbody>
                 {historyApps.map((app) => {
-                  const config = getStatusConfig(app.status);
+                  const config = getStatusConfig(app.application_status);
                   return (
                     <tr key={app.id}>
                       <td style={{ fontWeight: 600 }}>
@@ -149,14 +144,14 @@ export function StudentApplicationsPage() {
                             <Icon name="applications" size={20} />
                           </div>
                           <div>
-                            <span>{app.program_name || app.programName || 'Bursary Application'}</span>
+                            <span>{app.institution_name || 'Bursary Application'}</span>
                           </div>
                         </div>
                       </td>
-                      <td>{app.cycle || app.year || '—'}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>{app.tracking_code || app.trackingCode || app.id}</td>
+                      <td>{app.created_at ? new Date(app.created_at).toLocaleDateString() : '—'}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>{app.id}</td>
                       <td>
-                        <span className={`stitch-status-badge ${getStatusClass(app.status)}`}>
+                        <span className={`stitch-status-badge ${getStatusClass(app.application_status)}`}>
                           {config.label}
                         </span>
                       </td>

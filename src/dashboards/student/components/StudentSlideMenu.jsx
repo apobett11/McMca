@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/Icon.jsx';
+import { useAuth } from '../../../context/AuthContext.jsx';
 
 const STUDENT_ITEMS = [
   { label: 'Home', path: '/student/dashboard', icon: 'home' },
@@ -14,6 +15,7 @@ const STUDENT_ITEMS = [
 
 export function StudentSlideMenu({ open, onClose }) {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -31,10 +33,14 @@ export function StudentSlideMenu({ open, onClose }) {
     };
   }, [open, onClose]);
 
-  function handleLogout() {
+  async function handleLogout() {
     onClose();
-    window.alert('You would be signed out safely — demo not connected yet.');
-    navigate('/student/dashboard');
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   }
 
   return (

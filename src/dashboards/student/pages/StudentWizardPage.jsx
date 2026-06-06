@@ -41,20 +41,49 @@ export function StudentWizardPage() {
     setSubmitting(true);
     setError('');
     try {
-      const { error: insertError } = await supabase
-        .from('applications')
-        .insert({
-          user_id: userId,
+      const { data: profile, error: profileError } = await supabase
+        .from('student_profiles')
+        .select('id')
+        .eq('auth_user_id', userId)
+        .single();
+      if (profileError) throw profileError;
+
+      await supabase
+        .from('student_profiles')
+        .update({
           first_name: form.firstName,
           last_name: form.lastName,
-          institution: form.institution,
-          cycle: form.cycle,
-          guardian_name: form.guardianName,
-          guardian_phone: form.guardianPhone,
-          status: 'submitted',
-          program_name: 'Bursary Application'
+          school_name: form.institution
+        })
+        .eq('auth_user_id', userId);
+
+      const { error: appError } = await supabase
+        .from('student_applications')
+        .insert({
+          student_profile_id: profile.id,
+          application_status: 'submitted',
+          institution_name: form.institution
         });
-      if (insertError) throw insertError;
+      if (appError) throw appError;
+
+      const { data: app } = await supabase
+        .from('student_applications')
+        .select('id')
+        .eq('student_profile_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (app) {
+        await supabase
+          .from('application_details')
+          .insert({
+            application_id: app.id,
+            guardian_name: form.guardianName,
+            guardian_phone: form.guardianPhone
+          });
+      }
+
       navigate('/student/applications');
     } catch (err) {
       setError(err.message || 'Failed to submit application');

@@ -1,20 +1,31 @@
 import { supabase } from './supabase';
 
+async function getProfileIdByAuthId(userId) {
+  const { data, error } = await supabase
+    .from('student_profiles')
+    .select('id')
+    .eq('auth_user_id', userId)
+    .single();
+  if (error) throw error;
+  return data.id;
+}
+
 export async function fetchStudentProfile(userId) {
   const { data, error } = await supabase
     .from('student_profiles')
     .select('*')
-    .eq('user_id', userId)
+    .eq('auth_user_id', userId)
     .single();
   if (error) throw error;
   return data;
 }
 
 export async function fetchStudentApplication(userId) {
+  const profileId = await getProfileIdByAuthId(userId);
   const { data, error } = await supabase
-    .from('applications')
+    .from('student_applications')
     .select('*')
-    .eq('user_id', userId)
+    .eq('student_profile_id', profileId)
     .order('created_at', { ascending: false })
     .limit(1)
     .single();
@@ -23,30 +34,33 @@ export async function fetchStudentApplication(userId) {
 }
 
 export async function fetchAllApplications(userId) {
+  const profileId = await getProfileIdByAuthId(userId);
   const { data, error } = await supabase
-    .from('applications')
+    .from('student_applications')
     .select('*')
-    .eq('user_id', userId)
+    .eq('student_profile_id', profileId)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
 }
 
 export async function fetchStudentNotifications(userId) {
+  const profileId = await getProfileIdByAuthId(userId);
   const { data, error } = await supabase
-    .from('notifications')
+    .from('student_notifications')
     .select('*')
-    .eq('user_id', userId)
+    .eq('student_profile_id', profileId)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
 }
 
 export async function fetchRecentActivity(userId) {
+  const profileId = await getProfileIdByAuthId(userId);
   const { data, error } = await supabase
-    .from('activity_log')
+    .from('student_activity_logs')
     .select('*')
-    .eq('user_id', userId)
+    .eq('student_profile_id', profileId)
     .order('created_at', { ascending: false })
     .limit(10);
   if (error) throw error;
@@ -54,23 +68,18 @@ export async function fetchRecentActivity(userId) {
 }
 
 export async function fetchStudentDocuments(userId) {
+  const profileId = await getProfileIdByAuthId(userId);
   const { data, error } = await supabase
-    .from('documents')
+    .from('student_documents')
     .select('*')
-    .eq('user_id', userId)
+    .eq('student_profile_id', profileId)
     .order('uploaded_at', { ascending: false });
   if (error) throw error;
   return data || [];
 }
 
-export async function fetchDocumentChecklist(userId) {
-  const { data, error } = await supabase
-    .from('document_checklist')
-    .select('*')
-    .eq('user_id', userId)
-    .order('required_order', { ascending: true });
-  if (error) throw error;
-  return data || [];
+export async function fetchDocumentChecklist() {
+  return [];
 }
 
 export async function fetchConversations(userId) {
@@ -108,10 +117,11 @@ export async function sendMessage(conversationId, senderId, content) {
 }
 
 export async function fetchLinkedParent(userId) {
+  const profileId = await getProfileIdByAuthId(userId);
   const { data, error } = await supabase
     .from('student_parent_links')
     .select('parent_id, parent_profiles(*)')
-    .eq('student_id', userId)
+    .eq('student_profile_id', profileId)
     .single();
   if (error && error.code !== 'PGRST116') throw error;
   return data;
@@ -119,11 +129,8 @@ export async function fetchLinkedParent(userId) {
 
 export async function updateStudentProfile(userId, updates) {
   const allowedFields = [
-    'phone',
-    'address',
-    'emergency_contact',
-    'emergency_phone',
-    'bio'
+    'phone_number',
+    'email'
   ];
   const safeUpdates = {};
   for (const key of Object.keys(updates)) {
@@ -137,29 +144,44 @@ export async function updateStudentProfile(userId, updates) {
   const { data, error } = await supabase
     .from('student_profiles')
     .update(safeUpdates)
-    .eq('user_id', userId)
+    .eq('auth_user_id', userId)
     .select()
     .single();
   if (error) throw error;
   return data;
 }
 
-export async function getDocumentUploadUrl(userId, fileName, fileType) {
-  const filePath = `${userId}/${Date.now()}_${fileName}`;
-  const { data, error } = await supabase.storage
+export async function uploadStudentDocument(userId, applicationId, docType, file) {
+  const profileId = await getProfileIdByAuthId(userId);
+  const fileExt = file.name.split('.').pop();
+  const storagePath = `student-documents/${profileId}/${applicationId || 'general'}/${Date.now()}_${docType}.${fileExt}`;
+  const { error: uploadError } = await supabase.storage
     .from('student-documents')
-    .upload(filePath, fileName, {
-      contentType: fileType,
+    .upload(storagePath, file, {
+      contentType: file.type,
       upsert: false
     });
-  if (error) throw error;
-  return data;
+  if (uploadError) throw uploadError;
+  const { error: insertError } = await supabase
+    .from('student_documents')
+    .insert({
+      student_profile_id: profileId,
+      application_id: applicationId || null,
+      document_type: docType,
+      bucket_name: 'student-documents',
+      storage_path: storagePath,
+      original_filename: file.name,
+      mime_type: file.type,
+      file_size: file.size,
+      uploaded_by: userId
+    });
+  if (insertError) throw insertError;
 }
 
-export async function getDocumentSignedUrl(filePath) {
+export async function getDocumentSignedUrl(storagePath) {
   const { data, error } = await supabase.storage
     .from('student-documents')
-    .createSignedUrl(filePath, 3600);
+    .createSignedUrl(storagePath, 3600);
   if (error) throw error;
   return data?.signedUrl;
 }

@@ -17,14 +17,28 @@ export function StudentAppealsPage() {
     setSubmitting(true);
     setError('');
     try {
-      const { error: insertError } = await supabase
-        .from('appeals')
-        .insert({
-          user_id: userId,
-          reason: reason.trim(),
-          status: 'submitted'
-        });
-      if (insertError) throw insertError;
+      const { data: profile, error: profileError } = await supabase
+        .from('student_profiles')
+        .select('id')
+        .eq('auth_user_id', userId)
+        .single();
+      if (profileError) throw profileError;
+
+      const { data: app, error: appError } = await supabase
+        .from('student_applications')
+        .select('id')
+        .eq('student_profile_id', profile.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (appError) throw appError;
+
+      const { error: updateError } = await supabase
+        .from('student_applications')
+        .update({ appeal_status: 'submitted' })
+        .eq('id', app.id);
+      if (updateError) throw updateError;
+
       setSubmitted(true);
       setReason('');
     } catch (err) {
