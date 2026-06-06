@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
-import { Icon } from '../../components/Icon.jsx';
-import { CHIEF, CHIEF_NOTIFICATIONS, CHIEF_SUMMARY } from '../../data/chiefMock.js';
-import { getTimeGreeting } from '../../utils/greeting.js';
+import { Icon } from '../../../components/Icon.jsx';
+import { CHIEF, CHIEF_NOTIFICATIONS, CHIEF_SUMMARY } from '../../../data/chiefMock.js';
+import { getTimeGreeting } from '../../../utils/greeting.js';
 
 const quickActions = [
   { label: 'Open Apps', icon: 'applications', variant: 'gold', to: '/chief/applications' },
@@ -170,6 +170,6 @@ export function ChiefDashboardPage() {
           </div>
         </div>
       </div>
-    </PageShell>
+    </ChiefLayout>
   );
 }

@@ -1,8 +1,8 @@
 import React from 'react';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
-import { SectionCard } from '../../components/SectionCard.jsx';
-import { Icon } from '../../components/Icon.jsx';
-import { CHIEF } from '../../data/chiefMock.js';
+import { SectionCard } from '../../../components/SectionCard.jsx';
+import { Icon } from '../../../components/Icon.jsx';
+import { CHIEF } from '../../../data/chiefMock.js';
 
 export function ChiefProfilePage() {
   return (

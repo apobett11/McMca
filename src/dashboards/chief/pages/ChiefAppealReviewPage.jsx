@@ -1,16 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
-import { SectionCard } from '../../components/SectionCard.jsx';
-import { ReviewActionModal } from '../../components/chief/ReviewActionModal.jsx';
-import { Icon } from '../../components/Icon.jsx';
+import { SectionCard } from '../../../components/SectionCard.jsx';
+import { ReviewActionModal } from '../../../components/chief/ReviewActionModal.jsx';
+import { Icon } from '../../../components/Icon.jsx';
 import {
   CHIEF,
   CHIEF_APPEALS,
   APPEAL_DOCUMENTS,
   APPEAL_ORIGINAL_APPLICATIONS
-} from '../../data/chiefMock.js';
-import { getAppealBadgeClass, getVerificationBadgeClass } from '../../utils/badges.js';
+} from '../../../data/chiefMock.js';
+import { getAppealBadgeClass, getVerificationBadgeClass } from '../../../utils/badges.js';
 
 function formatDateTime(iso) {
   return new Date(iso).toLocaleString('en-KE', {

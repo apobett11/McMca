@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
-import { SectionCard } from '../../components/SectionCard.jsx';
-import { TableFilters } from '../../components/TableFilters.jsx';
-import { ChiefAppealsTable } from '../../components/chief/ChiefAppealsTable.jsx';
+import { SectionCard } from '../../../components/SectionCard.jsx';
+import { TableFilters } from '../../../components/TableFilters.jsx';
+import { ChiefAppealsTable } from '../../../components/chief/ChiefAppealsTable.jsx';
 import {
   TableSearchSort,
   applySearch,
@@ -11,8 +11,8 @@ import {
   buildDynamicFilterOptions,
   CHIEF_APPEAL_FILTERS,
   CHIEF_APPEAL_FILTER_DEFAULTS
-} from '../../components/chief/TableSearchSort.jsx';
-import { CHIEF, CHIEF_APPEALS } from '../../data/chiefMock.js';
+} from '../../../components/chief/TableSearchSort.jsx';
+import { CHIEF, CHIEF_APPEALS } from '../../../data/chiefMock.js';
 
 const SORT_OPTIONS = [
   { value: 'lastUpdated-desc', label: 'Last updated (newest)' },
@@ -71,6 +71,6 @@ export function ChiefAppealsPage() {
         </p>
         <ChiefAppealsTable rows={filtered} />
       </SectionCard>
-    </PageShell>
+    </ChiefLayout>
   );
 }

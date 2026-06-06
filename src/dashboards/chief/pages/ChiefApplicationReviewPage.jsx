@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
-import { SectionCard } from '../../components/SectionCard.jsx';
-import { ReviewActionModal } from '../../components/chief/ReviewActionModal.jsx';
-import { Icon } from '../../components/Icon.jsx';
+import { SectionCard } from '../../../components/SectionCard.jsx';
+import { ReviewActionModal } from '../../../components/chief/ReviewActionModal.jsx';
+import { Icon } from '../../../components/Icon.jsx';
 import {
   getApplicationBadgeClass,
   getDocumentBadgeClass,
   getVerificationBadgeClass
-} from '../../utils/badges.js';
+} from '../../../utils/badges.js';
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-KE', {
