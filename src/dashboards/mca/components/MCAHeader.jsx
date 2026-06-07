@@ -17,10 +17,34 @@ export function MCAHeader({
   return (
     <header className="site-header" role="banner">
       <div className="site-header__inner">
-        <div className="header-actions header-actions--left">
+        <button
+          type="button"
+          className="header-icon-btn header-icon-btn--hamburger"
+          onClick={onMenuOpen}
+          aria-label="Open navigation menu"
+        >
+          <span className="header-icon-btn__bars" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+        </button>
+
+        <h1 className="site-header__page-title">{pageTitle}</h1>
+
+        <div className="header-actions header-actions--right">
+          <div className="header-branding">
+            <img
+              src="/images/ng-cdf-logo.png"
+              alt="NG-CDF"
+              className="header-branding__logo"
+            />
+            <span className="header-branding__text">Tendeno/Sorget Bursary Portal</span>
+          </div>
+
           <button
             type="button"
-            className="header-icon-btn header-icon-btn--theme"
+            className="header-icon-btn"
             onClick={cycleTheme}
             aria-label={`Theme: ${themeLabel}. Click to change.`}
             title={`Theme: ${themeLabel}`}
@@ -44,27 +68,6 @@ export function MCAHeader({
               <span aria-hidden="true">{mcaName ? mcaName.split(' ').map(n=>n[0]).join('') : 'MA'}</span>
             </Link>
           ) : null}
-        </div>
-
-        <h1 className="site-header__page-title">{pageTitle}</h1>
-
-        <div className="header-actions header-actions--right">
-          <div className="header-branding">
-            <span className="header-branding__logo" aria-hidden="true">NG</span>
-            <span className="header-branding__text">Tendeno/Sorget Bursary Portal</span>
-          </div>
-          <button
-            type="button"
-            className="header-icon-btn"
-            onClick={onMenuOpen}
-            aria-label="Open navigation menu"
-          >
-            <span className="header-icon-btn__bars" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </span>
-          </button>
         </div>
       </div>
     </header>
