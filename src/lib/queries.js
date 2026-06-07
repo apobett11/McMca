@@ -82,17 +82,6 @@ export async function fetchDocumentChecklist() {
   return [];
 }
 
-export async function fetchLinkedParent(userId) {
-  const profileId = await getProfileIdByAuthId(userId);
-  const { data, error } = await supabase
-    .from('student_parent_links')
-    .select('parent_id, parent_profiles(*)')
-    .eq('student_profile_id', profileId)
-    .single();
-  if (error && error.code !== 'PGRST116') throw error;
-  return data;
-}
-
 export async function updateStudentProfile(userId, updates) {
   const allowedFields = [
     'phone_number',
