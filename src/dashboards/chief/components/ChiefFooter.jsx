@@ -1,27 +1,10 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-
-const FOOTER_LINKS = [
-  { label: 'Support', to: '/chief/support' },
-  { label: 'Privacy Policy', to: '/chief/support' },
-  { label: 'Terms', to: '/chief/support' },
-  { label: 'Ward Office Contacts', to: '/chief/support' }
-];
-
-const VERSION = '1.0.0';
 
 export function ChiefFooter() {
   return (
     <footer className="site-footer" role="contentinfo">
       <div className="site-footer__inner">
-        <nav className="site-footer__links" aria-label="Footer links">
-          {FOOTER_LINKS.map((link) => (
-            <NavLink key={link.label} to={link.to} className="site-footer__link">
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
-        <p className="site-footer__version">Version {VERSION}</p>
+        <p className="site-footer__version">&copy; Royal Developers 2026</p>
       </div>
     </footer>
   );

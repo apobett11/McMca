@@ -5,7 +5,6 @@ import { useTheme } from '../../../context/ThemeContext.jsx';
 
 export function StudentHeader({
   pageTitle,
-  wardName = 'Westlands Ward',
   studentName,
   showNotifications = true,
   showProfile = true,
@@ -18,34 +17,7 @@ export function StudentHeader({
   return (
     <header className="site-header" role="banner">
       <div className="site-header__inner">
-        <button
-          type="button"
-          className="header-icon-btn"
-          onClick={onMenuOpen}
-          aria-label="Open navigation menu"
-        >
-          <span className="header-icon-btn__bars" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
-        </button>
-
-        <Link className="brand" to="/student/dashboard" aria-label={`${wardName} Student portal home`}>
-          <div className="brand__mark brand__mark--student" aria-hidden="true">
-            {wardName.charAt(0)}
-          </div>
-          <span className="brand__word">
-            MCA <span className="brand__portal">Student portal</span>
-            {studentName ? (
-              <span className="brand__student-name">{studentName}</span>
-            ) : null}
-          </span>
-        </Link>
-
-        <h1 className="site-header__page-title">{pageTitle}</h1>
-
-        <div className="header-actions">
+        <div className="header-actions header-actions--left">
           <button
             type="button"
             className="header-icon-btn header-icon-btn--theme"
@@ -68,10 +40,31 @@ export function StudentHeader({
           ) : null}
 
           {showProfile ? (
-            <Link className="header-avatar header-avatar--student" to="/student/profile" aria-label="Open profile">
+            <Link className="header-avatar" to="/student/profile" aria-label="Open profile">
               <span aria-hidden="true">{studentName ? studentName.split(' ').map(n=>n[0]).join('') : 'ST'}</span>
             </Link>
           ) : null}
+        </div>
+
+        <h1 className="site-header__page-title">{pageTitle}</h1>
+
+        <div className="header-actions header-actions--right">
+          <div className="header-branding">
+            <span className="header-branding__logo" aria-hidden="true">NG</span>
+            <span className="header-branding__text">Tendeno/Sorget Bursary Portal</span>
+          </div>
+          <button
+            type="button"
+            className="header-icon-btn"
+            onClick={onMenuOpen}
+            aria-label="Open navigation menu"
+          >
+            <span className="header-icon-btn__bars" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+          </button>
         </div>
       </div>
     </header>
