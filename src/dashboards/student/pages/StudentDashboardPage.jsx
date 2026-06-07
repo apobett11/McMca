@@ -179,8 +179,8 @@ export function StudentDashboardPage() {
             </Link>
             <Link to="/student/messages" className="dash-suite__card luxury-gradient-card">
               <div className="dash-suite__icon dash-suite__icon--tertiary"><Icon name="support" size={24} /></div>
-              <p className="dash-suite__card-title">Messages</p>
-              <p className="dash-suite__card-desc">Secure inbox</p>
+              <p className="dash-suite__card-title">Contact</p>
+              <p className="dash-suite__card-desc">WhatsApp & email support</p>
             </Link>
             <Link to="/student/notifications" className="dash-suite__card luxury-gradient-card">
               <div className="dash-suite__icon dash-suite__icon--error"><Icon name="bell" size={24} /></div>

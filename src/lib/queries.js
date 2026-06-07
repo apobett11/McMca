@@ -82,40 +82,6 @@ export async function fetchDocumentChecklist() {
   return [];
 }
 
-export async function fetchConversations(userId) {
-  const { data, error } = await supabase
-    .from('conversations')
-    .select('*')
-    .contains('participants', [userId])
-    .order('updated_at', { ascending: false });
-  if (error) throw error;
-  return data || [];
-}
-
-export async function fetchMessages(conversationId) {
-  const { data, error } = await supabase
-    .from('messages')
-    .select('*')
-    .eq('conversation_id', conversationId)
-    .order('created_at', { ascending: true });
-  if (error) throw error;
-  return data || [];
-}
-
-export async function sendMessage(conversationId, senderId, content) {
-  const { data, error } = await supabase
-    .from('messages')
-    .insert({
-      conversation_id: conversationId,
-      sender_id: senderId,
-      content
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
 export async function fetchLinkedParent(userId) {
   const profileId = await getProfileIdByAuthId(userId);
   const { data, error } = await supabase
