@@ -105,8 +105,15 @@ export function StudentDocumentsPage() {
   const loading = docsLoading;
   const docList = documents || [];
 
-  const verifiedCount = docList.filter(d => d.ai_verified === true).length;
-  const totalCount = Math.max(docList.length, 1);
+  const uploadedTypes = new Set(docList.map(d => d.document_type));
+  const checkItems = DOC_TYPE_OPTIONS.map(opt => ({
+    name: opt.label,
+    uploaded: uploadedTypes.has(opt.value),
+    verified: docList.some(d => d.document_type === opt.value && d.ai_verified === true)
+  }));
+
+  const verifiedCount = checkItems.filter(c => c.verified).length;
+  const totalCount = Math.max(checkItems.length, 1);
   const progressPct = totalCount > 0 ? Math.round((verifiedCount / totalCount) * 100) : 0;
 
   const handleUpload = useCallback(async (docType, file) => {
@@ -180,11 +187,11 @@ export function StudentDocumentsPage() {
               <div className="stitch-docs-checklist__grid">
                 {checkItems.map((item, idx) => (
                   <div key={idx} className="stitch-docs-checklist__item">
-                    <Icon name={item.status === 'ok' || item.verified ? 'approved' : 'info'} size={20} />
+                    <Icon name={item.uploaded ? 'approved' : 'info'} size={20} />
                     <div>
-                      <p className="stitch-docs-checklist__item-name">{item.label || item.name}</p>
-                      <p className={`stitch-docs-checklist__item-status ${item.status === 'ok' || item.verified ? 'stitch-docs-checklist__item-status--verified' : 'stitch-docs-checklist__item-status--action'}`}>
-                        {item.status === 'ok' || item.verified ? 'Received' : 'Action Required'}
+                      <p className="stitch-docs-checklist__item-name">{item.name}</p>
+                      <p className={`stitch-docs-checklist__item-status ${item.uploaded ? 'stitch-docs-checklist__item-status--verified' : 'stitch-docs-checklist__item-status--action'}`}>
+                        {item.uploaded ? 'Received' : 'Action Required'}
                       </p>
                     </div>
                   </div>
