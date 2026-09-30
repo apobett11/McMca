@@ -67,7 +67,7 @@ begin
       exists (
         select 1 from user_roles
         where auth_user_id = auth.uid()
-          and role in ('chief', 'mca')
+          and role = 'chief'
       )
     );
 exception
@@ -104,7 +104,7 @@ begin
       exists (
         select 1 from user_roles
         where auth_user_id = auth.uid()
-          and role in ('chief', 'mca')
+          and role = 'chief'
       )
     );
 exception
@@ -119,7 +119,7 @@ begin
       exists (
         select 1 from user_roles
         where auth_user_id = auth.uid()
-          and role in ('chief', 'mca')
+          and role = 'chief'
       )
     );
 exception
@@ -134,7 +134,7 @@ begin
       exists (
         select 1 from user_roles
         where auth_user_id = auth.uid()
-          and role in ('chief', 'mca')
+          and role = 'chief'
       )
     );
 exception
