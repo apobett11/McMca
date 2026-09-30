@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
-import { useAuth } from '../../../context/AuthContext';
-import { useSecureData } from '../../../lib/useSecureData';
-import { fetchStudentApplication, fetchAllApplications } from '../../../lib/queries';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
+import { trackingCode } from '../../../domain/requirements.js';
+import { useStudentCase } from '../context/StudentCaseContext.jsx';
 
 function SkeletonRow() {
   return (
@@ -17,14 +16,12 @@ function SkeletonRow() {
 }
 
 export function StudentApplicationsPage() {
-  const { user } = useAuth();
-  const { data: latestApp, loading: latestLoading, refresh: refreshLatest } = useSecureData(fetchStudentApplication);
-  const { data: allApps, loading: allLoading, refresh: refreshAll } = useSecureData(fetchAllApplications);
+  const { data, loading, error } = useStudentCase();
+  const [openId, setOpenId] = useState(null);
 
-  const loading = latestLoading || allLoading;
-
-  const historyApps = allApps || [];
-  const activeApp = latestApp || historyApps[0];
+  const historyApps = data?.applications || [];
+  const activeApp = data?.application;
+  const evaluation = data?.evaluation;
 
   function getStatusClass(status) {
     const map = {
@@ -34,6 +31,7 @@ export function StudentApplicationsPage() {
       approved: 'stitch-status-badge--admitted',
       'Funds Sent': 'stitch-status-badge--admitted',
       disbursed: 'stitch-status-badge--admitted',
+      pending: 'stitch-status-badge--review',
       rejected: 'stitch-status-badge--declined',
       draft: 'stitch-status-badge--withdrawn'
     };
@@ -49,7 +47,12 @@ export function StudentApplicationsPage() {
         </p>
       </div>
 
-      {loading ? (
+      {error ? (
+        <div className="notice" role="alert">
+          <strong>Applications unavailable</strong>
+          <p>{error.message}</p>
+        </div>
+      ) : loading ? (
         <div className="stitch-apps-active">
           <SkeletonRow />
         </div>
@@ -72,7 +75,7 @@ export function StudentApplicationsPage() {
                   {activeApp.institution_name || 'Bursary Application'}
                 </h3>
                 <p className="stitch-apps-active__card-id">
-                  Tracking: {activeApp.id}
+                  Tracking: {trackingCode(activeApp)}
                 </p>
                 {activeApp.timeline_stages || activeApp.timelineStages ? (
                   <div className="stitch-apps-progress">
@@ -116,10 +119,17 @@ export function StudentApplicationsPage() {
       <section className="stitch-apps-history">
         <div className="stitch-apps-history__head">
           <h2 className="stitch-section-title">Application History</h2>
-          <Link to="/student/new-application" className="btn btn--primary" style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}>
-            <Icon name="plus" size={20} />
-            New Application
-          </Link>
+          {evaluation?.canApply ? (
+            <Link to="/student/new-application" className="btn btn--primary" style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}>
+              <Icon name="plus" size={20} />
+              Apply
+            </Link>
+          ) : (
+            <Link to={evaluation?.next?.route || '/student/documents'} className="btn btn--secondary" style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}>
+              <Icon name={evaluation?.next?.icon || 'info'} size={20} />
+              {evaluation?.next?.title || 'Checklist'}
+            </Link>
+          )}
         </div>
         {historyApps.length > 0 ? (
           <div className="stitch-apps-table">
@@ -148,21 +158,36 @@ export function StudentApplicationsPage() {
                           </div>
                         </div>
                       </td>
-                      <td>{app.created_at ? new Date(app.created_at).toLocaleDateString() : '—'}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>{app.id}</td>
+                      <td>{app.cycle || '—'}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>{trackingCode(app)}</td>
                       <td>
                         <span className={`stitch-status-badge ${getStatusClass(app.application_status)}`}>
                           {config.label}
                         </span>
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        <button className="stitch-table-action">View Details</button>
+                        <button type="button" className="stitch-table-action" onClick={() => setOpenId(openId === app.id ? null : app.id)}>
+                          {openId === app.id ? 'Hide' : 'View Details'}
+                        </button>
                       </td>
                     </tr>
-                  );
-                })}
+                );
+              })}
               </tbody>
             </table>
+            {historyApps.filter((app) => app.id === openId).map((app) => {
+              const config = getStatusConfig(app.application_status);
+              return (
+                <dl key={app.id} className="detail-grid" style={{ marginTop: 12 }}>
+                  <div className="detail-grid__row"><dt>Status</dt><dd>{config.label}</dd></div>
+                  <div className="detail-grid__row"><dt>What it means</dt><dd>{config.hint}</dd></div>
+                  <div className="detail-grid__row"><dt>Cycle</dt><dd>{app.cycle || '—'}</dd></div>
+                  <div className="detail-grid__row"><dt>Office</dt><dd>{app.current_office || '—'}</dd></div>
+                  <div className="detail-grid__row"><dt>School</dt><dd>{app.institution_name || '—'}</dd></div>
+                  <div className="detail-grid__row"><dt>Tracking</dt><dd>{trackingCode(app)}</dd></div>
+                </dl>
+              );
+            })}
           </div>
         ) : (
           <div className="notice">
@@ -173,33 +198,33 @@ export function StudentApplicationsPage() {
       </section>
 
       <section className="stitch-apps-support">
-        <div className="stitch-apps-support__card">
+        <Link to="/student/documents" className="stitch-apps-support__card">
           <div className="stitch-apps-support__icon">
             <Icon name="documents" size={24} />
           </div>
           <div>
-            <p className="stitch-apps-support__title">Document Vault</p>
-            <p className="stitch-apps-support__desc">Manage your uploaded documents and check verification status.</p>
+            <p className="stitch-apps-support__title">Documents</p>
+            <p className="stitch-apps-support__desc">Checklist for this profile. Verified files stay on file.</p>
           </div>
-        </div>
-        <div className="stitch-apps-support__card">
+        </Link>
+        <Link to="/student/support" className="stitch-apps-support__card">
           <div className="stitch-apps-support__icon">
             <Icon name="support" size={24} />
           </div>
           <div>
-            <p className="stitch-apps-support__title">Need Help?</p>
-            <p className="stitch-apps-support__desc">Contact the ward office or your assigned case officer.</p>
+            <p className="stitch-apps-support__title">Support</p>
+            <p className="stitch-apps-support__desc">Questions about the checklist or the chief review.</p>
           </div>
-        </div>
-        <div className="stitch-apps-support__card">
+        </Link>
+        <Link to="/student/notifications" className="stitch-apps-support__card">
           <div className="stitch-apps-support__icon">
             <Icon name="bell" size={24} />
           </div>
           <div>
             <p className="stitch-apps-support__title">Notifications</p>
-            <p className="stitch-apps-support__desc">Stay updated on your application status changes.</p>
+            <p className="stitch-apps-support__desc">Status changes for this student.</p>
           </div>
-        </div>
+        </Link>
       </section>
     </StudentLayout>
   );

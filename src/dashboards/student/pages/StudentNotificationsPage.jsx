@@ -43,7 +43,7 @@ export function StudentNotificationsPage() {
               className={`feed-item feed-item--lively ${!item.is_read ? 'feed-item--unread' : ''}`}
             >
               <div className="feed-item__icon" aria-hidden="true">
-                <Icon name={TYPE_ICONS.info || 'bell'} size={18} />
+                <Icon name={TYPE_ICONS[item.notification_type] || TYPE_ICONS.info} size={18} />
               </div>
               <div>
                 <p className="feed-item__title">{item.title}</p>

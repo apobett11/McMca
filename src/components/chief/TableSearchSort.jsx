@@ -101,6 +101,7 @@ export const CHIEF_APPLICATION_FILTERS = [
     label: 'Application status',
     options: [
       'All',
+      'Pending',
       'Submitted',
       'Under Review',
       'Pending Clarification',

@@ -4,14 +4,11 @@ import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useSecureData } from '../../../lib/useSecureData';
-import {
-  fetchStudentProfile,
-  fetchStudentApplication,
-  fetchStudentNotifications,
-  fetchRecentActivity
-} from '../../../lib/queries';
+import { fetchRecentActivity } from '../../../lib/queries';
 import { getTimeGreeting } from '../../../utils/greeting.js';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
+import { applicationSteps } from '../../../domain/requirements.js';
+import { useStudentCase } from '../context/StudentCaseContext.jsx';
 
 function SkeletonLoader() {
   return (
@@ -41,54 +38,42 @@ function ErrorState({ message, onRetry }) {
   );
 }
 
-function computeReadiness(profile, application) {
-  if (!profile) return { pct: 0, label: 'Not started', desc: 'Begin your profile to get started' };
-  let score = 0;
-  const checks = [];
-  if (profile.first_name) { score += 15; checks.push('name'); }
-  if (profile.phone_number) { score += 15; checks.push('phone'); }
-  if (profile.email) { score += 10; checks.push('email'); }
-  if (profile.school_name) { score += 15; checks.push('institution'); }
-  if (application) { score += 20; checks.push('application'); }
-  if (application?.application_status === 'submitted' || application?.application_status === 'Under Review' || application?.application_status === 'Approved' || application?.application_status === 'Funds Sent') { score += 15; checks.push('submitted'); }
-  const pct = Math.min(100, score);
-  let desc = 'Profile completion optimal';
-  if (pct < 40) desc = 'Several items need your attention';
-  else if (pct < 70) desc = 'Getting there, keep going';
-  else if (pct < 90) desc = 'Almost ready';
-  return { pct, label: `${pct}%`, desc };
-}
-
 export function StudentDashboardPage() {
   const { user } = useAuth();
   const greeting = getTimeGreeting();
-  const { data: profile, error: profileErr, loading: profileLoading, refresh: refreshProfile } = useSecureData(fetchStudentProfile);
-  const { data: application, error: appErr, loading: appLoading, refresh: refreshApp } = useSecureData(fetchStudentApplication);
-  const { data: notifications, loading: notifLoading } = useSecureData(fetchStudentNotifications);
-  const { data: activity, loading: actLoading } = useSecureData(fetchRecentActivity);
+  const { data: studentCase, error: caseError, loading: caseLoading, refresh } = useStudentCase();
+  const { data: activity } = useSecureData(fetchRecentActivity);
 
-  const loading = profileLoading || appLoading;
-  const error = profileErr || appErr;
+  const profile = studentCase?.profile;
+  const application = studentCase?.application;
+  const evaluation = studentCase?.evaluation;
+  const loading = caseLoading;
+  const error = caseError;
 
-  const readiness = useMemo(() => computeReadiness(profile, application), [profile, application]);
+  const readiness = useMemo(() => {
+    const pct = evaluation?.readiness ?? 0;
+    let desc = 'Profile, parent, and documents are in place';
+    if (!evaluation?.profile?.active) desc = 'Scan the student ID and add one parent';
+    else if (evaluation?.applicationNeeds?.length) desc = 'The checklist still has documents to upload';
+    else if (evaluation?.canApply) desc = 'Ready to apply';
+    return { pct, desc };
+  }, [evaluation]);
   const studentName = [profile?.first_name, profile?.middle_name, profile?.last_name].filter(Boolean).join(' ') || user?.user_metadata?.full_name || 'Student';
   const institutionName = profile?.school_name || '';
   const statusConfig = application ? getStatusConfig(application.application_status || 'Draft') : null;
-  const previewAlerts = (notifications || []).slice(0, 3);
+  const previewAlerts = (studentCase?.notifications || []).slice(0, 3);
   const previewActivity = (activity || []).slice(0, 3);
-  const hasUnread = previewAlerts.some((n) => !n.is_read);
+  const timelineStages = applicationSteps(evaluation, application);
+  const nextAction = evaluation?.next;
 
   if (loading) return <StudentLayout pageTitle="Dashboard" layout="dashboard" notificationBadge={false}><SkeletonLoader /></StudentLayout>;
-  if (error) return <StudentLayout pageTitle="Dashboard" layout="dashboard"><ErrorState message={error.message} onRetry={() => { refreshProfile(); refreshApp(); }} /></StudentLayout>;
-
-  const nextAction = application ? null : { required: true, title: 'Start your application', route: '/student/new-application' };
-  const timelineStages = [];
+  if (error) return <StudentLayout pageTitle="Dashboard" layout="dashboard"><ErrorState message={error.message} onRetry={refresh} /></StudentLayout>;
 
   return (
     <StudentLayout
       pageTitle="Dashboard"
       layout="dashboard"
-      notificationBadge={hasUnread}
+      notificationBadge={previewAlerts.some((item) => !item.is_read)}
       studentName={studentName}
     >
       <div className="stitch-dashboard">
@@ -176,52 +161,29 @@ export function StudentDashboardPage() {
           <div className="stitch-primary-card__glow" />
           <div className="stitch-primary-card__content">
             <div>
-              <span className="stitch-primary-card__badge">Active Process</span>
+              <span className="stitch-primary-card__badge">
+                {statusConfig ? statusConfig.label : evaluation?.profile?.active ? 'Ready' : 'Inactive'}
+              </span>
               <h2 className="stitch-primary-card__title">
-                {application ? 'Application In Progress' : 'No Active Application'}
+                {statusConfig ? statusConfig.hint : evaluation?.blockReason || 'No application yet'}
               </h2>
             </div>
             {nextAction?.route && (
               <Link className="stitch-primary-card__btn" to={nextAction.route}>
-                {nextAction.title || 'Resume Task'}
+                {nextAction.title}
               </Link>
             )}
           </div>
           <div className="stitch-primary-card__stepper">
             <div className="stitch-stepper">
-              {timelineStages.length > 0 ? (
-                timelineStages.map((stage, idx) => (
-                  <div key={idx} className={`stitch-step ${stage.state === 'completed' ? 'stitch-step--done' : stage.state === 'current' ? 'stitch-step--active' : 'stitch-step--pending'}`}>
-                    <div className="stitch-step__node">
-                      {stage.state === 'completed' ? <Icon name="check" size={18} /> : <span>{idx + 1}</span>}
-                    </div>
-                    <span className="stitch-step__label">{stage.label}</span>
+              {timelineStages.map((stage, idx) => (
+                <div key={stage.label} className={`stitch-step ${stage.state === 'completed' ? 'stitch-step--done' : stage.state === 'current' ? 'stitch-step--active' : 'stitch-step--pending'}`}>
+                  <div className="stitch-step__node">
+                    {stage.state === 'completed' ? <Icon name="check" size={18} /> : <span>{idx + 1}</span>}
                   </div>
-                ))
-              ) : (
-                <>
-                  <div className="stitch-step stitch-step--done">
-                    <div className="stitch-step__node"><Icon name="check" size={18} /></div>
-                    <span className="stitch-step__label">Personal Info</span>
-                  </div>
-                  <div className="stitch-step stitch-step--active">
-                    <div className="stitch-step__node">02</div>
-                    <span className="stitch-step__label">Documents</span>
-                  </div>
-                  <div className="stitch-step stitch-step--pending">
-                    <div className="stitch-step__node">03</div>
-                    <span className="stitch-step__label">Reference</span>
-                  </div>
-                  <div className="stitch-step stitch-step--pending">
-                    <div className="stitch-step__node">04</div>
-                    <span className="stitch-step__label">Review</span>
-                  </div>
-                  <div className="stitch-step stitch-step--pending">
-                    <div className="stitch-step__node"><Icon name="check" size={18} /></div>
-                    <span className="stitch-step__label">Submit</span>
-                  </div>
-                </>
-              )}
+                  <span className="stitch-step__label">{stage.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -253,6 +215,25 @@ export function StudentDashboardPage() {
             </Link>
           </div>
         </section>
+
+        {previewAlerts.length ? (
+          <section className="dash-activity">
+            <h3 className="stitch-section-title">Alerts</h3>
+            <ul className="feed-list">
+              {previewAlerts.map((item) => (
+                <li key={item.id} className={`feed-item ${!item.is_read ? 'feed-item--unread' : ''}`}>
+                  <div className="feed-item__icon" aria-hidden="true">
+                    <Icon name="bell" size={18} />
+                  </div>
+                  <div>
+                    <p className="feed-item__title">{item.title}</p>
+                    <p className="feed-item__body">{item.message}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <section className="dash-activity">
           <h3 className="stitch-section-title">Recent Activity</h3>

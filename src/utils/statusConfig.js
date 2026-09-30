@@ -6,6 +6,12 @@ export const STATUS_CONFIG = {
     tone: 'neutral',
     icon: 'draft'
   },
+  Pending: {
+    label: 'Pending',
+    hint: 'With your area chief',
+    tone: 'pending',
+    icon: 'review'
+  },
   Submitted: {
     label: 'Submitted',
     hint: 'Received by the ward office',
@@ -64,6 +70,7 @@ export const STATUS_CONFIG = {
 
 const DB_TO_DISPLAY = {
   draft: 'Draft',
+  pending: 'Pending',
   submitted: 'Submitted',
   under_review: 'Under Review',
   chief_approved: 'Chief Approved',

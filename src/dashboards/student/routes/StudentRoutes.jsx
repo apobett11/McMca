@@ -9,9 +9,11 @@ import { StudentAppealsPage } from '../pages/StudentAppealsPage.jsx';
 import { StudentSupportPage } from '../pages/StudentSupportPage.jsx';
 import { StudentProfilePage } from '../pages/StudentProfilePage.jsx';
 import { StudentMessagesPage } from '../pages/StudentMessagesPage.jsx';
+import { StudentCaseProvider } from '../context/StudentCaseContext.jsx';
 
 export function StudentRoutes() {
   return (
+    <StudentCaseProvider>
     <Routes>
       <Route path="/" element={<Navigate to="/student/dashboard" replace />} />
       <Route path="/student/dashboard" element={<StudentDashboardPage />} />
@@ -25,5 +27,6 @@ export function StudentRoutes() {
       <Route path="/student/messages" element={<StudentMessagesPage />} />
       <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
     </Routes>
+    </StudentCaseProvider>
   );
 }

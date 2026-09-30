@@ -4,11 +4,14 @@ import { CLARIFICATION_REASONS, REJECTION_REASONS } from '../../data/chiefMock.j
 export function ReviewActionModal({ open, onClose, action, title, onSubmit }) {
   const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setReason('');
       setNotes('');
+      setError('');
       return undefined;
     }
 
@@ -38,13 +41,25 @@ export function ReviewActionModal({ open, onClose, action, title, onSubmit }) {
         ? 'btn btn--danger'
         : 'btn btn--accent';
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    onSubmit?.({ reason, notes });
-    onClose();
-    window.alert(
-      `${submitLabel} recorded — demo only. In production this updates the application and notifies the student/parent.`
-    );
+    if (!onSubmit) {
+      onClose();
+      window.alert(
+        `${submitLabel} recorded — demo only. In production this updates the application and notifies the student/parent.`
+      );
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await onSubmit({ reason, notes });
+      onClose();
+    } catch (err) {
+      setError(err.message || 'The review could not be saved.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -99,12 +114,19 @@ export function ReviewActionModal({ open, onClose, action, title, onSubmit }) {
             />
           </div>
 
+          {error ? (
+            <div className="notice" role="alert">
+              <strong>Not saved</strong>
+              <p>{error}</p>
+            </div>
+          ) : null}
+
           <div className="btn-row">
             <button type="button" className="btn btn--secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className={submitClass}>
-              {submitLabel}
+            <button type="submit" className={submitClass} disabled={saving}>
+              {saving ? 'Saving…' : submitLabel}
             </button>
           </div>
         </form>

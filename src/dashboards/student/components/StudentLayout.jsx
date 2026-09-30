@@ -4,6 +4,14 @@ import { StudentFooter } from './StudentFooter.jsx';
 import { StudentBottomNav } from './StudentBottomNav.jsx';
 import { StudentSlideMenu } from './StudentSlideMenu.jsx';
 import { NotificationModal } from '../../../components/NotificationModal.jsx';
+import { useStudentCase } from '../context/StudentCaseContext.jsx';
+
+function notificationVariant(title = '') {
+  const value = title.toLowerCase();
+  if (value.includes('not approved') || value.includes('missing') || value.includes('clarification')) return 'warning';
+  if (value.includes('approved') || value.includes('verified')) return 'success';
+  return 'info';
+}
 
 export function StudentLayout({
   pageTitle,
@@ -19,6 +27,15 @@ export function StudentLayout({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { data } = useStudentCase();
+  const notifications = data?.notifications || [];
+  const unread = notifications.some((item) => !item.is_read);
+  const modalItems = notifications.map((item) => ({
+    title: item.title,
+    body: item.message,
+    unread: !item.is_read,
+    variant: notificationVariant(item.title)
+  }));
 
   const mainClass =
     layout === 'dashboard'
@@ -34,7 +51,7 @@ export function StudentLayout({
         studentName={studentName}
         showNotifications={showNotifications}
         showProfile={showProfile}
-        notificationBadge={notificationBadge}
+        notificationBadge={notificationBadge || unread}
         onMenuOpen={() => setMenuOpen(true)}
         onNotificationsOpen={() => setNotificationsOpen(true)}
       />
@@ -52,7 +69,7 @@ export function StudentLayout({
       <NotificationModal
         open={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
-        items={notificationItems}
+        items={notificationItems.length ? notificationItems : modalItems}
       />
     </div>
   );
