@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { MinimalDocChecklist } from '../../../components/MinimalDocChecklist.jsx';
 import { useStudentCase } from '../context/StudentCaseContext.jsx';
-import { submitBursaryApplication } from '../../../lib/queries.js';
+import { fetchPollingStations, submitBursaryApplication } from '../../../lib/queries.js';
+import { useSecureData } from '../../../lib/useSecureData.js';
 import { useAuth } from '../../../context/AuthContext.jsx';
+import { EDUCATION_LEVELS } from '../../../domain/education.js';
 
 export function StudentWizardPage() {
   const navigate = useNavigate();
   const { userId } = useAuth();
   const { data, loading, error, refresh } = useStudentCase();
-  const [school, setSchool] = useState(null);
+  const { data: stations } = useSecureData(fetchPollingStations);
+  const [form, setForm] = useState({});
   const [cycle, setCycle] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -20,8 +23,22 @@ export function StudentWizardPage() {
   const profile = data?.profile;
   const cycles = data?.cycles || [];
   const selectedCycle = cycle || cycles[0]?.label || '';
-  const schoolName = school ?? profile?.school_name ?? '';
   const guardian = data?.guardians?.[0];
+
+  const field = (key, fallback = '') => form[key] ?? profile?.[key] ?? fallback;
+  const schoolName = field('school_name');
+  const educationLevel = field('education_level');
+  const ward = field('ward');
+  const pollingStation = field('polling_station');
+  const amountRequested = form.amount_requested ?? '';
+  const setField = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }));
+
+  const stationList = stations || [];
+  const wards = useMemo(() => [...new Set((stations || []).map((item) => item.ward))], [stations]);
+  const wardStations = stationList.filter((item) => item.ward === ward);
+  const hasStations = stationList.length > 0;
+  const ready =
+    schoolName.trim() && educationLevel && ward.trim() && pollingStation.trim() && Number(amountRequested) > 0;
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -29,7 +46,11 @@ export function StudentWizardPage() {
     try {
       await submitBursaryApplication(userId, {
         cycle: selectedCycle,
-        institutionName: schoolName
+        institutionName: schoolName,
+        educationLevel,
+        ward,
+        pollingStation,
+        amountRequested
       });
     } catch (err) {
       setSubmitError(err.message || 'Could not send the application.');
@@ -135,9 +156,78 @@ export function StudentWizardPage() {
                 <input
                   id="schoolName"
                   value={schoolName}
-                  onChange={(event) => setSchool(event.target.value)}
+                  onChange={setField('school_name')}
                   required
                 />
+              </div>
+              <div className="field">
+                <label htmlFor="educationLevel">Education level</label>
+                <select id="educationLevel" value={educationLevel} onChange={setField('education_level')} required>
+                  <option value="">Select level</option>
+                  {EDUCATION_LEVELS.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="ward">Ward</label>
+                {hasStations ? (
+                  <select
+                    id="ward"
+                    value={ward}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, ward: event.target.value, polling_station: '' }))
+                    }
+                    required
+                  >
+                    <option value="">Select ward</option>
+                    {wards.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input id="ward" value={ward} onChange={setField('ward')} required />
+                )}
+              </div>
+              <div className="field">
+                <label htmlFor="pollingStation">Polling station</label>
+                {hasStations ? (
+                  <select
+                    id="pollingStation"
+                    value={pollingStation}
+                    onChange={setField('polling_station')}
+                    disabled={!ward}
+                    required
+                  >
+                    <option value="">{ward ? 'Select polling station' : 'Select a ward first'}</option>
+                    {wardStations.map((item) => (
+                      <option key={item.id} value={item.name}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input id="pollingStation" value={pollingStation} onChange={setField('polling_station')} required />
+                )}
+                <span className="field__help">Where the parent or guardian is registered to vote.</span>
+              </div>
+              <div className="field">
+                <label htmlFor="amountRequested">Amount requested (KES)</label>
+                <input
+                  id="amountRequested"
+                  type="number"
+                  inputMode="numeric"
+                  min="1"
+                  step="1"
+                  value={amountRequested}
+                  onChange={setField('amount_requested')}
+                  required
+                />
+                <span className="field__help">Match the balance on your fee structure.</span>
               </div>
               <div className="field">
                 <label htmlFor="cycle">Bursary cycle</label>
@@ -159,7 +249,7 @@ export function StudentWizardPage() {
                 type="button"
                 className="btn btn--primary"
                 onClick={handleSubmit}
-                disabled={!evaluation.canApply || submitting || !schoolName.trim()}
+                disabled={!evaluation.canApply || submitting || !ready}
                 style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}
               >
                 <Icon name="arrowRight" size={18} />

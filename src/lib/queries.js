@@ -110,16 +110,18 @@ export async function updateStudentProfile(userId, updates) {
 const DOCUMENT_COLUMNS =
   'id, student_profile_id, application_id, guardian_id, document_type, verification_status, scope, original_filename, mime_type, file_size, uploaded_at, storage_path, ai_verified, inline_checks, verified_at';
 
-function explainQueryError(error) {
+export function explainQueryError(error) {
   if (!error) return error;
   const missing =
     error.code === '42P01' ||
     error.code === '42703' ||
+    error.code === '42883' ||
+    error.code === 'PGRST202' ||
     error.code === 'PGRST204' ||
     error.code === 'PGRST205';
   if (missing) {
     return new Error(
-      'Student records are missing a required table or column. Apply supabase/migrations/20260930120000_student_document_channel.sql.'
+      'The database is missing a table, column, or function this page needs. Apply the migrations in supabase/migrations.'
     );
   }
   return error;
@@ -283,7 +285,26 @@ async function recordStudentEvent(profileId, title, message) {
   });
 }
 
-export async function submitBursaryApplication(userId, { cycle, institutionName }) {
+const POLLING_STATION_LIMIT = 2000;
+
+export async function fetchPollingStations() {
+  const { data, error } = await supabase
+    .from('polling_stations')
+    .select('id, ward, name')
+    .order('ward', { ascending: true })
+    .order('name', { ascending: true })
+    .limit(POLLING_STATION_LIMIT);
+  if (error) {
+    if (error.code === '42P01' || error.code === 'PGRST205') return [];
+    throw explainQueryError(error);
+  }
+  return data || [];
+}
+
+export async function submitBursaryApplication(
+  userId,
+  { cycle, institutionName, educationLevel, ward, pollingStation, amountRequested }
+) {
   const current = await fetchStudentCase(userId);
   if (!current.evaluation.canApply) {
     throw new Error(current.evaluation.blockReason || 'Complete the checklist before applying.');
@@ -292,12 +313,25 @@ export async function submitBursaryApplication(userId, { cycle, institutionName 
   const school = (institutionName || current.profile.school_name || '').trim();
   if (!school) throw new Error('Add the school name before applying.');
 
-  if (school !== current.profile.school_name) {
+  const amount = Number(amountRequested);
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error('Enter the amount you are requesting.');
+
+  const profileFields = {
+    school_name: school,
+    education_level: (educationLevel || current.profile.education_level || '').trim() || null,
+    ward: (ward || current.profile.ward || '').trim() || null,
+    polling_station: (pollingStation || current.profile.polling_station || '').trim() || null
+  };
+  const profileChanges = Object.fromEntries(
+    Object.entries(profileFields).filter(([key, next]) => next !== (current.profile[key] ?? null))
+  );
+
+  if (Object.keys(profileChanges).length) {
     const { error: profileError } = await supabase
       .from('student_profiles')
-      .update({ school_name: school })
+      .update(profileChanges)
       .eq('id', current.profile.id);
-    if (profileError) throw profileError;
+    if (profileError) throw explainQueryError(profileError);
   }
 
   const { data, error } = await supabase
@@ -308,6 +342,7 @@ export async function submitBursaryApplication(userId, { cycle, institutionName 
       current_office: 'chief',
       cycle: cycle || current.cycles[0]?.label || inferBursaryCycle(),
       institution_name: school,
+      amount_requested: Math.round(amount),
       submitted_at: new Date().toISOString()
     })
     .select('id, application_status, current_office, cycle')
