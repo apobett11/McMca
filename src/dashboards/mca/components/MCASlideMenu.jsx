@@ -1,17 +1,12 @@
 import React, { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/Icon.jsx';
-
-const MCA_ITEMS = [
-  { label: 'Home', path: '/mca/dashboard', icon: 'home' },
-  { label: 'Applications', path: '/mca/applications', icon: 'applications' },
-  { label: 'Documents', path: '/mca/documents', icon: 'documents' },
-  { label: 'Notifications', path: '/mca/notifications', icon: 'bell' },
-  { label: 'Profile', path: '/mca/profile', icon: 'profile' }
-];
+import { useAuth } from '../../../context/AuthContext.jsx';
+import { MCA_TABS } from './MCABottomNav.jsx';
 
 export function MCASlideMenu({ open, onClose }) {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -29,10 +24,10 @@ export function MCASlideMenu({ open, onClose }) {
     };
   }, [open, onClose]);
 
-  function handleLogout() {
+  async function handleLogout() {
     onClose();
-    window.alert('You would be signed out safely — demo not connected yet.');
-    navigate('/mca/dashboard');
+    await signOut();
+    navigate('/login');
   }
 
   return (
@@ -54,7 +49,7 @@ export function MCASlideMenu({ open, onClose }) {
           </button>
         </div>
         <nav className="slide-menu__nav">
-          {MCA_ITEMS.map((item) => (
+          {MCA_TABS.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}

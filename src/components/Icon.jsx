@@ -26,7 +26,12 @@ const paths = {
   approved: 'M6 12.5 9.5 16 18 8',
   rejected: 'M8 8l8 8m0-8-8 8',
   submitted: 'M6 12l4 4 8-8',
-  arrowRight: 'M8 12h8m0 0-4-4m4 4-4 4'
+  arrowRight: 'M8 12h8m0 0-4-4m4 4-4 4',
+  chart: 'M4 20h16M7 16v-5m5 5V7m5 9v-3',
+  map: 'M12 21s-6-5.3-6-11a6 6 0 1 1 12 0c0 5.7-6 11-6 11Zm0-9a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z',
+  school: 'M3 9l9-5 9 5-9 5-9-5Zm4 2.5V16c0 1.7 2.2 3 5 3s5-1.3 5-3v-4.5',
+  download: 'M12 4v11m0 0-4-4m4 4 4-4M5 20h14',
+  users: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-6 9a6 6 0 0 1 12 0m1-9a3 3 0 1 0 0-6m2 15a6 6 0 0 0-3-5.2'
 };
 
 export function Icon({ name, size = 22, className = '', label }) {

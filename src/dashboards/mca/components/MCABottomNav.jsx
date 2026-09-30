@@ -2,11 +2,9 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Icon } from '../../../components/Icon.jsx';
 
-const MCA_TABS = [
-  { label: 'Home', path: '/mca/dashboard', icon: 'home' },
+export const MCA_TABS = [
+  { label: 'Overview', path: '/mca/dashboard', icon: 'chart' },
   { label: 'Applications', path: '/mca/applications', icon: 'applications' },
-  { label: 'Documents', path: '/mca/documents', icon: 'documents' },
-  { label: 'Notifications', path: '/mca/notifications', icon: 'notifications' },
   { label: 'Profile', path: '/mca/profile', icon: 'profile' }
 ];
 
