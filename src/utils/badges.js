@@ -10,6 +10,7 @@ export function getAccessBadgeClass(accessType) {
 export function getApplicationBadgeClass(status) {
   const map = {
     Draft: 'badge badge--draft',
+    Pending: 'badge badge--info',
     Submitted: 'badge badge--submitted',
     'Under Review': 'badge badge--review',
     Approved: 'badge badge--approved',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
@@ -6,6 +6,8 @@ import { useAuth } from '../../../context/AuthContext';
 import { useSecureData } from '../../../lib/useSecureData';
 import { fetchStudentProfile } from '../../../lib/queries';
 import { supabase } from '../../../lib/supabase';
+import { useStudentCase } from '../context/StudentCaseContext.jsx';
+import { ProfileRecords } from '../components/ProfileRecords.jsx';
 
 function ProfileSkeleton() {
   return (
@@ -124,82 +126,11 @@ function OtpModal({ title, field, currentValue, onClose, onVerified }) {
   );
 }
 
-function IdUploadModal({ onClose, onVerified }) {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
-  const fileRef = useRef(null);
-
-  async function handleUpload(file) {
-    if (!file) return;
-    setUploading(true);
-    setError('');
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      const { data: profile } = await supabase
-        .from('student_profiles')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single();
-      const filePath = `id-verifications/${profile.id}/${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('id-verifications')
-        .upload(filePath, file, { upsert: false });
-      if (uploadError) throw uploadError;
-      const { error: updateError } = await supabase
-        .from('student_profiles')
-        .update({ national_id_verified: true })
-        .eq('auth_user_id', user.id);
-      if (updateError) throw updateError;
-      onVerified();
-      onClose();
-    } catch (err) {
-      setError(err.message || 'Upload failed');
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  return (
-    <div className="modal-root" role="presentation">
-      <button type="button" className="modal-root__backdrop" onClick={onClose} aria-label="Close" />
-      <div className="modal-panel" role="dialog" aria-modal="true">
-        <header className="modal-panel__header">
-          <h2 className="modal-panel__title">Verify National ID</h2>
-          <button type="button" className="modal-panel__close" onClick={onClose}>×</button>
-        </header>
-        <div className="modal-panel__body">
-          {error && (
-            <div className="notice" style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)', marginBottom: 16 }}>
-              <strong>Error</strong><p>{error}</p>
-            </div>
-          )}
-          <p style={{ fontSize: 14, color: 'var(--text-2, #94A3B8)', marginBottom: 20 }}>
-            Upload a clear image of your National ID card (front and back) for verification.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <label className="btn btn--primary" style={{ borderRadius: 12, padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', textAlign: 'center' }}>
-              <Icon name="upload" size={20} />
-              {uploading ? 'Uploading...' : 'Upload ID Image'}
-              <input
-                ref={fileRef}
-                type="file" accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => handleUpload(e.target.files[0])}
-                disabled={uploading}
-              />
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function StudentProfilePage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: profile, loading, refresh } = useSecureData(fetchStudentProfile);
+  const { data: studentCase, refresh: refreshCase } = useStudentCase();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({});
@@ -264,7 +195,7 @@ export function StudentProfilePage() {
   const studentType = profile?.student_type || '—';
   const phoneVerified = !!profile?.phone_verified;
   const emailVerified = !!profile?.email_verified;
-  const nationalIdVerified = !!profile?.national_id_verified;
+  const nationalIdVerified = !!profile?.national_id_verified || !!studentCase?.evaluation?.profile?.studentIdLocked;
 
   return (
     <StudentLayout pageTitle="Profile" layout="dashboard">
@@ -326,7 +257,10 @@ export function StudentProfilePage() {
                 </p>
               </div>
             </div>
-            <VerifyBadge verified={nationalIdVerified} onClick={() => setVerifyModal('national_id')} />
+            <VerifyBadge
+              verified={nationalIdVerified}
+              onClick={() => document.getElementById('profile-records')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            />
           </div>
 
           <div className="stitch-profile-verify__item">
@@ -369,6 +303,12 @@ export function StudentProfilePage() {
 
       <div className="stitch-profile-grid">
         <div className="stitch-profile-left">
+          <ProfileRecords
+            evaluation={studentCase?.evaluation}
+            guardians={studentCase?.guardians || []}
+            documents={studentCase?.documents || []}
+            onRefresh={refreshCase}
+          />
           <section className="stitch-profile-section">
             <div className="stitch-profile-section__head">
               <h2 className="stitch-profile-section__title">
@@ -490,9 +430,6 @@ export function StudentProfilePage() {
       )}
       {verifyModal === 'email' && (
         <OtpModal title="Verify Email" field="email_verified" currentValue={email} onClose={() => setVerifyModal(null)} onVerified={refresh} />
-      )}
-      {verifyModal === 'national_id' && (
-        <IdUploadModal onClose={() => setVerifyModal(null)} onVerified={refresh} />
       )}
     </StudentLayout>
   );

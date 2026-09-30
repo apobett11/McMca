@@ -13,6 +13,7 @@ export function ChiefRoutes() {
       <Route path="/" element={<Navigate to="/chief/dashboard" replace />} />
       <Route path="/chief/dashboard" element={<ChiefDashboardPage />} />
       <Route path="/chief/applications" element={<ChiefApplicationsPage />} />
+      <Route path="/chief/applications/:applicationId" element={<ChiefApplicationReviewPage />} />
       <Route path="/chief/application-review" element={<ChiefApplicationReviewPage />} />
       <Route path="/chief/appeals" element={<ChiefAppealsPage />} />
       <Route path="/chief/appeal-review" element={<ChiefAppealReviewPage />} />

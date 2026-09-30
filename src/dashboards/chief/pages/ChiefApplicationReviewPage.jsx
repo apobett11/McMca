@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
 import { SectionCard } from '../../../components/SectionCard.jsx';
@@ -6,12 +6,17 @@ import { ReviewActionModal } from '../../../components/chief/ReviewActionModal.j
 import { Icon } from '../../../components/Icon.jsx';
 import {
   getApplicationBadgeClass,
-  getDocumentBadgeClass,
   getVerificationBadgeClass
 } from '../../../utils/badges.js';
+import { decideApplication, fetchChiefApplication, getDocumentSignedUrl, setDocumentVerification } from '../../../lib/queries.js';
+import { useAuth } from '../../../context/AuthContext.jsx';
+import { getStatusConfig } from '../../../utils/statusConfig.js';
 
 function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('en-KE', {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString('en-KE', {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
@@ -19,7 +24,10 @@ function formatDate(iso) {
 }
 
 function formatDateTime(iso) {
-  return new Date(iso).toLocaleString('en-KE', {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString('en-KE', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -28,24 +36,116 @@ function formatDateTime(iso) {
   });
 }
 
+function verificationLabel(row) {
+  if (row.verification_status === 'verified' || row.ai_verified) return 'Verified';
+  if (row.verification_status === 'rejected') return 'Rejected';
+  return 'Pending Review';
+}
+
 export function ChiefApplicationReviewPage() {
   const { applicationId } = useParams();
+  const { user } = useAuth();
   const [actionModal, setActionModal] = useState(null);
+  const [record, setRecord] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const chiefName = user?.user_metadata?.full_name || 'Chief';
 
-  const application = useMemo(
-    () => CHIEF_APPLICATIONS.find((a) => a.id === applicationId),
-    [applicationId]
+  const load = useCallback(async () => {
+    if (!applicationId) {
+      setLoadError('Open an application from the queue.');
+      setRecord(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      setRecord(await fetchChiefApplication(applicationId));
+      setLoadError('');
+    } catch (err) {
+      setRecord(null);
+      setLoadError(err.message || 'Could not open this application.');
+    } finally {
+      setLoading(false);
+    }
+  }, [applicationId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const application = useMemo(() => {
+    if (!record?.application) return null;
+    const row = record.application;
+    const profile = row.student_profiles || {};
+    const guardian = record.guardians?.[0];
+    return {
+      fullName: [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ') || 'Student',
+      dateOfBirth: null,
+      school: profile.school_name || row.institution_name || '—',
+      educationLevel: profile.student_type || '—',
+      grade: '—',
+      admissionNumber: profile.admission_number || '—',
+      parentName: guardian?.full_name || '—',
+      parentPhone: guardian?.phone_number || '—',
+      contactEmail: profile.email || '—',
+      location: '—',
+      subLocation: '—',
+      cycle: row.cycle || '—',
+      amountRequested: '—',
+      previousAllocations: '—',
+      applicationStatus: getStatusConfig(row.application_status).label,
+      submittedDate: row.submitted_at || row.created_at,
+      lastUpdated: row.submitted_at || row.created_at,
+      reviewNotes: row.review_note || ''
+    };
+  }, [record]);
+
+  const documents = useMemo(
+    () =>
+      (record?.documents || []).map((row) => ({
+        id: row.id,
+        type: row.document_type,
+        verificationStatus: verificationLabel(row),
+        uploadDate: row.uploaded_at,
+        storagePath: row.storage_path,
+        locked: verificationLabel(row) === 'Verified'
+      })),
+    [record]
   );
 
-  const documents = APPLICATION_DOCUMENTS[applicationId] ?? [];
-  const aiExtraction = APPLICATION_AI_EXTRACTION[applicationId];
+  async function openDocument(doc) {
+    const url = await getDocumentSignedUrl(doc.storagePath);
+    if (url) window.open(url, '_blank', 'noopener');
+  }
+
+  async function verifyDocument(documentId) {
+    await setDocumentVerification(documentId, 'verified');
+    await load();
+  }
+
+  async function submitDecision(action, payload) {
+    const note = [payload.reason, payload.notes].filter(Boolean).join(' — ');
+    await decideApplication(applicationId, action, note);
+    await load();
+  }
+
+  if (loading) {
+    return (
+      <ChiefLayout chiefName={chiefName} pageTitle="Application review" showBottomNav={false}>
+        <SectionCard title="Application review" titleLevel="h1">
+          <p className="section-card__lead section-card__lead--left">Loading this application.</p>
+        </SectionCard>
+      </ChiefLayout>
+    );
+  }
 
   if (!application) {
     return (
-      <ChiefLayout chiefName={CHIEF.fullName} pageTitle="Application not found" showBottomNav={false}>
+      <ChiefLayout chiefName={chiefName} pageTitle="Application not found" showBottomNav={false}>
         <SectionCard title="Application not found" titleLevel="h1">
           <p className="section-card__lead section-card__lead--left">
-            This application is not in your review queue or may have been reassigned.
+            {loadError || 'This application is not in your review queue or may have been reassigned.'}
           </p>
           <Link className="btn btn--secondary" to="/chief/applications">
             Back to applications queue
@@ -57,7 +157,7 @@ export function ChiefApplicationReviewPage() {
 
   return (
     <ChiefLayout
-      chiefName={CHIEF.fullName}
+      chiefName={chiefName}
       pageTitle="Application review"
       showBottomNav={false}
       notificationBadge={false}
@@ -174,16 +274,20 @@ export function ChiefApplicationReviewPage() {
                     </td>
                     <td data-label="Uploaded">{formatDateTime(doc.uploadDate)}</td>
                     <td data-label="Action">
-                      <button
-                        type="button"
-                        className="btn btn--table"
-                        onClick={() =>
-                          window.alert(`View ${doc.type} — document viewer demo not connected.`)
-                        }
-                      >
+                      <button type="button" className="btn btn--table" onClick={() => openDocument(doc)}>
                         <Icon name="documents" size={16} />
-                        View document
+                        View
                       </button>
+                      {doc.locked ? (
+                        <span className="mini-checklist__mark mini-checklist__mark--ok" aria-label="Verified">
+                          <Icon name="approved" size={14} />
+                        </span>
+                      ) : (
+                        <button type="button" className="btn btn--table" onClick={() => verifyDocument(doc.id)}>
+                          <Icon name="check" size={16} />
+                          Verify
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -194,44 +298,6 @@ export function ChiefApplicationReviewPage() {
           <p className="empty-state">No documents uploaded for this application.</p>
         )}
       </SectionCard>
-
-      {aiExtraction ? (
-        <SectionCard title="AI extraction">
-          <dl className="detail-grid">
-            <div className="detail-grid__row">
-              <dt>Visibility status</dt>
-              <dd>{aiExtraction.visibilityStatus}</dd>
-            </div>
-            <div className="detail-grid__row">
-              <dt>Verification status</dt>
-              <dd>
-                <span className={getVerificationBadgeClass(aiExtraction.verificationStatus)}>
-                  {aiExtraction.verificationStatus}
-                </span>
-              </dd>
-            </div>
-          </dl>
-          <h3 className="review-subsection__title">OCR extracted data</h3>
-          <dl className="detail-grid">
-            {Object.entries(aiExtraction.ocrData).map(([key, value]) => (
-              <div key={key} className="detail-grid__row">
-                <dt>{key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase())}</dt>
-                <dd>{value}</dd>
-              </div>
-            ))}
-          </dl>
-          {aiExtraction.warnings?.length ? (
-            <div className="notice notice--warm">
-              <strong>AI warning flags</strong>
-              <ul className="review-warnings">
-                {aiExtraction.warnings.map((w) => (
-                  <li key={w}>{w}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </SectionCard>
-      ) : null}
 
       {application.reviewNotes ? (
         <SectionCard title="Review notes">
@@ -291,18 +357,21 @@ export function ChiefApplicationReviewPage() {
         onClose={() => setActionModal(null)}
         action="approve"
         title="Approve application"
+        onSubmit={(payload) => submitDecision('approve', payload)}
       />
       <ReviewActionModal
         open={actionModal === 'reject'}
         onClose={() => setActionModal(null)}
         action="reject"
         title="Reject application"
+        onSubmit={(payload) => submitDecision('reject', payload)}
       />
       <ReviewActionModal
         open={actionModal === 'clarify'}
         onClose={() => setActionModal(null)}
         action="clarify"
         title="Request clarification"
+        onSubmit={(payload) => submitDecision('clarify', payload)}
       />
     </ChiefLayout>
   );

@@ -3,7 +3,7 @@ import { MCAHeader } from './MCAHeader.jsx';
 import { MCAFooter } from './MCAFooter.jsx';
 import { MCABottomNav } from './MCABottomNav.jsx';
 import { MCASlideMenu } from './MCASlideMenu.jsx';
-import { NotificationModal } from '../../../components/NotificationModal.jsx';
+import '../mca.css';
 
 export function MCALayout({
   pageTitle,
@@ -11,14 +11,10 @@ export function MCALayout({
   children,
   showBottomNav = true,
   showFooter = true,
-  showNotifications = true,
   showProfile = true,
-  notificationBadge = false,
-  notificationItems = [],
   layout = 'default'
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const mainClass =
     layout === 'dashboard'
@@ -32,28 +28,16 @@ export function MCALayout({
       <MCAHeader
         pageTitle={pageTitle}
         mcaName={mcaName}
-        showNotifications={showNotifications}
+        showNotifications={false}
         showProfile={showProfile}
-        notificationBadge={notificationBadge}
         onMenuOpen={() => setMenuOpen(true)}
-        onNotificationsOpen={() => setNotificationsOpen(true)}
       />
-      <main className={mainClass} role="main" style={{flex: '1', width: '100%', maxWidth: layout === 'dashboard' ? '1280px' : '720px', margin: '0 auto', padding: '0 24px'}}>
+      <main className={mainClass} role="main" style={{flex: '1', width: '100%', maxWidth: layout === 'default' ? '720px' : '1280px', margin: '0 auto', padding: '0 24px'}}>
         <div className="main__content" style={{padding: '32px 0 64px'}}>{children}</div>
       </main>
       {showFooter ? <MCAFooter /> : null}
-      {showBottomNav ? (
-        <MCABottomNav />
-      ) : null}
-      <MCASlideMenu
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-      />
-      <NotificationModal
-        open={notificationsOpen}
-        onClose={() => setNotificationsOpen(false)}
-        items={notificationItems}
-      />
+      {showBottomNav ? <MCABottomNav /> : null}
+      <MCASlideMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </div>
   );
 }
