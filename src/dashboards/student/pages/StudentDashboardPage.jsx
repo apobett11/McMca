@@ -83,6 +83,7 @@ export function StudentDashboardPage() {
 
   const nextAction = application ? null : { required: true, title: 'Start your application', route: '/student/new-application' };
   const timelineStages = [];
+  const needsParents = (profile?.account_class || 'independent') === 'independent';
 
   return (
     <StudentLayout
@@ -92,6 +93,15 @@ export function StudentDashboardPage() {
       studentName={studentName}
     >
       <div className="stitch-dashboard">
+        {needsParents ? (
+          <div className="notice" style={{ marginBottom: 16 }}>
+            <strong>Parent verification</strong>
+            <p>Independent students must link one or two parents with a verified national ID. Applications will not submit until at least one parent is linked.</p>
+            <Link className="btn btn--primary" to="/student/link-parents" style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}>
+              Link or review parents
+            </Link>
+          </div>
+        ) : null}
         <section style={{
           background: 'linear-gradient(135deg, rgba(212,175,55,0.10) 0%, rgba(230,211,163,0.18) 50%, rgba(212,175,55,0.06) 100%)',
           borderRadius: '1.5rem',

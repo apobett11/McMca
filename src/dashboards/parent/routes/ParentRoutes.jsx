@@ -5,6 +5,8 @@ import { ParentApplicationsPage } from '../pages/ParentApplicationsPage.jsx';
 import { ParentDocumentsPage } from '../pages/ParentDocumentsPage.jsx';
 import { ParentNotificationsPage } from '../pages/ParentNotificationsPage.jsx';
 import { ParentProfilePage } from '../pages/ParentProfilePage.jsx';
+import { ParentAddChildPage } from '../pages/ParentAddChildPage.jsx';
+import { ParentChildWizardPage } from '../pages/ParentChildWizardPage.jsx';
 
 export function ParentRoutes() {
   return (
@@ -15,6 +17,8 @@ export function ParentRoutes() {
       <Route path="/parent/documents" element={<ParentDocumentsPage />} />
       <Route path="/parent/notifications" element={<ParentNotificationsPage />} />
       <Route path="/parent/profile" element={<ParentProfilePage />} />
+      <Route path="/parent/children/new" element={<ParentAddChildPage />} />
+      <Route path="/parent/children/:childId" element={<ParentChildWizardPage />} />
       <Route path="*" element={<Navigate to="/parent/dashboard" replace />} />
     </Routes>
   );

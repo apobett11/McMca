@@ -3,7 +3,14 @@ import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useSecureData } from '../../../lib/useSecureData';
-import { fetchStudentDocuments, uploadStudentDocument } from '../../../lib/queries';
+import { fetchStudentDocuments, fetchStudentProfile, uploadStudentDocument } from '../../../lib/queries';
+import { joinFullName } from '../../../lib/accountAllocation';
+import {
+  UPLOAD_KIND,
+  inspectDocumentSpecifications,
+  mapOnboardingKind,
+  verifyDocumentUpload
+} from '../../../lib/documentUpload';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
 const MAX_SIZE = 10 * 1024 * 1024;
@@ -118,6 +125,29 @@ export function StudentDocumentsPage() {
 
   const handleUpload = useCallback(async (docType, file) => {
     if (!userId) throw new Error('Not authenticated');
+    const identityLike = /id|birth|certificate/i.test(docType);
+    if (file.type === 'application/pdf') {
+      const specs = await inspectDocumentSpecifications(file, UPLOAD_KIND.PDF);
+      if (!specs.ok) throw new Error(specs.reason);
+    } else if (file.type.startsWith('image/') && identityLike) {
+      const profile = await fetchStudentProfile(userId);
+      const result = await verifyDocumentUpload({
+        file,
+        kind: mapOnboardingKind(docType),
+        expected: {
+          fullName: joinFullName({
+            firstName: profile.first_name,
+            middleName: profile.middle_name,
+            lastName: profile.last_name
+          }),
+          nationalId: profile.national_id
+        }
+      });
+      if (!result.ok) throw new Error(result.reason);
+    } else if (file.type.startsWith('image/')) {
+      const specs = await inspectDocumentSpecifications(file, UPLOAD_KIND.GENERIC_IMAGE);
+      if (!specs.ok) throw new Error(specs.reason);
+    }
     await uploadStudentDocument(userId, null, docType, file);
     refreshDocs();
   }, [userId, refreshDocs]);

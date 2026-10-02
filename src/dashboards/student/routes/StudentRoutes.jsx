@@ -9,6 +9,7 @@ import { StudentAppealsPage } from '../pages/StudentAppealsPage.jsx';
 import { StudentSupportPage } from '../pages/StudentSupportPage.jsx';
 import { StudentProfilePage } from '../pages/StudentProfilePage.jsx';
 import { StudentMessagesPage } from '../pages/StudentMessagesPage.jsx';
+import { StudentLinkParentsPage } from '../pages/StudentLinkParentsPage.jsx';
 
 export function StudentRoutes() {
   return (
@@ -23,6 +24,7 @@ export function StudentRoutes() {
       <Route path="/student/support" element={<StudentSupportPage />} />
       <Route path="/student/profile" element={<StudentProfilePage />} />
       <Route path="/student/messages" element={<StudentMessagesPage />} />
+      <Route path="/student/link-parents" element={<StudentLinkParentsPage />} />
       <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
     </Routes>
   );

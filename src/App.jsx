@@ -4,6 +4,9 @@ import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { ProtectedRoute } from './lib/ProtectedRoute.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
+import { RegisterPage } from './pages/RegisterPage.jsx';
+import { OnboardingPage } from './pages/OnboardingPage.jsx';
+import { AccountGate } from './lib/AccountGate.jsx';
 
 // Import Dashboard Routers
 import { StudentRoutes } from './dashboards/student/routes/StudentRoutes.jsx';
@@ -39,9 +42,17 @@ export function App() {
         <HashRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/onboarding" element={
+              <ProtectedRoute>
+                <OnboardingPage />
+              </ProtectedRoute>
+            } />
             <Route path="/*" element={
               <ProtectedRoute>
-                <RoleBasedRouter />
+                <AccountGate>
+                  <RoleBasedRouter />
+                </AccountGate>
               </ProtectedRoute>
             } />
           </Routes>

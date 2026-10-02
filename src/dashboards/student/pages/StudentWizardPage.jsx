@@ -4,6 +4,9 @@ import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
+import { STUDENT_CLASS, evaluateApplicationReadiness, readAccountStatus } from '../../../lib/accountAllocation';
+import { fetchIdentityDocuments, fetchLinkedParents } from '../../../lib/accountQueries';
+import { fetchStudentDocuments } from '../../../lib/queries';
 
 const STEPS = ['Student details', 'Guardian contact', 'Review and submit'];
 const CYCLES = ['2025/2026 Bursary Cycle', '2024/2025 Bursary Cycle'];
@@ -43,10 +46,27 @@ export function StudentWizardPage() {
     try {
       const { data: profile, error: profileError } = await supabase
         .from('student_profiles')
-        .select('id')
+        .select('*')
         .eq('auth_user_id', userId)
         .single();
       if (profileError) throw profileError;
+
+      const documents = [
+        ...(await fetchStudentDocuments(userId).catch(() => [])),
+        ...(await fetchIdentityDocuments('student', profile.id).catch(() => []))
+      ];
+      const parentLinks = await fetchLinkedParents(profile.id).catch(() => []);
+      const studentClass = profile.account_class || STUDENT_CLASS.INDEPENDENT;
+      const gate = evaluateApplicationReadiness({
+        accountStatus: readAccountStatus(profile),
+        studentClass,
+        documents,
+        formComplete: true,
+        parentLinksComplete: studentClass !== STUDENT_CLASS.INDEPENDENT || parentLinks.length >= 1
+      });
+      if (!gate.ready) {
+        throw new Error(gate.reason);
+      }
 
       await supabase
         .from('student_profiles')

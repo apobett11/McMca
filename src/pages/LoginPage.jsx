@@ -123,7 +123,10 @@ export function LoginPage() {
           </button>
         </form>
         <p style={{ marginTop: 16, fontSize: 12, color: 'var(--text-3, #64748B)', textAlign: 'center' }}>
-          Secure student portal. Use your registered email and password.
+          New here? <a href="#/register" style={{ color: 'var(--primary-fixed, #60A5FA)' }}>Create an account</a>
+        </p>
+        <p style={{ marginTop: 8, fontSize: 12, color: 'var(--text-3, #64748B)', textAlign: 'center' }}>
+          Secure portal. Use your registered email and password.
         </p>
       </div>
     </div>

@@ -9,6 +9,7 @@ const STUDENT_ITEMS = [
   { label: 'Documents', path: '/student/documents', icon: 'documents' },
   { label: 'Contact', path: '/student/messages', icon: 'support' },
   { label: 'Notifications', path: '/student/notifications', icon: 'bell' },
+  { label: 'Link parents', path: '/student/link-parents', icon: 'profile' },
   { label: 'Support', path: '/student/support', icon: 'shield' },
   { label: 'Profile', path: '/student/profile', icon: 'profile' }
 ];

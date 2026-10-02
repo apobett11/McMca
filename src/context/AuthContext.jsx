@@ -83,14 +83,25 @@ export function AuthProvider({ children }) {
     setRole(null);
   }, []);
 
+  const refreshRole = useCallback(async () => {
+    const { data: { user: current } } = await supabase.auth.getUser();
+    if (!current) {
+      setRole(null);
+      return null;
+    }
+    return fetchUserRole(current.id);
+  }, []);
+
   const value = {
     session,
     user,
     role,
     loading,
     signOut,
+    refreshRole,
     isAuthenticated: !!session,
     isStudent: role === 'student',
+    isParent: role === 'parent',
     userId: user?.id
   };
 
