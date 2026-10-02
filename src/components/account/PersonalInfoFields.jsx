@@ -31,7 +31,7 @@ export function PersonalInfoFields({ values, onChange, includeAuth = false, idPr
         onChange={(v) => onChange('lastName', v)}
         autoComplete="family-name"
       />
-      <div className={`field ${values.gender ? 'field--valid' : ''}`}>
+      <div className="field">
         <label htmlFor={id('gender')}>Gender</label>
         <select
           id={id('gender')}

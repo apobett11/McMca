@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Icon } from '../Icon.jsx';
 import { UPLOAD_KIND, verifyDocumentUpload } from '../../lib/documentUpload';
 
 export function DocumentScanField({
@@ -51,24 +50,18 @@ export function DocumentScanField({
   }
 
   return (
-    <div className={`field doc-scan ${error ? 'field--invalid' : ''} ${file ? 'field--valid' : ''}`}>
+    <div className="field">
       <label htmlFor={id}>{label}</label>
-      <label className="doc-scan__drop" htmlFor={id}>
-        <Icon name="upload" size={20} />
-        <span>
-          {checking ? 'Reading the document…' : file ? file.name : 'Choose or take a photo'}
-        </span>
-        <input
-          id={id}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          capture="environment"
-          onChange={(e) => handleChange(e.target.files?.[0] || null)}
-          disabled={checking}
-        />
-      </label>
-      {error ? <p className="field__error">{error}</p> : null}
-      {extracted ? <p className="field__ok">Read from the photo: {extracted}</p> : null}
+      <input
+        id={id}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        capture="environment"
+        onChange={(e) => handleChange(e.target.files?.[0] || null)}
+        disabled={checking}
+      />
+      {error ? <p className="field__help">{error}</p> : null}
+      {extracted ? <p className="field__help">Read from the photo: {extracted}</p> : null}
       {status && !error ? <p className="field__help">{status}</p> : null}
       {!error && !status ? <p className="field__help">{help}</p> : null}
     </div>

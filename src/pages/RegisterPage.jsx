@@ -188,14 +188,12 @@ export function RegisterPage() {
   if (!role) {
     return (
       <AuthFrame title="Create an account" lead="Choose how you are registering. This choice sets the student category and cannot be changed later except by an administrator.">
-        <div className="role-pick">
-          <button type="button" className="role-pick__card" onClick={() => setRole(ACCOUNT_ROLE.STUDENT)}>
-            <strong>Independent student</strong>
-            <span>You are 18 or older, have a national ID, and are registering for yourself.</span>
+        <div className="btn-row" style={{ flexDirection: 'column' }}>
+          <button type="button" className="btn btn--primary" onClick={() => setRole(ACCOUNT_ROLE.STUDENT)}>
+            Independent student — 18+, national ID, self-register
           </button>
-          <button type="button" className="role-pick__card" onClick={() => setRole(ACCOUNT_ROLE.PARENT)}>
-            <strong>Parent or guardian</strong>
-            <span>Register with your national ID. You can add children under 18 and see linked independent students.</span>
+          <button type="button" className="btn btn--secondary" onClick={() => setRole(ACCOUNT_ROLE.PARENT)}>
+            Parent or guardian — add children and view linked students
           </button>
         </div>
         <p className="field__help" style={{ textAlign: 'center' }}>

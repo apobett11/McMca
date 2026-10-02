@@ -51,8 +51,9 @@ function MissingSupabaseConfig() {
       <div style={{ maxWidth: 480 }}>
         <h1 style={{ fontSize: 22, margin: '0 0 12px' }}>Database connection is not configured</h1>
         <p style={{ lineHeight: 1.5, color: '#94A3B8' }}>
-          This Vercel deployment was built without Supabase keys. In the Vercel project, open
-          Settings → Environment Variables and add these for Production, then Redeploy:
+          This build has no browser-safe Supabase key. In Vercel → Settings → Environment Variables,
+          set the <strong>publishable / anon</strong> key (starts with <code>sb_publishable_</code> or a JWT whose role is <code>anon</code>).
+          Never put <code>sb_secret_</code> or the service role key in the frontend variables. Then Redeploy.
         </p>
         <ul style={{ lineHeight: 1.7, color: '#E2E8F0' }}>
           <li><code>VITE_SUPABASE_URL</code> — your project URL</li>

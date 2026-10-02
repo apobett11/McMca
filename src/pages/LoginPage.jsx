@@ -15,6 +15,9 @@ export function LoginPage() {
     setError('');
     try {
       // STEP 1: Authenticate user
+      if (!supabase) {
+        throw new Error('This site is not using a browser-safe Supabase key. Use the publishable/anon key, not sb_secret_ or service_role.');
+      }
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password

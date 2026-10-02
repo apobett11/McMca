@@ -1,13 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
+import { describeSupabaseKey, isBrowserSafeSupabaseKey } from './supabaseKeys';
 
 const supabaseUrl = typeof __MCMCA_SUPABASE_URL__ === 'string' ? __MCMCA_SUPABASE_URL__ : '';
-const supabaseAnonKey = typeof __MCMCA_SUPABASE_ANON_KEY__ === 'string' ? __MCMCA_SUPABASE_ANON_KEY__ : '';
+const rawKey = typeof __MCMCA_SUPABASE_ANON_KEY__ === 'string' ? __MCMCA_SUPABASE_ANON_KEY__ : '';
+const keyInfo = describeSupabaseKey(rawKey);
+const supabaseAnonKey = isBrowserSafeSupabaseKey(rawKey) ? rawKey : '';
 
 export const hasSupabaseConfig = Boolean(supabaseUrl && supabaseAnonKey);
 
-if (!hasSupabaseConfig) {
+if (rawKey && !supabaseAnonKey) {
   console.warn(
-    'Supabase credentials missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or SUPABASE_URL and SUPABASE_ANON_KEY) for this environment, then rebuild.'
+    `Refusing to use a ${keyInfo.kind} Supabase key in the browser. Use the publishable or anon key, never sb_secret_ / service_role.`
+  );
+} else if (!hasSupabaseConfig) {
+  console.warn(
+    'Supabase credentials missing. Set SUPABASE_PUBLISHABLE_KEY or SUPABASE_ANON_KEY (publishable/anon only), then rebuild.'
   );
 }
 

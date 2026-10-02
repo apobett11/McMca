@@ -20,8 +20,8 @@ export function WizardShell({
 
   return (
     <section className="wizard-panel page-section--full" aria-label={title}>
-      {title ? <h1 className="wizard-panel__title">{title}</h1> : null}
-      {description ? <p className="wizard-panel__lead">{description}</p> : null}
+      {title ? <h1>{title}</h1> : null}
+      {description ? <p className="field__help">{description}</p> : null}
 
       <div className="wizard-progress" aria-hidden="true">
         {steps.map((step, idx) => (

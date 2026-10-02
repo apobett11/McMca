@@ -19,10 +19,9 @@ export function VerifiedField({
   const result = validateField(name, value, { required, label });
   const show = touched || String(value || '').length > 0;
   const invalid = show && !result.ok;
-  const valid = show && result.ok && String(value || '').trim().length > 0;
 
   return (
-    <div className={`field ${invalid ? 'field--invalid' : ''} ${valid ? 'field--valid' : ''}`}>
+    <div className="field">
       <label htmlFor={id || name}>{label}</label>
       {children || (
         <input
@@ -39,9 +38,8 @@ export function VerifiedField({
           onBlur={() => setTouched(true)}
         />
       )}
-      {invalid ? <p className="field__error">{result.message}</p> : null}
+      {invalid ? <p className="field__help">{result.message}</p> : null}
       {!invalid && help ? <p className="field__help">{help}</p> : null}
-      {valid && !help ? <p className="field__ok">Looks good</p> : null}
     </div>
   );
 }

@@ -1,15 +1,15 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { describeSupabaseKey, pickBrowserSupabaseKey, pickSupabaseUrl } from './src/lib/supabaseKeys.js';
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || '';
-  const supabaseAnonKey =
-    env.VITE_SUPABASE_ANON_KEY ||
-    env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-    env.SUPABASE_ANON_KEY ||
-    env.SUPABASE_PUBLISHABLE_KEY ||
-    '';
+  const env = {
+    ...loadEnv(mode, process.cwd(), 'SUPABASE_'),
+    ...loadEnv(mode, process.cwd(), 'VITE_')
+  };
+  const supabaseUrl = pickSupabaseUrl(env);
+  const supabaseAnonKey = pickBrowserSupabaseKey(env);
+  console.log(`[mcmca] Supabase URL host: ${(() => { try { return new URL(supabaseUrl).host; } catch { return '(missing)'; } })()}; browser key: ${describeSupabaseKey(supabaseAnonKey).kind}`);
 
   return {
     plugins: [react()],
