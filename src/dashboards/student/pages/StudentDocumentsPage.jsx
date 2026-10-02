@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useSecureData } from '../../../lib/useSecureData';
@@ -104,7 +103,7 @@ function UploadModal({ open, onClose, onUpload }) {
   );
 }
 
-export function StudentDocumentsPage() {
+export function StudentDocumentsSection() {
   const { userId } = useAuth();
   const [uploadOpen, setUploadOpen] = useState(false);
   const { data: documents, loading: docsLoading, refresh: refreshDocs } = useSecureData(fetchStudentDocuments);
@@ -153,12 +152,12 @@ export function StudentDocumentsPage() {
   }, [userId, refreshDocs]);
 
   return (
-    <StudentLayout pageTitle="Documents" layout="dashboard">
+    <>
       <div className="stitch-docs-header">
         <div className="stitch-docs-header__top">
           <div>
-            <h1 className="stitch-docs-header__title">Document Center</h1>
-            <h1 className="stitch-docs-header__title-mobile">Documents</h1>
+            <h2 className="stitch-docs-header__title">Documents</h2>
+            <h2 className="stitch-docs-header__title-mobile">Documents</h2>
             <p className="stitch-docs-header__sub">
               Upload and track documents for your active application. All files are stored securely.
             </p>
@@ -272,6 +271,6 @@ export function StudentDocumentsPage() {
       )}
 
       <UploadModal open={uploadOpen} onClose={() => setUploadOpen(false)} onUpload={handleUpload} />
-    </StudentLayout>
+    </>
   );
 }

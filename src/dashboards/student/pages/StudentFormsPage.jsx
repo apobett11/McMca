@@ -13,6 +13,7 @@ import { fetchAllApplications } from '../../../lib/queries';
 import { DASHBOARD_STUDENT_STEPS } from '../../../lib/accountAllocation/wizardFlows';
 import { cycleTitle } from '../../../lib/household.js';
 import { CompleteRegistrationWizard } from '../../../components/account/CompleteRegistrationWizard.jsx';
+import { StudentDocumentsSection } from './StudentDocumentsPage.jsx';
 
 export function StudentFormsPage() {
   const { user } = useAuth();
@@ -123,7 +124,7 @@ export function StudentFormsPage() {
       <div className="stitch-apps-header">
         <h1 className="stitch-apps-header__title">Forms</h1>
         <p className="stitch-apps-header__sub">
-          Personal details, parent, school, home, and family. Open any saved step to update it.
+          Personal details, parent, school, home, and family, then the documents for this record. Open any saved step to update it.
         </p>
       </div>
 
@@ -192,6 +193,8 @@ export function StudentFormsPage() {
           <p className="field__help">{cycleGate.reason} Your saved details stay on file.</p>
         ) : null}
       </section>
+
+      <StudentDocumentsSection />
 
       {wizardOpen ? (
         <CompleteRegistrationWizard

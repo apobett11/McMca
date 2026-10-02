@@ -2,7 +2,6 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { StudentDashboardPage } from '../pages/StudentDashboardPage.jsx';
 import { StudentApplicationsPage } from '../pages/StudentApplicationsPage.jsx';
-import { StudentDocumentsPage } from '../pages/StudentDocumentsPage.jsx';
 import { StudentFormsPage } from '../pages/StudentFormsPage.jsx';
 import { StudentNotificationsPage } from '../pages/StudentNotificationsPage.jsx';
 import { StudentAppealsPage } from '../pages/StudentAppealsPage.jsx';
@@ -18,7 +17,7 @@ export function StudentRoutes() {
       <Route path="/student/dashboard" element={<StudentDashboardPage />} />
       <Route path="/student/forms" element={<StudentFormsPage />} />
       <Route path="/student/applications" element={<StudentApplicationsPage />} />
-      <Route path="/student/documents" element={<StudentDocumentsPage />} />
+      <Route path="/student/documents" element={<StudentFormsPage />} />
       <Route path="/student/new-application" element={<Navigate to="/student/forms" replace />} />
       <Route path="/student/notifications" element={<StudentNotificationsPage />} />
       <Route path="/student/appeals" element={<StudentAppealsPage />} />
