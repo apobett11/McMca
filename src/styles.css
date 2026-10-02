@@ -7862,6 +7862,64 @@ h1.section-card__title {
   border-color: transparent;
 }
 
+.wizard-steps-bar__jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.portal--student .prep-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.portal--student .prep-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 1rem;
+  border: 1px solid var(--glass-border, rgba(148, 163, 184, 0.25));
+  background: rgba(11, 17, 32, 0.28);
+}
+
+.portal--student .prep-list__item--done {
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.portal--student .prep-list__title {
+  flex: 1;
+  font-weight: 600;
+}
+
+.portal--student .prep-list input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #15803d;
+}
+
+.portal--student button.stitch-support-card {
+  width: 100%;
+  color: inherit;
+  font: inherit;
+}
+
+.portal--student button.stitch-support-card--selected {
+  border-color: rgba(221, 187, 106, 0.7);
+  box-shadow: 0 0 0 1px rgba(221, 187, 106, 0.35);
+}
+
 .modal-root--center {
   align-items: center;
 }

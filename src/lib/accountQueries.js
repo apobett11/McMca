@@ -517,7 +517,7 @@ export async function submitStudentCycleApplication(profile) {
 
   let bank = profile.wizard_completed?.institution || {};
   if (!bank.bankName && !bank.accountNumber) {
-    const steps = await fetchWizardSteps('student', profile.id, 'dashboard_student').catch(() => []);
+    const steps = await fetchWizardSteps(ACCOUNT_ROLE.STUDENT, profile.id, WIZARD_FLOW.DASHBOARD_STUDENT).catch(() => []);
     const saved = steps.find((row) => row.step_key === 'institution')?.payload;
     if (saved) bank = saved;
   }
@@ -551,12 +551,13 @@ export async function submitStudentCycleApplication(profile) {
   });
   if (detailError) throw detailError;
 
-  await supabase.from('student_activity_logs').insert({
+  const { error: logError } = await supabase.from('student_activity_logs').insert({
     student_profile_id: profile.id,
     activity_type: 'application_submitted',
     activity_description: `Applied for ${cycle.title}`,
     metadata: { application_id: application.id, window_id: cycle.id }
   });
+  if (logError) console.error('Could not record the application activity', logError);
 
   return { ok: true, application, window: cycle, windows };
 }

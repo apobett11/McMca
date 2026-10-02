@@ -19,9 +19,9 @@ const CHIEF_TABS = [
 
 const STUDENT_TABS = [
   { label: 'Home', path: '/student/dashboard', icon: 'home' },
+  { label: 'Forms', path: '/student/forms', icon: 'documents' },
   { label: 'Applications', path: '/student/applications', icon: 'applications' },
-  { label: 'Documents', path: '/student/documents', icon: 'documents' },
-  { label: 'Messages', path: '/student/messages', icon: 'support' },
+  { label: 'Contact', path: '/student/messages', icon: 'support' },
   { label: 'Profile', path: '/student/profile', icon: 'profile' }
 ];
 

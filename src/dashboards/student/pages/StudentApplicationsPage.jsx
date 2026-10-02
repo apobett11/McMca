@@ -1,200 +1,130 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
-import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
-import { useSecureData } from '../../../lib/useSecureData';
-import { fetchStudentApplication, fetchAllApplications } from '../../../lib/queries';
-import { fetchDashboardRegistrationState } from '../../../lib/accountQueries';
+import { fetchApplicationWindows } from '../../../lib/accountQueries';
+import { fetchAllApplications } from '../../../lib/queries';
+import { applicationSerial, cycleTitle, formatMoney } from '../../../lib/household.js';
+import { EDUCATION_LEVEL_LABEL } from '../../../lib/accountAllocation/constants.js';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
-import { CompleteRegistrationWizard } from '../../../components/account/CompleteRegistrationWizard.jsx';
 
-function SkeletonRow() {
-  return (
-    <div className="skeleton-wrap" style={{ padding: 16 }}>
-      <div className="skeleton skeleton--line" />
-      <div className="skeleton skeleton--line-short" />
-    </div>
-  );
+function statusClass(status) {
+  const map = {
+    submitted: 'stitch-status-badge--review',
+    under_review: 'stitch-status-badge--review',
+    chief_approved: 'stitch-status-badge--admitted',
+    approved: 'stitch-status-badge--admitted',
+    funds_sent: 'stitch-status-badge--admitted',
+    disbursed: 'stitch-status-badge--admitted',
+    rejected: 'stitch-status-badge--declined',
+    appealed: 'stitch-status-badge--review',
+    draft: 'stitch-status-badge--withdrawn'
+  };
+  return map[String(status || '').toLowerCase()] || 'stitch-status-badge--withdrawn';
+}
+
+function levelLabel(value) {
+  if (!value) return '—';
+  return EDUCATION_LEVEL_LABEL[value] || value;
 }
 
 export function StudentApplicationsPage() {
   const { user } = useAuth();
-  const location = useLocation();
-  const { data: latestApp, loading: latestLoading, refresh: refreshLatest } = useSecureData(fetchStudentApplication);
-  const { data: allApps, loading: allLoading, refresh: refreshAll } = useSecureData(fetchAllApplications);
-  const [wizardOpen, setWizardOpen] = useState(Boolean(location.state?.continueRegistration));
-  const [registrationIncomplete, setRegistrationIncomplete] = useState(false);
-
-  const loading = latestLoading || allLoading;
-
-  const historyApps = allApps || [];
-  const activeApp = latestApp || historyApps[0];
+  const [rows, setRows] = useState([]);
+  const [windows, setWindows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     let active = true;
     async function load() {
       if (!user?.id) return;
+      setLoading(true);
       try {
-        const state = await fetchDashboardRegistrationState(user.id, 'student');
-        if (active) setRegistrationIncomplete(state.incomplete);
+        const [apps, cycleWindows] = await Promise.all([
+          fetchAllApplications(user.id),
+          fetchApplicationWindows()
+        ]);
+        if (!active) return;
+        setRows(apps || []);
+        setWindows(cycleWindows || []);
+        setError('');
       } catch (err) {
-        console.error('Could not check registration progress', err);
-        if (active) setRegistrationIncomplete(false);
+        if (active) setError(err.message || 'Could not load applications.');
+      } finally {
+        if (active) setLoading(false);
       }
     }
     load();
-    return () => {
-      active = false;
-    };
-  }, [user?.id, wizardOpen]);
-
-  function getStatusClass(status) {
-    const map = {
-      submitted: 'stitch-status-badge--review',
-      'Under Review': 'stitch-status-badge--review',
-      chief_approved: 'stitch-status-badge--admitted',
-      approved: 'stitch-status-badge--admitted',
-      'Funds Sent': 'stitch-status-badge--admitted',
-      disbursed: 'stitch-status-badge--admitted',
-      rejected: 'stitch-status-badge--declined',
-      draft: 'stitch-status-badge--withdrawn'
-    };
-    return map[status] || 'stitch-status-badge--withdrawn';
-  }
+    return () => { active = false; };
+  }, [user?.id]);
 
   return (
     <StudentLayout pageTitle="Applications" layout="dashboard">
       <div className="stitch-apps-header">
-        <h1 className="stitch-apps-header__title">My Applications</h1>
+        <h1 className="stitch-apps-header__title">Applications</h1>
         <p className="stitch-apps-header__sub">
-          Track your bursary applications and submissions for this ward.
+          Every bursary application on your account, including cycle, serial number, status, and amounts.
         </p>
       </div>
 
-      {registrationIncomplete ? (
-        <div className="notice continue-reg-banner">
-          <strong>Finish registration</strong>
-          <p>Personal details are already on file. Continue with ID photos, parent details, and school information.</p>
-          <button
-            type="button"
-            className="btn btn--primary"
-            style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}
-            onClick={() => setWizardOpen(true)}
-          >
-            Continue
-          </button>
-        </div>
-      ) : null}
-
-      {loading ? (
-        <div className="stitch-apps-active">
-          <SkeletonRow />
-        </div>
-      ) : activeApp ? (
-        <section className="stitch-apps-active">
-          <h2 className="stitch-apps-active__heading">
-            <Icon name="applications" size={24} />
-            Active Application
-          </h2>
-          <div className="stitch-apps-active__card">
-            <div className="stitch-apps-active__card-bg">
-              <Icon name="applications" size={120} />
-            </div>
-            <div className="stitch-apps-active__card-content">
-              <div className="stitch-apps-active__card-left">
-                <span className="stitch-apps-active__badge">
-                  Bursary Application
-                </span>
-                <h3 className="stitch-apps-active__card-title">
-                  {activeApp.institution_name || 'Bursary Application'}
-                </h3>
-                <p className="stitch-apps-active__card-id">
-                  Tracking: {activeApp.id}
-                </p>
-                {activeApp.timeline_stages || activeApp.timelineStages ? (
-                  <div className="stitch-apps-progress">
-                    <div className="stitch-apps-progress__bar">
-                      <div className="stitch-apps-progress__fill" style={{
-                        width: `${((activeApp.timeline_stages || activeApp.timelineStages).filter(s => s.state === 'completed' || s.state === 'current').length / Math.max((activeApp.timeline_stages || activeApp.timelineStages).length, 1)) * 100}%`
-                      }} />
-                    </div>
-                    <div className="stitch-apps-progress__steps">
-                      {(activeApp.timeline_stages || activeApp.timelineStages || []).map((stage, idx) => (
-                        <div key={idx} className="stitch-apps-progress__step">
-                          <div className={`stitch-apps-progress__node ${stage.state === 'completed' ? 'stitch-apps-progress__node--done stitch-apps-progress__node--done-ring' : stage.state === 'current' ? 'stitch-apps-progress__node--done' : 'stitch-apps-progress__node--pending'}`}>
-                            {stage.state === 'completed' ? <Icon name="check" size={16} /> : idx + 1}
-                          </div>
-                          <span className={`stitch-apps-progress__label ${stage.state !== 'pending' ? 'stitch-apps-progress__label--done' : 'stitch-apps-progress__label--pending'}`}>
-                            {stage.label}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-              <div className="stitch-apps-active__next-step">
-                <p className="stitch-apps-active__next-step-label">
-                  <Icon name="info" size={16} />
-                  STATUS
-                </p>
-                <p className="stitch-apps-active__next-step-title">
-                  {getStatusConfig(activeApp.application_status).label}
-                </p>
-                <p className="stitch-apps-active__next-step-desc">
-                  {getStatusConfig(activeApp.application_status).hint}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
       <section className="stitch-apps-history">
-        <div className="stitch-apps-history__head">
-          <h2 className="stitch-section-title">Application History</h2>
-          <Link to="/student/new-application" className="btn btn--primary" style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}>
-            <Icon name="plus" size={20} />
-            New Application
-          </Link>
-        </div>
-        {historyApps.length > 0 ? (
+        {error ? (
+          <div className="notice" role="alert">
+            <strong>Could not load</strong>
+            <p>{error}</p>
+          </div>
+        ) : null}
+
+        {loading ? (
+          <div className="skeleton-wrap">
+            <div className="skeleton skeleton--hero" />
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="notice">
+            <strong>No applications yet</strong>
+            <p>Finish your forms first. When they are complete you can apply for the open cycle.</p>
+            <Link className="btn btn--primary" to="/student/forms" style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}>
+              Open forms
+            </Link>
+          </div>
+        ) : (
           <div className="stitch-apps-table">
             <table>
               <thead>
                 <tr>
-                  <th>Program</th>
                   <th>Cycle</th>
-                  <th>Tracking ID</th>
+                  <th>Serial number</th>
+                  <th>Institution</th>
+                  <th>Level</th>
                   <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Action</th>
+                  <th>Allocated</th>
+                  <th>Requested</th>
+                  <th>Fee balance</th>
+                  <th>Submitted</th>
                 </tr>
               </thead>
               <tbody>
-                {historyApps.map((app) => {
-                  const config = getStatusConfig(app.application_status);
+                {rows.map((app) => {
+                  const status = getStatusConfig(app.application_status);
                   return (
                     <tr key={app.id}>
-                      <td style={{ fontWeight: 600 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <div className="stitch-apps-support__icon" style={{ width: 40, height: 40 }}>
-                            <Icon name="applications" size={20} />
-                          </div>
-                          <div>
-                            <span>{app.institution_name || 'Bursary Application'}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>{app.created_at ? new Date(app.created_at).toLocaleDateString() : '—'}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>{app.id}</td>
-                      <td>
-                        <span className={`stitch-status-badge ${getStatusClass(app.application_status)}`}>
-                          {config.label}
+                      <td data-label="Cycle">{cycleTitle(app, windows, app.created_at)}</td>
+                      <td data-label="Serial number" style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>{applicationSerial(app)}</td>
+                      <td data-label="Institution" style={{ fontWeight: 600 }}>{app.institution_name || '—'}</td>
+                      <td data-label="Level">{levelLabel(app.institution_level)}</td>
+                      <td data-label="Status">
+                        <span className={`stitch-status-badge ${statusClass(app.application_status)}`}>
+                          {status.label}
                         </span>
                       </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button className="stitch-table-action">View Details</button>
+                      <td data-label="Allocated">{formatMoney(app.allocated_amount)}</td>
+                      <td data-label="Requested">{formatMoney(app.requested_amount)}</td>
+                      <td data-label="Fee balance">{formatMoney(app.fee_balance)}</td>
+                      <td data-label="Submitted">
+                        {app.submitted_at || app.created_at
+                          ? new Date(app.submitted_at || app.created_at).toLocaleDateString()
+                          : '—'}
                       </td>
                     </tr>
                   );
@@ -202,55 +132,8 @@ export function StudentApplicationsPage() {
               </tbody>
             </table>
           </div>
-        ) : (
-          <div className="notice">
-            <strong>No applications yet</strong>
-            <p>Start your first bursary application to begin the process.</p>
-          </div>
         )}
       </section>
-
-      <section className="stitch-apps-support">
-        <Link to="/student/documents" className="stitch-apps-support__card">
-          <div className="stitch-apps-support__icon">
-            <Icon name="documents" size={22} />
-          </div>
-          <div>
-            <p className="stitch-apps-support__title">Document Vault</p>
-            <p className="stitch-apps-support__desc">Manage uploaded files and verification status.</p>
-          </div>
-        </Link>
-        <Link to="/student/support" className="stitch-apps-support__card">
-          <div className="stitch-apps-support__icon">
-            <Icon name="support" size={22} />
-          </div>
-          <div>
-            <p className="stitch-apps-support__title">Need Help?</p>
-            <p className="stitch-apps-support__desc">Contact the ward office or your case officer.</p>
-          </div>
-        </Link>
-        <Link to="/student/notifications" className="stitch-apps-support__card">
-          <div className="stitch-apps-support__icon">
-            <Icon name="bell" size={22} />
-          </div>
-          <div>
-            <p className="stitch-apps-support__title">Notifications</p>
-            <p className="stitch-apps-support__desc">Status changes and deadlines in one place.</p>
-          </div>
-        </Link>
-      </section>
-
-      {wizardOpen ? (
-        <CompleteRegistrationWizard
-          open={wizardOpen}
-          onClose={() => setWizardOpen(false)}
-          onFinished={() => {
-            setRegistrationIncomplete(false);
-            refreshLatest?.();
-            refreshAll?.();
-          }}
-        />
-      ) : null}
     </StudentLayout>
   );
 }

@@ -19,11 +19,9 @@ const CHIEF_ITEMS = [
 
 const STUDENT_ITEMS = [
   { label: 'Home', path: '/student/dashboard', icon: 'home' },
+  { label: 'Forms', path: '/student/forms', icon: 'documents' },
   { label: 'Applications', path: '/student/applications', icon: 'applications' },
-  { label: 'Documents', path: '/student/documents', icon: 'documents' },
-  { label: 'Messages', path: '/student/messages', icon: 'support' },
-  { label: 'Notifications', path: '/student/notifications', icon: 'bell' },
-  { label: 'Support', path: '/student/support', icon: 'shield' },
+  { label: 'Contact', path: '/student/messages', icon: 'support' },
   { label: 'Profile', path: '/student/profile', icon: 'profile' }
 ];
 

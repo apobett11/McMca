@@ -55,6 +55,45 @@ export async function fetchStudentNotifications(userId) {
   return data || [];
 }
 
+const OFFICE_LABELS = {
+  chief: 'Area chief',
+  mca: 'MCA office',
+  help: 'Help desk'
+};
+
+export async function sendStudentOfficeMessage(userId, { office, body }) {
+  const profileId = await getProfileIdByAuthId(userId);
+  const text = String(body || '').trim();
+  if (!OFFICE_LABELS[office]) throw new Error('Choose who should receive this message.');
+  if (text.length < 8) throw new Error('Write a short message before sending.');
+  const { error } = await supabase.from('student_activity_logs').insert({
+    student_profile_id: profileId,
+    activity_type: 'office_message',
+    activity_description: text,
+    metadata: { office, office_label: OFFICE_LABELS[office] }
+  });
+  if (error) throw error;
+  const { error: noteError } = await supabase.from('student_notifications').insert({
+    student_profile_id: profileId,
+    title: `Message sent to ${OFFICE_LABELS[office]}`,
+    message: 'Your message is with the office.'
+  });
+  if (noteError) console.error('Could not store the message receipt', noteError);
+  return { office, label: OFFICE_LABELS[office] };
+}
+
+export async function fetchStudentOfficeMessages(userId) {
+  const profileId = await getProfileIdByAuthId(userId);
+  const { data, error } = await supabase
+    .from('student_activity_logs')
+    .select('*')
+    .eq('student_profile_id', profileId)
+    .eq('activity_type', 'office_message')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
 export async function fetchRecentActivity(userId) {
   const profileId = await getProfileIdByAuthId(userId);
   const { data, error } = await supabase

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   cacheWizardDraft,
   cacheWizardFile,
@@ -29,6 +29,7 @@ export function useWizardSession({
   const [stepIndex, setStepIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const pinnedStep = useRef('');
 
   const position = useMemo(
     () => resolveWizardPosition({ steps, completedKeys }),
@@ -87,10 +88,14 @@ export function useWizardSession({
         setCompletedKeys(completed);
         setStepPayloads(payloads);
         const next = resolveWizardPosition({ steps, completedKeys: completed });
-        const preferIndex = initialStepKey
-          ? steps.findIndex((step) => step.key === initialStepKey)
-          : -1;
-        setStepIndex(preferIndex >= 0 ? preferIndex : next.index);
+        const pinToken = initialStepKey ? `${ownerId || ''}:${initialStepKey}` : '';
+        if (pinToken && pinnedStep.current !== pinToken) {
+          const preferIndex = steps.findIndex((step) => step.key === initialStepKey);
+          setStepIndex(preferIndex >= 0 ? preferIndex : next.index);
+          pinnedStep.current = pinToken;
+        } else if (!pinToken) {
+          setStepIndex(next.index);
+        }
       } catch (err) {
         if (!cancelled) setError(err.message || 'Could not restore saved progress.');
       } finally {
