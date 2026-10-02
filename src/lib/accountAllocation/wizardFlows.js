@@ -12,7 +12,9 @@ export const REGISTER_PARENT_STEPS = [
 export const DASHBOARD_STUDENT_STEPS = [
   { key: 'personal_information', title: 'Your details', fields: ['firstName', 'middleName', 'lastName', 'gender', 'dateOfBirth', 'phone', 'nationalId', 'idPhoto', 'idBack'] },
   { key: 'parent_information', title: 'Parent', fields: ['parentFirstName', 'parentLastName', 'parentRelationship', 'parentPhone', 'parentNationalId', 'parentIdFront', 'parentIdBack'] },
-  { key: 'institution', title: 'School', fields: ['schoolName', 'schoolLevel', 'admissionNumber', 'bankName', 'bankBranch', 'accountNumber'] }
+  { key: 'institution', title: 'School', fields: ['schoolName', 'schoolLevel', 'admissionNumber', 'bankName', 'bankBranch', 'accountNumber'] },
+  { key: 'home_details', title: 'Home', fields: ['constituency', 'ward', 'county', 'subCounty', 'pollingStation'] },
+  { key: 'family_details', title: 'Family', fields: ['childrenInFamily', 'childrenInSchool', 'parentStatus', 'monthlyIncome', 'disability', 'otherBursary'] }
 ];
 
 export const DASHBOARD_PARENT_STEPS = [

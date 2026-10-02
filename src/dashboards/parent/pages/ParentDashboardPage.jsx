@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { ParentLayout } from '../components/ParentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
-import { EDUCATION_LEVEL_LABEL, joinFullName } from '../../../lib/accountAllocation';
-import { fetchParentAccount, fetchParentChildren } from '../../../lib/accountQueries';
+import { joinFullName } from '../../../lib/accountAllocation';
+import { fetchParentApplicationBoard } from '../../../lib/accountQueries';
+import { cycleTitle, formatMoney, latestCycleFromWindows } from '../../../lib/household.js';
+import { getStatusConfig } from '../../../utils/statusConfig.js';
 import { ContinueRegistrationPrompt } from '../../../components/account/ContinueRegistrationPrompt.jsx';
 import { getTimeGreeting } from '../../../utils/greeting.js';
 
@@ -20,6 +22,8 @@ export function ParentDashboardPage() {
   const greeting = getTimeGreeting();
   const [parent, setParent] = useState(null);
   const [children, setChildren] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [windows, setWindows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -28,11 +32,12 @@ export function ParentDashboardPage() {
     async function load() {
       if (!user?.id) return;
       try {
-        const profile = await fetchParentAccount(user.id);
-        const list = await fetchParentChildren(user.id);
+        const board = await fetchParentApplicationBoard(user.id);
         if (!active) return;
-        setParent(profile);
-        setChildren(list);
+        setParent(board.parent);
+        setChildren(board.children);
+        setApplications(board.applications);
+        setWindows(board.windows);
       } catch (err) {
         if (active) setError(err.message || 'Could not load children.');
       } finally {
@@ -131,6 +136,14 @@ export function ParentDashboardPage() {
                   middleName: child.middle_name,
                   lastName: child.last_name
                 });
+                const apps = applications
+                  .filter((row) => row.student_profile_id === child.id)
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                const latest = apps[0] || null;
+                const status = latest ? getStatusConfig(latest.application_status).label : 'Not started';
+                const cycle = latest
+                  ? cycleTitle(latest, windows, latest.created_at)
+                  : latestCycleFromWindows(windows);
                 return (
                   <article key={child.id} className="linked-student-card">
                     <div className="linked-student-card__head">
@@ -139,13 +152,21 @@ export function ParentDashboardPage() {
                       </div>
                       <div>
                         <h3 className="linked-student-card__name">{name}</h3>
-                        <p className="linked-student-card__school">{child.school_name || 'School not added yet'}</p>
+                        <p className="linked-student-card__school">{latest?.institution_name || child.school_name || 'School not added yet'}</p>
                       </div>
                     </div>
                     <dl className="linked-student-card__meta">
                       <div>
-                        <dt>Education</dt>
-                        <dd>{EDUCATION_LEVEL_LABEL[child.school_level] || child.school_level || '—'}</dd>
+                        <dt>Status</dt>
+                        <dd>{status}</dd>
+                      </div>
+                      <div>
+                        <dt>Allocated</dt>
+                        <dd>{formatMoney(latest?.allocated_amount)}</dd>
+                      </div>
+                      <div>
+                        <dt>Cycle</dt>
+                        <dd>{cycle}</dd>
                       </div>
                     </dl>
                     <div className="linked-student-card__actions">

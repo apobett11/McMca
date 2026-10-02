@@ -16,7 +16,9 @@ export function WizardShell({
   nextDisabled,
   submitting,
   extraAction,
-  embedded = false
+  embedded = false,
+  onStepSelect,
+  canSelectStep
 }) {
   return (
     <section
@@ -26,7 +28,14 @@ export function WizardShell({
       {title ? <h1 style={{ margin: '0 0 8px', fontSize: 22 }}>{title}</h1> : null}
       {description ? <p className="field__help" style={{ marginTop: 0 }}>{description}</p> : null}
 
-      {steps?.length ? <WizardStepsBar steps={steps} stepIndex={stepIndex} /> : null}
+      {steps?.length ? (
+        <WizardStepsBar
+          steps={steps}
+          stepIndex={stepIndex}
+          onSelect={onStepSelect}
+          canSelect={canSelectStep}
+        />
+      ) : null}
 
       {error ? (
         <div className="notice" style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)', marginBottom: 16 }}>

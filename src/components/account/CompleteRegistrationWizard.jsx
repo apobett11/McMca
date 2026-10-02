@@ -19,7 +19,9 @@ import {
   persistIdPair,
   savePendingParentFromStudent,
   updateChildProfile,
-  updateParentProfile
+  updateParentProfile,
+  saveStudentHousehold,
+  mergeWizardCompleted
 } from '../../lib/accountQueries';
 import { useWizardSession } from '../../hooks/useWizardSession';
 import { WizardShell } from './WizardShell.jsx';
@@ -27,9 +29,13 @@ import { PersonalInfoFields } from './PersonalInfoFields.jsx';
 import { ParentInfoFields } from './ParentInfoFields.jsx';
 import { InstitutionFields } from './InstitutionFields.jsx';
 import { IdentityScanStep } from './IdentityScanStep.jsx';
+import { HomeFields } from './HomeFields.jsx';
+import { FamilyFields } from './FamilyFields.jsx';
+import { readHousehold } from '../../lib/household.js';
 
 function studentSeed(profile, pending) {
   if (!profile) return {};
+  const household = readHousehold(profile);
   return {
     firstName: profile.first_name || '',
     middleName: profile.middle_name || '',
@@ -46,7 +52,24 @@ function studentSeed(profile, pending) {
     parentLastName: pending?.parent_last_name || '',
     parentRelationship: pending?.relationship || '',
     parentPhone: pending?.parent_phone || '',
-    parentNationalId: pending?.parent_national_id || ''
+    parentNationalId: pending?.parent_national_id || '',
+    constituency: household.constituency || '',
+    ward: household.ward || profile.ward || '',
+    county: household.county || profile.county || '',
+    subCounty: household.subCounty || '',
+    pollingStation: household.pollingStation || profile.location_name || '',
+    childrenInFamily: household.childrenInFamily || '',
+    childrenInSchool: household.childrenInSchool || '',
+    childrenPrimary: household.childrenPrimary || '',
+    childrenSecondary: household.childrenSecondary || '',
+    childrenTertiary: household.childrenTertiary || '',
+    parentStatus: household.parentStatus || '',
+    fatherOccupation: household.fatherOccupation || '',
+    motherOccupation: household.motherOccupation || '',
+    monthlyIncome: household.monthlyIncome || '',
+    disability: household.disability || '',
+    disabilityNote: household.disabilityNote || '',
+    otherBursary: household.otherBursary || ''
   };
 }
 
@@ -63,7 +86,7 @@ function parentSeed(profile) {
   };
 }
 
-export function CompleteRegistrationWizard({ open, onClose, onFinished }) {
+export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtKey = null, handoffOnComplete = false }) {
   const { user, role } = useAuth();
   const [profile, setProfile] = useState(null);
   const [pendingParent, setPendingParent] = useState(null);
@@ -89,7 +112,8 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished }) {
     steps,
     cacheOwnerKey: profile ? `${role}:${profile.id}:dashboard` : 'anon-dashboard',
     enabled: open && Boolean(profile) && Boolean(user?.id),
-    seedValues
+    seedValues,
+    initialStepKey: startAtKey
   });
 
   useEffect(() => {
@@ -278,13 +302,19 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished }) {
           wizard.setError(Object.values(check.errors)[0]);
           return;
         }
+        const institution = {
+          bankName: wizard.values.bankName || '',
+          bankBranch: wizard.values.bankBranch || '',
+          accountNumber: wizard.values.accountNumber || ''
+        };
+        await mergeWizardCompleted('student_profiles', profile.id, { institution });
         const updated = await updateChildProfile(profile.id, {
           school_name: wizard.values.schoolName.trim(),
           school_level: wizard.values.schoolLevel,
           admission_number: wizard.values.admissionNumber.trim()
         });
-        setProfile(updated);
-        const next = await wizard.completeStep('institution', {
+        setProfile({ ...updated, wizard_completed: { ...(updated.wizard_completed || {}), institution } });
+        await wizard.completeStep('institution', {
           schoolName: wizard.values.schoolName,
           schoolLevel: wizard.values.schoolLevel,
           admissionNumber: wizard.values.admissionNumber,
@@ -292,7 +322,77 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished }) {
           bankBranch: wizard.values.bankBranch,
           accountNumber: wizard.values.accountNumber
         });
-        if (next.complete) {
+        return;
+      }
+
+      if (key === 'home_details') {
+        const check = validateForm(wizard.values, {
+          constituency: { label: 'Constituency' },
+          ward: { label: 'Ward' },
+          county: { label: 'County' },
+          subCounty: { label: 'Sub-county' },
+          pollingStation: { label: 'Polling station' }
+        });
+        if (!check.ok) {
+          wizard.setError(Object.values(check.errors)[0]);
+          return;
+        }
+        const household = {
+          ...readHousehold(profile),
+          constituency: wizard.values.constituency.trim(),
+          ward: wizard.values.ward.trim(),
+          county: wizard.values.county.trim(),
+          subCounty: wizard.values.subCounty.trim(),
+          pollingStation: wizard.values.pollingStation.trim()
+        };
+        const updated = await saveStudentHousehold(profile.id, household);
+        setProfile(updated);
+        await wizard.completeStep('home_details', {
+          constituency: household.constituency,
+          ward: household.ward,
+          county: household.county,
+          subCounty: household.subCounty,
+          pollingStation: household.pollingStation
+        });
+        return;
+      }
+
+      if (key === 'family_details') {
+        const check = validateForm(wizard.values, {
+          childrenInFamily: { label: 'Children in the family' },
+          parentStatus: { label: 'Parents in the household' },
+          monthlyIncome: { label: 'Monthly household income' },
+          disability: { label: 'Disability in the family' },
+          otherBursary: { label: 'Other bursary' }
+        });
+        if (!check.ok) {
+          wizard.setError(Object.values(check.errors)[0]);
+          return;
+        }
+        if (wizard.values.disability === 'yes' && !String(wizard.values.disabilityNote || '').trim()) {
+          wizard.setError('Describe the disability and the support needed.');
+          return;
+        }
+        const household = {
+          ...readHousehold(profile),
+          childrenInFamily: wizard.values.childrenInFamily,
+          childrenInSchool: wizard.values.childrenInSchool,
+          childrenPrimary: wizard.values.childrenPrimary,
+          childrenSecondary: wizard.values.childrenSecondary,
+          childrenTertiary: wizard.values.childrenTertiary,
+          parentStatus: wizard.values.parentStatus,
+          fatherOccupation: wizard.values.fatherOccupation,
+          motherOccupation: wizard.values.motherOccupation,
+          monthlyIncome: wizard.values.monthlyIncome,
+          disability: wizard.values.disability,
+          disabilityNote: wizard.values.disabilityNote,
+          otherBursary: wizard.values.otherBursary
+        };
+        const updated = await saveStudentHousehold(profile.id, household);
+        setProfile(updated);
+        const alreadyDone = wizard.allComplete;
+        const next = await wizard.completeStep('family_details', household);
+        if (next.complete && !alreadyDone) {
           const docs = await refreshDocuments();
           await activateOwnerAccount({
             role: ACCOUNT_ROLE.STUDENT,
@@ -300,6 +400,10 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished }) {
             documents: docs,
             identityMatchOk: hasIdentityCardSides(docs)
           });
+          if (handoffOnComplete) {
+            onFinished?.();
+            return;
+          }
           setDone(true);
           onFinished?.();
         }
@@ -311,9 +415,12 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished }) {
     }
   }
 
-  const nextLabel = wizard.currentStep?.key === 'institution' || role === ACCOUNT_ROLE.PARENT
-    ? 'Save'
-    : 'Continue';
+  const nextLabel = wizard.stepIndex >= steps.length - 1 ? 'Save' : 'Continue';
+
+  function canSelectStep(index) {
+    if (wizard.allComplete) return true;
+    return index <= wizard.stepIndex || wizard.completedKeys.includes(steps[index]?.key);
+  }
 
   return (
     <div className="modal-root modal-root--center" role="dialog" aria-modal="true" aria-labelledby="reg-wizard-title">
@@ -346,6 +453,10 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished }) {
               nextLabel={nextLabel}
               onBack={() => wizard.setStepIndex((i) => Math.max(0, i - 1))}
               onNext={handleNext}
+              onStepSelect={(index) => {
+                if (canSelectStep(index)) wizard.setStepIndex(index);
+              }}
+              canSelectStep={canSelectStep}
             >
               {wizard.currentStep?.key === 'personal_information' ? (
                 <>
@@ -384,6 +495,12 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished }) {
               ) : null}
               {wizard.currentStep?.key === 'institution' ? (
                 <InstitutionFields values={wizard.values} onChange={wizard.updateField} />
+              ) : null}
+              {wizard.currentStep?.key === 'home_details' ? (
+                <HomeFields values={wizard.values} onChange={wizard.updateField} idPrefix="dash-home-" />
+              ) : null}
+              {wizard.currentStep?.key === 'family_details' ? (
+                <FamilyFields values={wizard.values} onChange={wizard.updateField} idPrefix="dash-fam-" />
               ) : null}
             </WizardShell>
           )}

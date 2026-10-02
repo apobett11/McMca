@@ -452,6 +452,14 @@ export async function createChildForParent({ parentProfile, fields, educationLev
     national_id_verified: false
   };
 
+  const household = parentProfile?.wizard_completed?.household;
+  if (household && typeof household === 'object') {
+    profile.county = String(household.county || '').trim() || null;
+    profile.ward = String(household.ward || '').trim() || null;
+    profile.location_name = String(household.pollingStation || household.constituency || '').trim() || null;
+    profile.wizard_completed = { household };
+  }
+
   const student = await insertStudentProfile(profile);
 
   const { error: linkError } = await supabase.from('parent_student_links').insert({
@@ -463,6 +471,137 @@ export async function createChildForParent({ parentProfile, fields, educationLev
   });
   if (linkError) throw linkError;
   return student;
+}
+
+export async function fetchApplicationWindows() {
+  const { data, error } = await supabase
+    .from('application_windows')
+    .select('id, title, academic_year, is_active, opens_at, closes_at')
+    .order('academic_year', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export function activeBursaryWindow(windows, now = new Date()) {
+  const active = (windows || []).find((row) => row.is_active);
+  if (!active) return { window: null, reason: 'There is no open bursary cycle right now.' };
+  const opens = active.opens_at ? new Date(active.opens_at) : null;
+  const closes = active.closes_at ? new Date(active.closes_at) : null;
+  if (opens && opens.getTime() > now.getTime()) {
+    return { window: active, reason: 'The current cycle is not open for applications yet.' };
+  }
+  if (closes && closes.getTime() < now.getTime()) {
+    return { window: active, reason: 'The current cycle has closed.' };
+  }
+  return { window: active, reason: '' };
+}
+
+export async function submitStudentCycleApplication(profile) {
+  const windows = await fetchApplicationWindows();
+  const gate = activeBursaryWindow(windows);
+  if (!gate.window || gate.reason) {
+    return { ok: false, reason: gate.reason, windows };
+  }
+  const cycle = gate.window;
+
+  const { data: existing, error: existingError } = await supabase
+    .from('student_applications')
+    .select('id, application_window_id, application_status, created_at, institution_name, allocated_amount, requested_amount, fee_balance')
+    .eq('student_profile_id', profile.id)
+    .eq('application_window_id', cycle.id)
+    .maybeSingle();
+  if (existingError) throw existingError;
+  if (existing) {
+    return { ok: false, already: true, reason: 'You already applied for this cycle.', application: existing, window: cycle, windows };
+  }
+
+  let bank = profile.wizard_completed?.institution || {};
+  if (!bank.bankName && !bank.accountNumber) {
+    const steps = await fetchWizardSteps('student', profile.id, 'dashboard_student').catch(() => []);
+    const saved = steps.find((row) => row.step_key === 'institution')?.payload;
+    if (saved) bank = saved;
+  }
+  const { data: application, error: insertError } = await supabase
+    .from('student_applications')
+    .insert({
+      student_profile_id: profile.id,
+      application_window_id: cycle.id,
+      application_status: 'submitted',
+      institution_name: profile.school_name || null,
+      institution_level: profile.school_level || null,
+      submitted_at: new Date().toISOString(),
+      readiness_score: 100
+    })
+    .select()
+    .single();
+  if (insertError) throw insertError;
+
+  const parents = await fetchLinkedParents(profile.id).catch(() => []);
+  const parent = parents[0];
+  const guardianName = parent
+    ? [parent.parent_first_name, parent.parent_middle_name, parent.parent_last_name].filter(Boolean).join(' ')
+    : null;
+  const { error: detailError } = await supabase.from('application_details').insert({
+    application_id: application.id,
+    guardian_name: guardianName,
+    guardian_phone: parent?.parent_phone || null,
+    bank_name: bank.bankName || null,
+    bank_branch: bank.bankBranch || null,
+    account_number: bank.accountNumber || null
+  });
+  if (detailError) throw detailError;
+
+  await supabase.from('student_activity_logs').insert({
+    student_profile_id: profile.id,
+    activity_type: 'application_submitted',
+    activity_description: `Applied for ${cycle.title}`,
+    metadata: { application_id: application.id, window_id: cycle.id }
+  });
+
+  return { ok: true, application, window: cycle, windows };
+}
+
+export async function fetchParentApplicationBoard(parentAuthUserId) {
+  const [parent, children] = await Promise.all([
+    fetchParentAccount(parentAuthUserId),
+    fetchParentChildren(parentAuthUserId)
+  ]);
+  const ids = children.map((child) => child.id);
+  let applications = [];
+  if (ids.length) {
+    const { data, error } = await supabase
+      .from('student_applications')
+      .select('id, student_profile_id, application_status, institution_name, institution_level, fee_balance, requested_amount, allocated_amount, created_at, application_window_id')
+      .in('student_profile_id', ids);
+    if (error) throw error;
+    applications = data || [];
+  }
+  const windowsResult = await supabase
+    .from('application_windows')
+    .select('id, title, academic_year, is_active')
+    .order('academic_year', { ascending: false });
+  return {
+    parent,
+    children,
+    applications,
+    windows: windowsResult.error ? [] : (windowsResult.data || [])
+  };
+}
+
+export async function saveStudentHousehold(studentId, household) {
+  await mergeWizardCompleted('student_profiles', studentId, { household });
+  return updateChildProfile(studentId, {
+    county: String(household.county || '').trim() || null,
+    ward: String(household.ward || '').trim() || null,
+    location_name: String(household.pollingStation || household.constituency || '').trim() || null
+  });
+}
+
+export async function saveParentHousehold(parentId, parentAuthUserId, household) {
+  const saved = await mergeWizardCompleted('parent_profiles', parentId, { household });
+  const children = await fetchParentChildren(parentAuthUserId);
+  await Promise.all(children.map((child) => saveStudentHousehold(child.id, household)));
+  return saved;
 }
 
 export async function updateChildProfile(studentId, patch) {

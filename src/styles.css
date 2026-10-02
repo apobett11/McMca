@@ -8799,6 +8799,63 @@ h1.section-card__title {
   margin: 0 0 16px;
 }
 
+.portal--parent .stitch-apps-history {
+  margin-top: 28px;
+}
+
+.portal--parent .stitch-apps-history__head {
+  align-items: center;
+}
+
+.portal--parent .stitch-apps-history__head .btn {
+  width: auto;
+}
+
+.portal--parent .cycle-block + .cycle-block {
+  margin-top: 28px;
+}
+
+.portal--parent .form-flag {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.portal--parent .form-flag--locked {
+  cursor: default;
+}
+
+.portal--parent .form-flag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.portal--parent .wizard-panel .btn {
+  width: auto;
+  border-radius: 999px;
+}
+
+@media (max-width: 720px) {
+  .portal--parent .stitch-apps-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .portal--parent .stitch-apps-history__head .btn {
+    width: 100%;
+  }
+}
+
 @media (max-width: 640px) {
   .portal--parent .dash-suite__head .btn,
   .portal--parent .linked-student-card__actions .btn {

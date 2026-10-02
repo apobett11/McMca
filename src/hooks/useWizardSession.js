@@ -18,7 +18,8 @@ export function useWizardSession({
   steps,
   cacheOwnerKey,
   enabled = true,
-  seedValues = null
+  seedValues = null,
+  initialStepKey = null
 }) {
   const [values, setValues] = useState({});
   const [files, setFiles] = useState({});
@@ -35,10 +36,10 @@ export function useWizardSession({
   );
 
   useEffect(() => {
-    if (!loading && !position.complete) {
+    if (!loading && !position.complete && !initialStepKey) {
       setStepIndex(position.index);
     }
-  }, [loading, position.index, position.complete]);
+  }, [loading, position.index, position.complete, initialStepKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,7 +87,10 @@ export function useWizardSession({
         setCompletedKeys(completed);
         setStepPayloads(payloads);
         const next = resolveWizardPosition({ steps, completedKeys: completed });
-        setStepIndex(next.index);
+        const preferIndex = initialStepKey
+          ? steps.findIndex((step) => step.key === initialStepKey)
+          : -1;
+        setStepIndex(preferIndex >= 0 ? preferIndex : next.index);
       } catch (err) {
         if (!cancelled) setError(err.message || 'Could not restore saved progress.');
       } finally {
@@ -98,7 +102,7 @@ export function useWizardSession({
     return () => {
       cancelled = true;
     };
-  }, [enabled, flowId, ownerType, ownerId, authUserId, cacheOwnerKey, steps, seedValues]);
+  }, [enabled, flowId, ownerType, ownerId, authUserId, cacheOwnerKey, steps, seedValues, initialStepKey]);
 
   const persistDraft = useCallback(
     (nextValues, nextIndex) => {
