@@ -6,14 +6,10 @@ function req(kind, { sides = 1, label, required = true } = {}) {
 
 /** Autonomous: documents required to activate a parent or independent student account. */
 export function getActivationDocumentRequirements(role) {
-  if (role === ACCOUNT_ROLE.PARENT) {
+  if (role === ACCOUNT_ROLE.PARENT || role === ACCOUNT_ROLE.STUDENT) {
     return [
-      req(DOCUMENT_KIND.NATIONAL_ID_PHOTO, { label: 'Clear photo of national ID' })
-    ];
-  }
-  if (role === ACCOUNT_ROLE.STUDENT) {
-    return [
-      req(DOCUMENT_KIND.NATIONAL_ID_PHOTO, { label: 'Clear photo of national ID' })
+      req(DOCUMENT_KIND.NATIONAL_ID_FRONT, { label: 'Front of ID' }),
+      req(DOCUMENT_KIND.NATIONAL_ID_BACK, { label: 'Back of ID' })
     ];
   }
   return [];

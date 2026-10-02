@@ -129,6 +129,7 @@ export function validateField(name, value, extras = {}) {
       return validateEmail(value);
     case 'phone':
     case 'phoneNumber':
+    case 'parentPhone':
       return validatePhone(value, extras);
     case 'nationalId':
     case 'scannedIdNumber':

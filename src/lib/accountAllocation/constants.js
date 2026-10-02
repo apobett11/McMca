@@ -83,7 +83,9 @@ export const WIZARD_FLOW = Object.freeze({
   STUDENT_LINK_PARENTS: 'student_link_parents',
   PARENT_ADD_CHILD: 'parent_add_child',
   CHILD_PROFILE: 'child_profile',
-  APPLICATION: 'application'
+  APPLICATION: 'application',
+  DASHBOARD_STUDENT: 'dashboard_student',
+  DASHBOARD_PARENT: 'dashboard_parent'
 });
 
 export const CACHE_PREFIX = 'mcmca.wizard';

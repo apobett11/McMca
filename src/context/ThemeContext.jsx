@@ -1,47 +1,45 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 const STORAGE_KEY = 'mcmca-theme';
-const THEMES = ['dark', 'light'];
+const DARK = 'dark';
 
-function normalizeTheme(saved) {
-  if (saved === 'neon') return 'dark';
-  return THEMES.includes(saved) ? saved : 'dark';
+function applyDarkTheme() {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  root.setAttribute('data-theme', DARK);
+  root.style.colorScheme = DARK;
+  if (document.body) {
+    document.body.style.backgroundColor = '#0B1120';
+    document.body.style.colorScheme = DARK;
+  }
+  try {
+    localStorage.setItem(STORAGE_KEY, DARK);
+  } catch {
+    /* ignore */
+  }
 }
+
+applyDarkTheme();
 
 const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return normalizeTheme(saved);
-    } catch {
-      return 'dark';
-    }
-  });
+  const [theme] = useState(DARK);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    try {
-      localStorage.setItem(STORAGE_KEY, theme);
-    } catch {
-      /* ignore */
-    }
-  }, [theme]);
+    applyDarkTheme();
+  }, []);
 
   const cycleTheme = () => {
-    setThemeState((current) => {
-      const idx = THEMES.indexOf(current);
-      return THEMES[(idx + 1) % THEMES.length];
-    });
+    applyDarkTheme();
   };
 
   const value = useMemo(
     () => ({
       theme,
-      setTheme: setThemeState,
+      setTheme: () => applyDarkTheme(),
       cycleTheme,
-      themeLabel: theme.charAt(0).toUpperCase() + theme.slice(1)
+      themeLabel: 'Dark'
     }),
     [theme]
   );

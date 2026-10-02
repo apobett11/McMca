@@ -6,7 +6,6 @@ import { hasSupabaseConfig } from './lib/supabase.js';
 import { ProtectedRoute } from './lib/ProtectedRoute.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
 import { RegisterPage } from './pages/RegisterPage.jsx';
-import { OnboardingPage } from './pages/OnboardingPage.jsx';
 import { AccountGate } from './lib/AccountGate.jsx';
 
 // Import Dashboard Routers
@@ -18,7 +17,20 @@ import { MCARoutes } from './dashboards/mca/routes/MCARoutes.jsx';
 function RoleBasedRouter() {
   const { role, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--background, #0B1120)',
+        color: 'var(--text, #E2E8F0)'
+      }}>
+        Loading...
+      </div>
+    );
+  }
 
   if (!role) return <LoginPage />;
 
@@ -68,32 +80,28 @@ function MissingSupabaseConfig() {
 }
 
 export function App() {
-  if (!hasSupabaseConfig) {
-    return <MissingSupabaseConfig />;
-  }
-
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <HashRouter>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/onboarding" element={
-              <ProtectedRoute>
-                <OnboardingPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <AccountGate>
-                  <RoleBasedRouter />
-                </AccountGate>
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </HashRouter>
-      </AuthProvider>
+      {!hasSupabaseConfig ? (
+        <MissingSupabaseConfig />
+      ) : (
+        <AuthProvider>
+          <HashRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/onboarding" element={<Navigate to="/" replace />} />
+              <Route path="/*" element={
+                <ProtectedRoute>
+                  <AccountGate>
+                    <RoleBasedRouter />
+                  </AccountGate>
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </HashRouter>
+        </AuthProvider>
+      )}
     </ThemeProvider>
   );
 }

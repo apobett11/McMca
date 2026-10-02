@@ -3,14 +3,9 @@ import { Link } from 'react-router-dom';
 import { ParentLayout } from '../components/ParentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
-import {
-  EDUCATION_LEVEL_LABEL,
-  describeAllocatedClass,
-  describeParentControl,
-  getParentControlMode,
-  joinFullName
-} from '../../../lib/accountAllocation';
+import { EDUCATION_LEVEL_LABEL, joinFullName } from '../../../lib/accountAllocation';
 import { fetchParentAccount, fetchParentChildren } from '../../../lib/accountQueries';
+import { ContinueRegistrationPrompt } from '../../../components/account/ContinueRegistrationPrompt.jsx';
 
 export function ParentDashboardPage() {
   const { user } = useAuth();
@@ -45,10 +40,11 @@ export function ParentDashboardPage() {
 
   return (
     <ParentLayout pageTitle="Children" parentName={parentName} layout="dashboard">
+      <ContinueRegistrationPrompt formsPath="/parent/applications" />
       <div className="stitch-support-hero">
         <h1 className="stitch-support-hero__title" style={{ fontSize: 32 }}>Your children</h1>
         <p className="stitch-support-hero__desc">
-          Overview of every linked student, their category, and application status. Independent students who verified your national ID appear here automatically.
+          Students linked to your account, and where each application stands.
         </p>
       </div>
 
@@ -72,8 +68,7 @@ export function ParentDashboardPage() {
         <div className="wizard-panel">
           <h2>No students linked yet</h2>
           <p className="field__help">
-            Add a child under 18 with their personal information, birth certificate, and education level.
-            Independent students who already listed your ID will show up here after you activated your account.
+            Add a child from here. Students who already listed your ID will show up after they finish their account.
           </p>
         </div>
       ) : (
@@ -84,7 +79,6 @@ export function ParentDashboardPage() {
               middleName: child.middle_name,
               lastName: child.last_name
             });
-            const mode = getParentControlMode(child.account_class);
             return (
               <article key={child.id} className="linked-student-card">
                 <div className="linked-student-card__head">
@@ -95,24 +89,11 @@ export function ParentDashboardPage() {
                     <h4 className="linked-student-card__name">{name}</h4>
                     <p className="linked-student-card__school">{child.school_name || 'School not added yet'}</p>
                   </div>
-                  <span className="badge badge--neutral">{child.account_class}</span>
                 </div>
                 <dl className="linked-student-card__meta">
                   <div>
-                    <dt>Category</dt>
-                    <dd>{describeAllocatedClass(child.account_class)}</dd>
-                  </div>
-                  <div>
                     <dt>Education</dt>
                     <dd>{EDUCATION_LEVEL_LABEL[child.school_level] || child.school_level || '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>Parent control</dt>
-                    <dd>{describeParentControl(mode)}</dd>
-                  </div>
-                  <div>
-                    <dt>Account</dt>
-                    <dd>{child.account_status || (child.is_active ? 'active' : 'pending')}</dd>
                   </div>
                 </dl>
                 <div className="linked-student-card__actions">

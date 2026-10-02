@@ -12,6 +12,7 @@ import {
 } from '../../../lib/queries';
 import { getTimeGreeting } from '../../../utils/greeting.js';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
+import { ContinueRegistrationPrompt } from '../../../components/account/ContinueRegistrationPrompt.jsx';
 
 function SkeletonLoader() {
   return (
@@ -78,12 +79,21 @@ export function StudentDashboardPage() {
   const previewActivity = (activity || []).slice(0, 3);
   const hasUnread = previewAlerts.some((n) => !n.is_read);
 
-  if (loading) return <StudentLayout pageTitle="Dashboard" layout="dashboard" notificationBadge={false}><SkeletonLoader /></StudentLayout>;
-  if (error) return <StudentLayout pageTitle="Dashboard" layout="dashboard"><ErrorState message={error.message} onRetry={() => { refreshProfile(); refreshApp(); }} /></StudentLayout>;
+  if (loading) return (
+    <StudentLayout pageTitle="Dashboard" layout="dashboard" notificationBadge={false}>
+      <ContinueRegistrationPrompt formsPath="/student/applications" />
+      <SkeletonLoader />
+    </StudentLayout>
+  );
+  if (error) return (
+    <StudentLayout pageTitle="Dashboard" layout="dashboard">
+      <ContinueRegistrationPrompt formsPath="/student/applications" />
+      <ErrorState message={error.message} onRetry={() => { refreshProfile(); refreshApp(); }} />
+    </StudentLayout>
+  );
 
   const nextAction = application ? null : { required: true, title: 'Start your application', route: '/student/new-application' };
   const timelineStages = [];
-  const needsParents = (profile?.account_class || 'independent') === 'independent';
 
   return (
     <StudentLayout
@@ -92,16 +102,8 @@ export function StudentDashboardPage() {
       notificationBadge={hasUnread}
       studentName={studentName}
     >
+      <ContinueRegistrationPrompt formsPath="/student/applications" />
       <div className="stitch-dashboard">
-        {needsParents ? (
-          <div className="notice" style={{ marginBottom: 16 }}>
-            <strong>Parent verification</strong>
-            <p>Independent students must link one or two parents with a verified national ID. Applications will not submit until at least one parent is linked.</p>
-            <Link className="btn btn--primary" to="/student/link-parents" style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}>
-              Link or review parents
-            </Link>
-          </div>
-        ) : null}
         <section style={{
           background: 'linear-gradient(135deg, rgba(212,175,55,0.10) 0%, rgba(230,211,163,0.18) 50%, rgba(212,175,55,0.06) 100%)',
           borderRadius: '1.5rem',

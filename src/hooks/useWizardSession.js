@@ -17,7 +17,8 @@ export function useWizardSession({
   authUserId,
   steps,
   cacheOwnerKey,
-  enabled = true
+  enabled = true,
+  seedValues = null
 }) {
   const [values, setValues] = useState({});
   const [files, setFiles] = useState({});
@@ -73,7 +74,7 @@ export function useWizardSession({
         }
         const completed = dbSteps.filter((s) => s.completed).map((s) => s.step_key);
         const payloads = {};
-        const mergedValues = { ...(draft.values || {}) };
+        const mergedValues = { ...(seedValues || {}), ...(draft.values || {}) };
         dbSteps.forEach((s) => {
           payloads[s.step_key] = s.payload || {};
           Object.assign(mergedValues, s.payload || {});
@@ -97,7 +98,7 @@ export function useWizardSession({
     return () => {
       cancelled = true;
     };
-  }, [enabled, flowId, ownerType, ownerId, authUserId, cacheOwnerKey, steps]);
+  }, [enabled, flowId, ownerType, ownerId, authUserId, cacheOwnerKey, steps, seedValues]);
 
   const persistDraft = useCallback(
     (nextValues, nextIndex) => {

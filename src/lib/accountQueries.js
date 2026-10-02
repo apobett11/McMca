@@ -6,6 +6,7 @@ import {
   allocateIndependentClass,
   allocateStudentClassFromEducation,
   buildPendingParentIdentity,
+  canStudentLogin,
   joinFullName,
   normalizeNationalId,
   normalizePhone,
@@ -13,6 +14,8 @@ import {
   planLinkPermissions,
   planParentActivationLinks
 } from './accountAllocation';
+import { WIZARD_FLOW } from './accountAllocation/constants.js';
+import { getWizardSteps, resolveWizardPosition } from './accountAllocation/wizardFlows.js';
 import { assertCanPersist, mapOnboardingKind, verifyDocumentUpload } from './documentUpload';
 
 const IDENTITY_BUCKET = 'student-documents';
@@ -102,6 +105,44 @@ export async function saveWizardStep({
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function persistIdPair({
+  authUserId,
+  ownerType,
+  ownerId,
+  studentProfileId,
+  expected,
+  front,
+  frontResult,
+  back,
+  backResult,
+  frontKind = DOCUMENT_KIND.NATIONAL_ID_FRONT,
+  backKind = DOCUMENT_KIND.NATIONAL_ID_BACK
+}) {
+  if (!front || !back) {
+    throw new Error('Add a photo of the front and the back of the ID.');
+  }
+  await persistVerifiedIdentityDocument({
+    authUserId,
+    ownerType,
+    ownerId,
+    studentProfileId,
+    documentKind: frontKind,
+    file: front,
+    expected,
+    matchResult: frontResult
+  });
+  await persistVerifiedIdentityDocument({
+    authUserId,
+    ownerType,
+    ownerId,
+    studentProfileId,
+    documentKind: backKind,
+    file: back,
+    expected,
+    matchResult: backResult
+  });
 }
 
 export async function persistVerifiedIdentityDocument({
@@ -440,9 +481,70 @@ export async function registerAuthUser({ email, password }) {
   if (error) throw error;
   const user = data.user || data.session?.user;
   if (!user) {
-    throw new Error('Check your email to confirm the account, then sign in to finish identity verification.');
+    throw new Error('Check your email, then sign in.');
   }
   return { user, session: data.session };
+}
+
+export async function assertPortalLoginAllowed(userId, role) {
+  if (role !== 'student') return;
+  const profile = await fetchStudentAccount(userId);
+  if (!profile) throw new Error('No student profile found for this account.');
+  if (!canStudentLogin(profile.account_class)) {
+    if (supabase) await supabase.auth.signOut();
+    throw new Error('This student is managed by a parent. Sign in with the parent email.');
+  }
+}
+
+export async function mergeWizardCompleted(table, profileId, patch) {
+  const { data: current, error: readError } = await supabase
+    .from(table)
+    .select('wizard_completed')
+    .eq('id', profileId)
+    .single();
+  if (readError) throw readError;
+  const next = { ...(current?.wizard_completed || {}), ...patch };
+  const { error } = await supabase
+    .from(table)
+    .update({ wizard_completed: next, updated_at: new Date().toISOString() })
+    .eq('id', profileId);
+  if (error) throw error;
+  return next;
+}
+
+export async function updateParentProfile(parentId, patch) {
+  const { data, error } = await supabase
+    .from('parent_profiles')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', parentId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchDashboardRegistrationState(userId, role) {
+  const profile = role === ACCOUNT_ROLE.PARENT
+    ? await fetchParentAccount(userId)
+    : await fetchStudentAccount(userId);
+  if (!profile) {
+    return { profile: null, incomplete: false, position: null, flowId: null, steps: [] };
+  }
+  const flowId = role === ACCOUNT_ROLE.PARENT
+    ? WIZARD_FLOW.DASHBOARD_PARENT
+    : WIZARD_FLOW.DASHBOARD_STUDENT;
+  const steps = getWizardSteps(flowId);
+  const rows = await fetchWizardSteps(role, profile.id, flowId);
+  const completedKeys = rows.filter((row) => row.completed).map((row) => row.step_key);
+  const position = resolveWizardPosition({ steps, completedKeys });
+  return {
+    profile,
+    flowId,
+    steps,
+    completedKeys,
+    position,
+    incomplete: !position.complete
+  };
 }
 
 export { DOCUMENT_KIND, ACCOUNT_ROLE, joinFullName };

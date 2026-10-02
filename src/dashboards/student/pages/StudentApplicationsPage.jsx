@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useSecureData } from '../../../lib/useSecureData';
 import { fetchStudentApplication, fetchAllApplications } from '../../../lib/queries';
+import { fetchDashboardRegistrationState } from '../../../lib/accountQueries';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
+import { CompleteRegistrationWizard } from '../../../components/account/CompleteRegistrationWizard.jsx';
 
 function SkeletonRow() {
   return (
@@ -18,13 +20,34 @@ function SkeletonRow() {
 
 export function StudentApplicationsPage() {
   const { user } = useAuth();
+  const location = useLocation();
   const { data: latestApp, loading: latestLoading, refresh: refreshLatest } = useSecureData(fetchStudentApplication);
   const { data: allApps, loading: allLoading, refresh: refreshAll } = useSecureData(fetchAllApplications);
+  const [wizardOpen, setWizardOpen] = useState(Boolean(location.state?.continueRegistration));
+  const [registrationIncomplete, setRegistrationIncomplete] = useState(false);
 
   const loading = latestLoading || allLoading;
 
   const historyApps = allApps || [];
   const activeApp = latestApp || historyApps[0];
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      if (!user?.id) return;
+      try {
+        const state = await fetchDashboardRegistrationState(user.id, 'student');
+        if (active) setRegistrationIncomplete(state.incomplete);
+      } catch (err) {
+        console.error('Could not check registration progress', err);
+        if (active) setRegistrationIncomplete(false);
+      }
+    }
+    load();
+    return () => {
+      active = false;
+    };
+  }, [user?.id, wizardOpen]);
 
   function getStatusClass(status) {
     const map = {
@@ -48,6 +71,21 @@ export function StudentApplicationsPage() {
           Track your bursary applications and submissions for this ward.
         </p>
       </div>
+
+      {registrationIncomplete ? (
+        <div className="notice continue-reg-banner">
+          <strong>Finish registration</strong>
+          <p>Personal details are already on file. Continue with ID photos, parent details, and school information.</p>
+          <button
+            type="button"
+            className="btn btn--primary"
+            style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}
+            onClick={() => setWizardOpen(true)}
+          >
+            Continue
+          </button>
+        </div>
+      ) : null}
 
       {loading ? (
         <div className="stitch-apps-active">
@@ -201,6 +239,18 @@ export function StudentApplicationsPage() {
           </div>
         </div>
       </section>
+
+      {wizardOpen ? (
+        <CompleteRegistrationWizard
+          open={wizardOpen}
+          onClose={() => setWizardOpen(false)}
+          onFinished={() => {
+            setRegistrationIncomplete(false);
+            refreshLatest?.();
+            refreshAll?.();
+          }}
+        />
+      ) : null}
     </StudentLayout>
   );
 }

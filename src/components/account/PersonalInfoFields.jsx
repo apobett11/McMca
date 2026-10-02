@@ -1,7 +1,13 @@
 import React from 'react';
 import { VerifiedField } from './VerifiedField.jsx';
 
-export function PersonalInfoFields({ values, onChange, includeAuth = false, idPrefix = '' }) {
+export function PersonalInfoFields({
+  values,
+  onChange,
+  includeAuth = false,
+  includeContact = true,
+  idPrefix = ''
+}) {
   const id = (name) => `${idPrefix}${name}`;
 
   return (
@@ -53,17 +59,8 @@ export function PersonalInfoFields({ values, onChange, includeAuth = false, idPr
         value={values.dateOfBirth}
         onChange={(v) => onChange('dateOfBirth', v)}
       />
-      {includeAuth ? (
+      {includeContact ? (
         <>
-          <VerifiedField
-            id={id('email')}
-            name="email"
-            label="Email"
-            type="email"
-            value={values.email}
-            onChange={(v) => onChange('email', v)}
-            autoComplete="email"
-          />
           <VerifiedField
             id={id('phone')}
             name="phone"
@@ -80,7 +77,19 @@ export function PersonalInfoFields({ values, onChange, includeAuth = false, idPr
             label="National ID number"
             value={values.nationalId}
             onChange={(v) => onChange('nationalId', v)}
-            help="This must match the number printed on your identification card."
+          />
+        </>
+      ) : null}
+      {includeAuth ? (
+        <>
+          <VerifiedField
+            id={id('email')}
+            name="email"
+            label="Email"
+            type="email"
+            value={values.email}
+            onChange={(v) => onChange('email', v)}
+            autoComplete="email"
           />
           <VerifiedField
             id={id('password')}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { assertPortalLoginAllowed } from '../lib/accountQueries';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -14,53 +15,44 @@ export function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      // STEP 1: Authenticate user
       if (!supabase) {
-        throw new Error('This site is not using a browser-safe Supabase key. Use the publishable/anon key, not sb_secret_ or service_role.');
+        throw new Error('This site is not connected to the database yet.');
       }
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw signInError;
 
-      // STEP 2: Fetch authenticated user
-      const {
-        data: { user },
-        error: userError
-      } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw userError || new Error('No user found');
 
-      // STEP 3: Fetch role from public.user_roles
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('auth_user_id', user.id)
         .single();
-
       if (roleError || !roleData) {
         throw roleError || new Error('No role associated with this user');
       }
 
-      // STEP 4: Render dashboard according to role
       const role = roleData.role;
-      if (role === 'student') {
-        navigate('/student/dashboard');
-      } else if (role === 'parent') {
-        navigate('/parent/dashboard');
-      } else if (role === 'chief') {
-        navigate('/chief/dashboard');
-      } else if (role === 'mca') {
-        navigate('/mca/dashboard');
-      } else {
-        throw new Error('Invalid user role');
-      }
+      await assertPortalLoginAllowed(user.id, role);
+
+      if (role === 'student') navigate('/student/dashboard');
+      else if (role === 'parent') navigate('/parent/dashboard');
+      else if (role === 'chief') navigate('/chief/dashboard');
+      else if (role === 'mca') navigate('/mca/dashboard');
+      else throw new Error('Invalid user role');
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   }
+
+  const fieldStyle = {
+    width: '100%', padding: '10px 14px', fontSize: 14, borderRadius: 8,
+    border: '1px solid var(--border, #334155)', background: 'var(--surface, #162032)',
+    color: 'var(--text, #E2E8F0)', fontFamily: 'inherit', outline: 'none'
+  };
 
   return (
     <div style={{
@@ -72,8 +64,8 @@ export function LoginPage() {
         width: '100%', maxWidth: 400, background: 'var(--surface-elevated, #1E293B)',
         borderRadius: 24, padding: 32, border: '1px solid var(--glass-border)'
       }}>
-        <h1 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 700, color: 'var(--text, #E2E8F0)' }}>Student Login</h1>
-        <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--text-2, #94A3B8)' }}>Sign in to access the student portal</p>
+        <h1 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 700, color: 'var(--text, #E2E8F0)' }}>Sign in</h1>
+        <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--text-2, #94A3B8)' }}>Use the email and password you registered with.</p>
         {error && (
           <div style={{
             padding: '12px 16px', marginBottom: 16, borderRadius: 8,
@@ -84,33 +76,11 @@ export function LoginPage() {
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text, #E2E8F0)' }}>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="student@school.mail"
-              required
-              style={{
-                width: '100%', padding: '10px 14px', fontSize: 14, borderRadius: 8,
-                border: '1px solid var(--border)', background: 'var(--surface)',
-                color: 'var(--text)', fontFamily: 'inherit', outline: 'none'
-              }}
-            />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" required style={fieldStyle} />
           </div>
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text, #E2E8F0)' }}>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              required
-              style={{
-                width: '100%', padding: '10px 14px', fontSize: 14, borderRadius: 8,
-                border: '1px solid var(--border)', background: 'var(--surface)',
-                color: 'var(--text)', fontFamily: 'inherit', outline: 'none'
-              }}
-            />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required style={fieldStyle} />
           </div>
           <button
             type="submit"
@@ -126,10 +96,7 @@ export function LoginPage() {
           </button>
         </form>
         <p style={{ marginTop: 16, fontSize: 12, color: 'var(--text-3, #64748B)', textAlign: 'center' }}>
-          New here? <a href="#/register" style={{ color: 'var(--primary-fixed, #60A5FA)' }}>Create an account</a>
-        </p>
-        <p style={{ marginTop: 8, fontSize: 12, color: 'var(--text-3, #64748B)', textAlign: 'center' }}>
-          Secure portal. Use your registered email and password.
+          New here? <Link to="/register" style={{ color: 'var(--primary-fixed, #60A5FA)' }}>Create an account</Link>
         </p>
       </div>
     </div>

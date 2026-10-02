@@ -1,11 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0b1326" />
+  <style>
+    html, body, #app {
+      margin: 0;
+      min-height: 100%;
+      height: 100%;
+      background: #0B1120;
+      color: #E2E8F0;
+      color-scheme: dark;
+    }
+  </style>
+  <script>
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.style.colorScheme = 'dark';
+    try { localStorage.setItem('mcmca-theme', 'dark'); } catch (e) {}
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Student Portal — Bursary</title>
-  <meta name="color-scheme" content="dark light" />
-  <meta name="theme-color" content="#0b1326" />
   <meta name="description" content="Secure student bursary portal for ward applications and document uploads." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

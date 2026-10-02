@@ -23,13 +23,13 @@ export function canSelfRegisterAsIndependent({ dateOfBirth, nationalId }) {
   if (age < INDEPENDENT_MIN_AGE) {
     return {
       allowed: false,
-      reason: 'Students under 18 cannot register themselves. A parent must register them from the parent dashboard.'
+      reason: 'You must be 18 or older to create a student account. A parent can create one for a younger student.'
     };
   }
   if (!hasId) {
     return {
       allowed: false,
-      reason: 'Independent students must have a national ID. Registration cannot continue without one.'
+      reason: 'Enter your national ID number.'
     };
   }
   return { allowed: true, age };

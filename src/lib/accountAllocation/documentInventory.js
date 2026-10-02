@@ -1,4 +1,4 @@
-import { DOCUMENT_STATUS } from './constants.js';
+import { DOCUMENT_KIND, DOCUMENT_STATUS } from './constants.js';
 
 function normalizeDocs(documents = []) {
   return documents.map((doc) => ({
@@ -30,7 +30,13 @@ export function inspectDocumentInventory({ requiredKinds = [], documents = [] })
   }
 
   const items = requiredKinds.map((kind) => {
-    const found = byKind.get(kind);
+    const found = byKind.get(kind)
+      || ((kind === DOCUMENT_KIND.NATIONAL_ID_FRONT || kind === DOCUMENT_KIND.NATIONAL_ID_BACK)
+        ? byKind.get(DOCUMENT_KIND.NATIONAL_ID_PHOTO)
+        : null)
+      || (kind === DOCUMENT_KIND.NATIONAL_ID_PHOTO && byKind.get(DOCUMENT_KIND.NATIONAL_ID_FRONT) && byKind.get(DOCUMENT_KIND.NATIONAL_ID_BACK)
+        ? byKind.get(DOCUMENT_KIND.NATIONAL_ID_FRONT)
+        : null);
     if (!found) {
       return { kind, status: DOCUMENT_STATUS.MISSING, present: false, verified: false };
     }
@@ -55,6 +61,22 @@ export function inspectDocumentInventory({ requiredKinds = [], documents = [] })
     complete: missing.length === 0,
     allVerified: missing.length === 0 && unverified.length === 0
   };
+}
+
+function kindSet(documents = []) {
+  return new Set(normalizeDocs(documents).map((doc) => doc.kind).filter(Boolean));
+}
+
+export function hasIdentityCardSides(documents = []) {
+  const kinds = kindSet(documents);
+  const hasFront = kinds.has(DOCUMENT_KIND.NATIONAL_ID_FRONT) || kinds.has(DOCUMENT_KIND.NATIONAL_ID_PHOTO);
+  const hasBack = kinds.has(DOCUMENT_KIND.NATIONAL_ID_BACK) || kinds.has(DOCUMENT_KIND.NATIONAL_ID_PHOTO);
+  return hasFront && hasBack;
+}
+
+export function hasParentIdSides(documents = []) {
+  const kinds = kindSet(documents);
+  return kinds.has(DOCUMENT_KIND.PARENT_ID_FRONT) && kinds.has(DOCUMENT_KIND.PARENT_ID_BACK);
 }
 
 export function hasDocument(documents, kind) {

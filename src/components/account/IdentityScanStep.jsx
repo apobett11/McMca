@@ -10,7 +10,8 @@ export function IdentityScanStep({
   registeredName,
   registeredId,
   fileField = 'idPhoto',
-  requireBothSides = false
+  backField = 'idBack',
+  requireBothSides = true
 }) {
   const fullName = registeredName || joinFullName(values);
   const expected = {
@@ -21,27 +22,26 @@ export function IdentityScanStep({
   return (
     <>
       <p className="field__help" style={{ marginTop: 0 }}>
-        The photo is read immediately. Names and the ID number on the card must match
-        {' '}<strong>{fullName || 'the registered name'}</strong>
-        {expected.nationalId ? <> and ID <strong>{expected.nationalId}</strong></> : null}.
-        The file is saved only after this check passes.
+        Photo of the ID. Names and number must match the details above.
       </p>
       <DocumentScanField
         id={fileField}
-        label={requireBothSides ? 'Front of national ID' : 'National ID photo'}
+        label="Front of ID"
         file={files[fileField]}
         kind={UPLOAD_KIND.IDENTITY_FRONT}
         expected={expected}
+        help="Front of the card, well lit, all corners visible."
         onFile={(file, verification) => onFile(fileField, file, verification)}
       />
       {requireBothSides ? (
         <DocumentScanField
-          id="idBack"
-          label="Back of national ID"
-          file={files.idBack}
+          id={backField}
+          label="Back of ID"
+          file={files[backField]}
           kind={UPLOAD_KIND.IDENTITY_BACK}
           expected={expected}
-          onFile={(file, verification) => onFile('idBack', file, verification)}
+          help="Back of the card."
+          onFile={(file, verification) => onFile(backField, file, verification)}
         />
       ) : null}
     </>

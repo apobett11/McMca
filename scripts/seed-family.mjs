@@ -1,4 +1,4 @@
-import fs from 'fs';
+﻿import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
 
 function loadDotenv(path) {
@@ -63,7 +63,6 @@ const FAMILY = {
     nationalId: null,
     phone: '+254711100003',
     email: 'collins@gmail.com',
-    password: 'Collins@2026',
     birthCertificateNumber: 'BC20117890'
   }
 };
@@ -96,6 +95,24 @@ async function ensureUser(person) {
   });
   if (updateError) throw updateError;
   return updated.user;
+}
+
+async function revokeStudentLogin(email) {
+  const { data: listed, error: listError } = await admin.auth.admin.listUsers({ perPage: 1000 });
+  if (listError) throw listError;
+  const existing = listed.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+  if (!existing) return null;
+
+  await admin.from('user_roles').delete().eq('auth_user_id', existing.id);
+  await admin.from('wizard_steps').delete().eq('auth_user_id', existing.id);
+  await admin.from('student_profiles').update({
+    auth_user_id: null,
+    updated_at: new Date().toISOString()
+  }).eq('auth_user_id', existing.id);
+
+  const { error: deleteError } = await admin.auth.admin.deleteUser(existing.id);
+  if (deleteError) throw deleteError;
+  return existing.id;
 }
 
 async function upsertRole(userId, role) {
@@ -139,12 +156,11 @@ const now = new Date().toISOString();
 const francisUser = await ensureUser(FAMILY.francis);
 const markUser = await ensureUser(FAMILY.mark);
 const marcusUser = await ensureUser(FAMILY.marcus);
-const collinsUser = await ensureUser(FAMILY.collins);
+await revokeStudentLogin(FAMILY.collins.email);
 
 await upsertRole(francisUser.id, 'parent');
 await upsertRole(markUser.id, 'student');
 await upsertRole(marcusUser.id, 'student');
-await upsertRole(collinsUser.id, 'student');
 
 const { data: parent, error: parentError } = await admin.from('parent_profiles').upsert({
   auth_user_id: francisUser.id,
@@ -176,8 +192,10 @@ const studentRows = [
     delegated_access: false,
     school_level: 'tertiary',
     school_name: 'Egerton University',
+    admission_number: 'EG2026001',
     birth_certificate_number: null,
-    national_id_verified: true
+    national_id_verified: true,
+    bank: { bankName: 'KCB', bankBranch: 'Nakuru', accountNumber: '1234567890' }
   },
   {
     key: 'marcus',
@@ -189,28 +207,30 @@ const studentRows = [
     delegated_access: true,
     school_level: 'tertiary',
     school_name: 'Rift Valley Technical Training Institute',
+    admission_number: 'RVTTI-2026-014',
     birth_certificate_number: null,
-    national_id_verified: true
+    national_id_verified: true,
+    bank: { bankName: 'Equity', bankBranch: 'Eldoret', accountNumber: '0987654321' }
   },
   {
     key: 'collins',
-    user: collinsUser,
+    user: null,
     person: FAMILY.collins,
     student_type: 'CUS',
     account_class: 'custody',
     parent_created: true,
     delegated_access: false,
-    school_level: 'secondary',
-    school_name: 'Moi Secondary School',
+    school_level: 'primary',
+    school_name: 'Kaptembwa Primary School',
+    admission_number: 'KPS-2011-088',
     birth_certificate_number: FAMILY.collins.birthCertificateNumber,
-    national_id_verified: false
+    national_id_verified: false,
+    bank: null
   }
 ];
 
-const students = {};
-for (const row of studentRows) {
-  let result = await admin.from('student_profiles').upsert({
-    auth_user_id: row.user.id,
+async function upsertStudent(row) {
+  const body = {
     student_type: row.student_type,
     first_name: row.person.firstName,
     last_name: row.person.lastName,
@@ -225,6 +245,7 @@ for (const row of studentRows) {
     parent_created: row.parent_created,
     school_name: row.school_name,
     school_level: row.school_level,
+    admission_number: row.admission_number,
     account_class: row.account_class,
     account_status: 'pending',
     category_locked: true,
@@ -232,36 +253,60 @@ for (const row of studentRows) {
     is_active: false,
     wizard_completed: { personal_information: true },
     updated_at: now
-  }, { onConflict: 'auth_user_id' }).select().single();
+  };
 
-  if (result.error && row.student_type !== 'IND') {
-    result = await admin.from('student_profiles').upsert({
-      auth_user_id: row.user.id,
-      student_type: 'IND',
-      first_name: row.person.firstName,
-      last_name: row.person.lastName,
-      gender: row.person.gender,
-      date_of_birth: row.person.dateOfBirth,
-      national_id: row.person.nationalId,
-      email: row.person.email,
-      phone_number: row.person.phone,
-      email_verified: true,
-      national_id_verified: row.national_id_verified,
-      delegated_access: row.delegated_access,
-      parent_created: row.parent_created,
-      school_name: row.school_name,
-      school_level: row.school_level,
-      account_class: row.account_class,
-      account_status: 'pending',
-      category_locked: true,
-      birth_certificate_number: row.birth_certificate_number,
-      is_active: false,
-      wizard_completed: { personal_information: true },
-      updated_at: now
+  if (row.user) {
+    let result = await admin.from('student_profiles').upsert({
+      ...body,
+      auth_user_id: row.user.id
     }, { onConflict: 'auth_user_id' }).select().single();
+    if (result.error && row.student_type !== 'IND') {
+      result = await admin.from('student_profiles').upsert({
+        ...body,
+        auth_user_id: row.user.id,
+        student_type: 'IND'
+      }, { onConflict: 'auth_user_id' }).select().single();
+    }
+    if (result.error) throw result.error;
+    return result.data;
   }
-  if (result.error) throw result.error;
-  students[row.key] = result.data;
+
+  const existing = await admin.from('student_profiles').select('id').eq('email', row.person.email).maybeSingle();
+  if (existing.error) throw existing.error;
+  if (existing.data) {
+    let result = await admin.from('student_profiles').update({
+      ...body,
+      auth_user_id: null
+    }).eq('id', existing.data.id).select().single();
+    if (result.error && row.student_type !== 'IND') {
+      result = await admin.from('student_profiles').update({
+        ...body,
+        auth_user_id: null,
+        student_type: 'IND'
+      }).eq('id', existing.data.id).select().single();
+    }
+    if (result.error) throw result.error;
+    return result.data;
+  }
+
+  let inserted = await admin.from('student_profiles').insert({
+    ...body,
+    auth_user_id: null
+  }).select().single();
+  if (inserted.error && row.student_type !== 'IND') {
+    inserted = await admin.from('student_profiles').insert({
+      ...body,
+      auth_user_id: null,
+      student_type: 'IND'
+    }).select().single();
+  }
+  if (inserted.error) throw inserted.error;
+  return inserted.data;
+}
+
+const students = {};
+for (const row of studentRows) {
+  students[row.key] = await upsertStudent(row);
 }
 
 const links = [
@@ -281,8 +326,7 @@ for (const link of links) {
   if (error) throw error;
 }
 
-const { error: pendingError } = await admin.from('pending_parent_identities').upsert({
-  student_profile_id: students.mark.id,
+const parentIdentity = {
   parent_national_id: FAMILY.francis.nationalId,
   parent_first_name: FAMILY.francis.firstName,
   parent_last_name: FAMILY.francis.lastName,
@@ -290,8 +334,38 @@ const { error: pendingError } = await admin.from('pending_parent_identities').up
   relationship: 'father',
   verification_status: 'linked',
   linked_parent_profile_id: parent.id
-}, { onConflict: 'student_profile_id,parent_national_id' });
-if (pendingError) throw pendingError;
+};
+
+for (const student of [students.mark, students.marcus, students.collins]) {
+  const { error: pendingError } = await admin.from('pending_parent_identities').upsert({
+    student_profile_id: student.id,
+    ...parentIdentity
+  }, { onConflict: 'student_profile_id,parent_national_id' });
+  if (pendingError) throw pendingError;
+}
+
+async function saveStep({ authUserId, ownerType, ownerId, flowId, stepKey, payload, completed = true }) {
+  const { error } = await admin.from('wizard_steps').upsert({
+    auth_user_id: authUserId,
+    owner_type: ownerType,
+    owner_id: ownerId,
+    flow_id: flowId,
+    step_key: stepKey,
+    payload,
+    completed,
+    completed_at: completed ? now : null,
+    updated_at: now
+  }, { onConflict: 'owner_type,owner_id,flow_id,step_key' });
+  if (error) throw error;
+}
+
+const parentPayload = {
+  parentFirstName: FAMILY.francis.firstName,
+  parentLastName: FAMILY.francis.lastName,
+  parentRelationship: 'father',
+  parentPhone: FAMILY.francis.phone,
+  parentNationalId: FAMILY.francis.nationalId
+};
 
 await savePersonalStep({
   authUserId: francisUser.id,
@@ -320,18 +394,54 @@ await savePersonalStep({
   ownerId: students.collins.id,
   flowId: 'parent_add_child',
   payload: personalPayload(FAMILY.collins, {
-    educationLevel: 'secondary',
+    educationLevel: 'primary',
     birthCertificateNumber: FAMILY.collins.birthCertificateNumber
   })
 });
 
+for (const row of studentRows.filter((item) => item.user)) {
+  const student = students[row.key];
+  await saveStep({
+    authUserId: row.user.id,
+    ownerType: 'student',
+    ownerId: student.id,
+    flowId: 'dashboard_student',
+    stepKey: 'personal_information',
+    payload: personalPayload(row.person),
+    completed: false
+  });
+  await saveStep({
+    authUserId: row.user.id,
+    ownerType: 'student',
+    ownerId: student.id,
+    flowId: 'dashboard_student',
+    stepKey: 'parent_information',
+    payload: parentPayload,
+    completed: false
+  });
+  await saveStep({
+    authUserId: row.user.id,
+    ownerType: 'student',
+    ownerId: student.id,
+    flowId: 'dashboard_student',
+    stepKey: 'institution',
+    payload: {
+      schoolName: row.school_name,
+      schoolLevel: row.school_level,
+      admissionNumber: row.admission_number,
+      ...(row.bank || {})
+    },
+    completed: false
+  });
+}
+
 console.log(JSON.stringify({
   ok: true,
-  parent: { email: FAMILY.francis.email, role: 'parent', class: null },
+  parent: { email: FAMILY.francis.email, role: 'parent', canLogin: true },
   students: [
-    { email: FAMILY.mark.email, role: 'student', class: 'independent' },
-    { email: FAMILY.marcus.email, role: 'student', class: 'delegated' },
-    { email: FAMILY.collins.email, role: 'student', class: 'custody' }
+    { email: FAMILY.mark.email, role: 'student', class: 'independent', canLogin: true },
+    { email: FAMILY.marcus.email, role: 'student', class: 'delegated', canLogin: true },
+    { email: FAMILY.collins.email, role: 'student', class: 'custody', canLogin: false }
   ],
-  links: 'Francis is father of Mark (overview), Marcus (delegated control), Collins (full custody control)'
+  links: 'Francis is father of Mark, Marcus, and Collins. Collins has no student login.'
 }, null, 2));
