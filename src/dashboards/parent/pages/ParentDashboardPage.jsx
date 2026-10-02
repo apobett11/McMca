@@ -14,7 +14,7 @@ import { getTimeGreeting } from '../../../utils/greeting.js';
 
 const QUICK_LINKS = [
   { to: '/parent/applications', icon: 'applications', title: 'Applications', desc: 'Bursary records', tone: 'primary' },
-  { to: '/parent/documents', icon: 'documents', title: 'Documents', desc: 'Certificates and files', tone: 'secondary' },
+  { to: '/parent/documents', icon: 'documents', title: 'Documents', desc: 'Shared details and each child', tone: 'secondary' },
   { to: '/parent/notifications', icon: 'bell', title: 'Notifications', desc: 'Alerts for your children', tone: 'tertiary' },
   { to: '/parent/children/new', icon: 'plus', title: 'Add a child', desc: 'Register a student', tone: 'error' }
 ];
@@ -40,7 +40,7 @@ export function ParentDashboardPage() {
 
   return (
     <ParentLayout pageTitle="Home" parentName={parentName} layout="dashboard">
-      <ContinueRegistrationPrompt formsPath="/parent/applications" />
+      <ContinueRegistrationPrompt formsPath="/parent/documents" />
       <div className="stitch-dashboard">
         <section className="student-hero">
           <div className="student-hero__identity">

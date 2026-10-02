@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
-import { Icon } from '../../../components/Icon.jsx';
 import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { activeBursaryWindow, submitStudentCycleApplication } from '../../../lib/accountQueries';
 import { useCachedQuery } from '../../../lib/useCachedQuery';
 import { loadStudentRecord, studentRecordKey } from '../../../lib/portalData';
-import { DASHBOARD_STUDENT_STEPS } from '../../../lib/accountAllocation/wizardFlows';
 import { cycleTitle } from '../../../lib/household.js';
 import { CompleteRegistrationWizard } from '../../../components/account/CompleteRegistrationWizard.jsx';
-import { StudentDocumentsSection } from './StudentDocumentsPage.jsx';
 
 export function StudentFormsPage() {
   const { user } = useAuth();
@@ -24,7 +21,7 @@ export function StudentFormsPage() {
   const applications = data?.applications || [];
   const windows = data?.windows || [];
   const showSkeleton = loading && !data;
-  const [wizardOpen, setWizardOpen] = useState(Boolean(location.state?.continueRegistration));
+  const [wizardOpen, setWizardOpen] = useState(true);
   const [startAtKey, setStartAtKey] = useState(location.state?.startAtKey || null);
   const [applyOpen, setApplyOpen] = useState(false);
   const [applyError, setApplyError] = useState('');
@@ -32,8 +29,6 @@ export function StudentFormsPage() {
   const [justFinished, setJustFinished] = useState(false);
   const [notice, setNotice] = useState('');
 
-  const steps = registration?.steps?.length ? registration.steps : DASHBOARD_STUDENT_STEPS;
-  const completed = new Set(registration?.completedKeys || []);
   const complete = Boolean(registration?.position?.complete);
   const cycleGate = activeBursaryWindow(windows);
   const cycleName = cycleGate.window
@@ -49,12 +44,6 @@ export function StudentFormsPage() {
     if (!justFinished && sessionStorage.getItem(key)) return;
     setApplyOpen(true);
   }, [showSkeleton, complete, user?.id, cycleGate.window, cycleGate.reason, alreadyApplied, justFinished]);
-
-  function openStep(key) {
-    const reached = complete || completed.has(key);
-    setStartAtKey(reached ? key : null);
-    setWizardOpen(true);
-  }
 
   function dismissApply() {
     if (user?.id && cycleGate.window) {
@@ -95,12 +84,20 @@ export function StudentFormsPage() {
   }
 
   return (
-    <StudentLayout pageTitle="Forms" layout="dashboard">
+    <StudentLayout pageTitle="Documents" layout="dashboard">
       <div className="stitch-apps-header">
-        <h1 className="stitch-apps-header__title">Forms</h1>
+        <h1 className="stitch-apps-header__title">Documents</h1>
         <p className="stitch-apps-header__sub">
-          Personal details, parent, school, home, and family, then the documents for this record. Open any saved step to update it.
+          Each step is saved to your account. A tick on the title means that step is already on file. Personal details and a parent are required before you apply.
         </p>
+        <div className="btn-row" style={{ marginTop: 12 }}>
+          <RefreshButton onClick={refresh} busy={refreshing} />
+          {!wizardOpen ? (
+            <button type="button" className="btn btn--primary" onClick={() => setWizardOpen(true)}>
+              Open steps
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {error ? (
@@ -121,41 +118,7 @@ export function StudentFormsPage() {
       ) : null}
 
       <section className="stitch-apps-history">
-        <div className="dash-suite__head">
-          <h2 className="stitch-section-title">Steps</h2>
-          <div className="btn-row">
-            <RefreshButton onClick={refresh} busy={refreshing} />
-          {!complete ? (
-            <button type="button" className="btn btn--primary" onClick={() => openStep(null)} disabled={showSkeleton}>
-              <Icon name="chevronRight" size={18} />
-              Continue
-            </button>
-          ) : null}
-          </div>
-        </div>
-
-        {showSkeleton ? (
-          <div className="skeleton-wrap">
-            <div className="skeleton skeleton--hero" />
-          </div>
-        ) : (
-          <ul className="prep-list">
-            {steps.map((step) => {
-              const done = completed.has(step.key);
-              return (
-                <li key={step.key} className={`prep-list__item${done ? ' prep-list__item--done' : ''}`}>
-                  <input type="checkbox" checked={done} readOnly onChange={() => {}} tabIndex={-1} aria-label={`${step.title} ${done ? 'completed' : 'not completed'}`} />
-                  <span className="prep-list__title">{step.title}</span>
-                  <button type="button" className="btn btn--secondary btn--compact" onClick={() => openStep(step.key)}>
-                    {done ? 'Update' : 'Open'}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-
-          {complete && cycleGate.window && !alreadyApplied && !cycleGate.reason ? (
+        {complete && cycleGate.window && !alreadyApplied && !cycleGate.reason ? (
           <div className="btn-row" style={{ marginTop: 16 }}>
             <button type="button" className="btn btn--primary" onClick={() => setApplyOpen(true)}>
               Apply for {cycleName}
@@ -171,8 +134,6 @@ export function StudentFormsPage() {
           <p className="field__help">{cycleGate.reason} Your saved details stay on file.</p>
         ) : null}
       </section>
-
-      <StudentDocumentsSection />
 
       {wizardOpen ? (
         <CompleteRegistrationWizard

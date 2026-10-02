@@ -172,7 +172,13 @@ export function useWizardSession({
       if (nextPos.complete) {
         clearWizardDraft(cacheOwnerKey, flowId);
       } else {
-        persistDraft(values, nextPos.index);
+        const upcoming = steps[nextPos.index];
+        const keep = new Set(upcoming?.fields || []);
+        const slim = {};
+        Object.entries(values).forEach(([key, value]) => {
+          if (keep.has(key)) slim[key] = value;
+        });
+        persistDraft(slim, nextPos.index);
         setStepIndex(nextPos.index);
       }
       return nextPos;

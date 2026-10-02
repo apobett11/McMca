@@ -105,9 +105,8 @@ export function latestCycleFromWindows(windows) {
   return latestBursaryCycle();
 }
 
-/** One row per child per cycle. Children without an application sit in the latest cycle. */
+/** One row per submitted application, grouped by bursary cycle. */
 export function groupApplicationsByCycle(children, applications, windows) {
-  const latest = latestCycleFromWindows(windows);
   const groups = new Map();
 
   function bucket(label) {
@@ -124,10 +123,6 @@ export function groupApplicationsByCycle(children, applications, windows) {
 
   (children || []).forEach((child) => {
     const apps = appsByStudent.get(child.id) || [];
-    if (!apps.length) {
-      bucket(latest).push({ child, application: null, cycle: latest });
-      return;
-    }
     apps.forEach((application) => {
       const cycle = cycleTitle(application, windows, application.created_at);
       bucket(cycle).push({ child, application, cycle });

@@ -69,7 +69,7 @@ export function StudentApplicationsPage() {
           <div className="notice">
             <strong>No applications yet</strong>
             <p>Finish your forms first. When they are complete you can apply for the open cycle.</p>
-            <Link className="btn btn--primary" to="/student/forms" style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}>
+            <Link className="btn btn--primary" to="/student/documents" style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}>
               Open forms
             </Link>
           </div>

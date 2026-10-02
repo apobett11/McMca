@@ -39,7 +39,7 @@ export function StudentDashboardPage() {
 
   return (
     <StudentLayout pageTitle="Overview" layout="dashboard" studentName={profile ? studentName : ''}>
-      <ContinueRegistrationPrompt formsPath="/student/forms" />
+      <ContinueRegistrationPrompt formsPath="/student/documents" />
       <div className="stitch-dashboard">
         <section className="student-hero">
           <div className="student-hero__identity">
@@ -71,7 +71,7 @@ export function StudentDashboardPage() {
               <RefreshButton onClick={refresh} busy={refreshing} />
             <Link
               className="btn btn--primary"
-              to="/student/forms"
+              to="/student/documents"
               state={{ continueRegistration: !complete }}
             >
               <Icon name={complete ? 'applications' : 'chevronRight'} size={18} />

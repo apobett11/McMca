@@ -21,6 +21,7 @@ import {
   updateChildProfile,
   updateParentProfile,
   saveStudentHousehold,
+  saveParentHousehold,
   mergeWizardCompleted
 } from '../../lib/accountQueries';
 import { useWizardSession } from '../../hooks/useWizardSession';
@@ -78,6 +79,7 @@ function studentSeed(profile, pending) {
 
 function parentSeed(profile) {
   if (!profile) return {};
+  const household = readHousehold(profile);
   return {
     firstName: profile.first_name || '',
     middleName: profile.middle_name || '',
@@ -85,7 +87,24 @@ function parentSeed(profile) {
     gender: profile.gender || '',
     dateOfBirth: profile.date_of_birth || '',
     phone: profile.phone_number || '',
-    nationalId: profile.national_id || ''
+    nationalId: profile.national_id || '',
+    constituency: household.constituency || '',
+    ward: household.ward || '',
+    county: household.county || '',
+    subCounty: household.subCounty || '',
+    pollingStation: household.pollingStation || '',
+    childrenInFamily: household.childrenInFamily || '',
+    childrenInSchool: household.childrenInSchool || '',
+    childrenPrimary: household.childrenPrimary || '',
+    childrenSecondary: household.childrenSecondary || '',
+    childrenTertiary: household.childrenTertiary || '',
+    parentStatus: household.parentStatus || '',
+    fatherOccupation: household.fatherOccupation || '',
+    motherOccupation: household.motherOccupation || '',
+    monthlyIncome: household.monthlyIncome || '',
+    disability: household.disability || '',
+    disabilityNote: household.disabilityNote || '',
+    otherBursary: household.otherBursary || ''
   };
 }
 
@@ -208,7 +227,7 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           ? await updateParentProfile(profile.id, patch)
           : await updateChildProfile(profile.id, patch);
         setProfile(updated);
-        const next = await wizard.completeStep('personal_information', {
+        await wizard.completeStep('personal_information', {
           firstName: wizard.values.firstName,
           middleName: wizard.values.middleName,
           lastName: wizard.values.lastName,
@@ -217,20 +236,6 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           phone: wizard.values.phone,
           nationalId: wizard.values.nationalId
         }, ['idPhoto', 'idBack']);
-        if (role === ACCOUNT_ROLE.PARENT && next.complete) {
-          const docs = await refreshDocuments();
-          const activation = await activateOwnerAccount({
-            role,
-            profile: updated,
-            documents: docs,
-            identityMatchOk: true
-          });
-          if (activation.ok && activation.profile) {
-            await linkIndependentParentsOnActivation(activation.profile);
-          }
-          setDone(true);
-          onFinished?.();
-        }
         return;
       }
 
@@ -348,7 +353,9 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           subCounty: wizard.values.subCounty.trim(),
           pollingStation: wizard.values.pollingStation.trim()
         };
-        const updated = await saveStudentHousehold(profile.id, household);
+        const updated = role === ACCOUNT_ROLE.PARENT
+          ? { ...profile, wizard_completed: await saveParentHousehold(profile.id, user.id, household) }
+          : await saveStudentHousehold(profile.id, household);
         setProfile(updated);
         await wizard.completeStep('home_details', {
           constituency: household.constituency,
@@ -391,18 +398,23 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           disabilityNote: wizard.values.disabilityNote,
           otherBursary: wizard.values.otherBursary
         };
-        const updated = await saveStudentHousehold(profile.id, household);
+        const updated = role === ACCOUNT_ROLE.PARENT
+          ? { ...profile, wizard_completed: await saveParentHousehold(profile.id, user.id, household) }
+          : await saveStudentHousehold(profile.id, household);
         setProfile(updated);
         const alreadyDone = wizard.allComplete;
         const next = await wizard.completeStep('family_details', household);
         if (next.complete && !alreadyDone) {
           const docs = await refreshDocuments();
-          await activateOwnerAccount({
-            role: ACCOUNT_ROLE.STUDENT,
+          const activation = await activateOwnerAccount({
+            role,
             profile: updated,
             documents: docs,
             identityMatchOk: hasIdentityCardSides(docs)
           });
+          if (role === ACCOUNT_ROLE.PARENT && activation.ok && activation.profile) {
+            await linkIndependentParentsOnActivation(activation.profile);
+          }
           if (handoffOnComplete) {
             onFinished?.();
             return;
@@ -460,6 +472,7 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
                 if (canSelectStep(index)) wizard.setStepIndex(index);
               }}
               canSelectStep={canSelectStep}
+              completedKeys={wizard.completedKeys}
             >
               {wizard.currentStep?.key === 'personal_information' ? (
                 <>

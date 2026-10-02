@@ -18,7 +18,8 @@ export function WizardShell({
   extraAction,
   embedded = false,
   onStepSelect,
-  canSelectStep
+  canSelectStep,
+  completedKeys = []
 }) {
   return (
     <section
@@ -34,6 +35,7 @@ export function WizardShell({
           stepIndex={stepIndex}
           onSelect={onStepSelect}
           canSelect={canSelectStep}
+          completedKeys={completedKeys}
         />
       ) : null}
 
@@ -43,7 +45,9 @@ export function WizardShell({
         </div>
       ) : null}
 
-      {children}
+      <div key={steps?.[stepIndex]?.key || stepIndex} className="wizard-step-pane">
+        {children}
+      </div>
 
       <div className="btn-row" style={{ marginTop: 18 }}>
         {stepIndex > 0 ? (

@@ -1,17 +1,19 @@
 import React from 'react';
 
-export function WizardStepsBar({ steps, stepIndex, onSelect, canSelect }) {
+export function WizardStepsBar({ steps, stepIndex, onSelect, canSelect, completedKeys = [] }) {
   const current = steps[stepIndex];
+  const completed = new Set(completedKeys);
   return (
     <div className="wizard-steps-bar">
       <p className="wizard-steps-bar__now">
-        Now: {current?.title || 'Continue'}
+        {current?.title || 'Continue'}
       </p>
       <ol className="wizard-steps-bar__list">
         {steps.map((step, idx) => {
-          const state = idx < stepIndex ? 'done' : idx === stepIndex ? 'current' : 'todo';
+          const done = completed.has(step.key) || idx < stepIndex;
+          const state = done && idx !== stepIndex ? 'done' : idx === stepIndex ? 'current' : 'todo';
           const selectable = Boolean(onSelect) && (canSelect ? canSelect(idx) : true);
-          const mark = idx < stepIndex ? '✓' : idx + 1;
+          const mark = done ? '✓' : idx + 1;
           return (
             <li key={step.key} className={`wizard-steps-bar__item wizard-steps-bar__item--${state}`}>
               {selectable ? (

@@ -473,6 +473,139 @@ export async function createChildForParent({ parentProfile, fields, educationLev
   return student;
 }
 
+function householdSlices(household = {}) {
+  return {
+    home: {
+      constituency: household.constituency || '',
+      ward: household.ward || '',
+      county: household.county || '',
+      subCounty: household.subCounty || '',
+      pollingStation: household.pollingStation || ''
+    },
+    family: {
+      childrenInFamily: household.childrenInFamily || '',
+      childrenInSchool: household.childrenInSchool || '',
+      childrenPrimary: household.childrenPrimary || '',
+      childrenSecondary: household.childrenSecondary || '',
+      childrenTertiary: household.childrenTertiary || '',
+      parentStatus: household.parentStatus || '',
+      fatherOccupation: household.fatherOccupation || '',
+      motherOccupation: household.motherOccupation || '',
+      monthlyIncome: household.monthlyIncome || '',
+      disability: household.disability || '',
+      disabilityNote: household.disabilityNote || '',
+      otherBursary: household.otherBursary || ''
+    }
+  };
+}
+
+async function markStudentSteps(authUserId, studentId, entries) {
+  for (const [stepKey, payload] of entries) {
+    await saveWizardStep({
+      authUserId,
+      ownerType: ACCOUNT_ROLE.STUDENT,
+      ownerId: studentId,
+      flowId: WIZARD_FLOW.DASHBOARD_STUDENT,
+      stepKey,
+      payload,
+      completed: true
+    });
+  }
+}
+
+/** Copy the parent's shared details onto a new child, then submit the first cycle application. */
+export async function registerChildFromParent({ parentProfile, authUserId, personal, institution }) {
+  const household = parentProfile?.wizard_completed?.household || {};
+  const student = await createChildForParent({
+    parentProfile,
+    fields: personal,
+    educationLevel: institution.schoolLevel
+  });
+  const bank = {
+    bankName: institution.bankName || '',
+    bankBranch: institution.bankBranch || '',
+    accountNumber: institution.accountNumber || ''
+  };
+  const updated = await updateChildProfile(student.id, {
+    school_name: String(institution.schoolName || '').trim(),
+    school_level: institution.schoolLevel,
+    admission_number: String(institution.admissionNumber || '').trim()
+  });
+  if (household && typeof household === 'object') {
+    await saveStudentHousehold(student.id, household);
+  }
+  await mergeWizardCompleted('student_profiles', student.id, { household, institution: bank });
+  const parentPayload = {
+    parentFirstName: parentProfile.first_name || '',
+    parentMiddleName: parentProfile.middle_name || '',
+    parentLastName: parentProfile.last_name || '',
+    parentRelationship: 'parent',
+    parentPhone: parentProfile.phone_number || '',
+    parentNationalId: parentProfile.national_id || ''
+  };
+  await savePendingParentFromStudent({
+    studentProfileId: student.id,
+    parent: {
+      firstName: parentPayload.parentFirstName,
+      middleName: parentPayload.parentMiddleName,
+      lastName: parentPayload.parentLastName,
+      relationship: 'parent',
+      phone: parentPayload.parentPhone,
+      nationalId: parentPayload.parentNationalId
+    },
+    documentsVerified: Boolean(parentProfile.national_id_verified)
+  });
+  const slices = householdSlices(household);
+  await markStudentSteps(authUserId, student.id, [
+    ['personal_information', {
+      firstName: personal.firstName,
+      middleName: personal.middleName || '',
+      lastName: personal.lastName,
+      gender: personal.gender,
+      dateOfBirth: personal.dateOfBirth
+    }],
+    ['parent_information', parentPayload],
+    ['institution', {
+      schoolName: institution.schoolName,
+      schoolLevel: institution.schoolLevel,
+      admissionNumber: institution.admissionNumber,
+      ...bank
+    }],
+    ['home_details', slices.home],
+    ['family_details', { ...slices.family, ...slices.home }]
+  ]);
+  const profileForApply = {
+    ...updated,
+    wizard_completed: { ...(updated.wizard_completed || {}), household, institution: bank }
+  };
+  const application = await submitStudentCycleApplication(profileForApply);
+  return { student: profileForApply, application };
+}
+
+export async function updateChildFormDetails({ studentId, authUserId, personal, institution }) {
+  const bank = {
+    bankName: institution.bankName || '',
+    bankBranch: institution.bankBranch || '',
+    accountNumber: institution.accountNumber || ''
+  };
+  const updated = await updateChildProfile(studentId, {
+    first_name: String(personal.firstName || '').trim(),
+    middle_name: personal.middleName?.trim() || null,
+    last_name: String(personal.lastName || '').trim(),
+    gender: personal.gender,
+    date_of_birth: personal.dateOfBirth,
+    school_name: String(institution.schoolName || '').trim(),
+    school_level: institution.schoolLevel,
+    admission_number: String(institution.admissionNumber || '').trim()
+  });
+  await mergeWizardCompleted('student_profiles', studentId, { institution: bank });
+  await markStudentSteps(authUserId, studentId, [
+    ['personal_information', personal],
+    ['institution', { ...institution, ...bank }]
+  ]);
+  return updated;
+}
+
 export async function fetchApplicationWindows() {
   const { data, error } = await supabase
     .from('application_windows')
@@ -513,6 +646,19 @@ export async function submitStudentCycleApplication(profile) {
   if (existingError) throw existingError;
   if (existing) {
     return { ok: false, already: true, reason: 'You already applied for this cycle.', application: existing, window: cycle, windows };
+  }
+
+  const savedSteps = await fetchWizardSteps(ACCOUNT_ROLE.STUDENT, profile.id, WIZARD_FLOW.DASHBOARD_STUDENT).catch(() => []);
+  const doneSteps = new Set(savedSteps.filter((row) => row.completed).map((row) => row.step_key));
+  const personalReady = doneSteps.has('personal_information')
+    || Boolean(profile.first_name && profile.last_name && profile.date_of_birth);
+  const parentReady = doneSteps.has('parent_information');
+  if (!personalReady || !parentReady) {
+    return {
+      ok: false,
+      reason: 'Save personal details and a parent before applying.',
+      windows
+    };
   }
 
   let bank = profile.wizard_completed?.institution || {};

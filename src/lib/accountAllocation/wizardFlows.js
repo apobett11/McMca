@@ -18,7 +18,9 @@ export const DASHBOARD_STUDENT_STEPS = [
 ];
 
 export const DASHBOARD_PARENT_STEPS = [
-  { key: 'personal_information', title: 'Your details', fields: ['firstName', 'middleName', 'lastName', 'gender', 'dateOfBirth', 'phone', 'nationalId', 'idPhoto', 'idBack'] }
+  { key: 'personal_information', title: 'Your details', fields: ['firstName', 'middleName', 'lastName', 'gender', 'dateOfBirth', 'phone', 'nationalId', 'idPhoto', 'idBack'] },
+  { key: 'home_details', title: 'Home', fields: ['constituency', 'ward', 'county', 'subCounty', 'pollingStation'] },
+  { key: 'family_details', title: 'Family', fields: ['childrenInFamily', 'childrenInSchool', 'parentStatus', 'monthlyIncome', 'disability', 'otherBursary'] }
 ];
 
 export const LINK_PARENT_STEPS = [
@@ -27,9 +29,8 @@ export const LINK_PARENT_STEPS = [
 ];
 
 export const ADD_CHILD_STEPS = [
-  { key: 'personal_information', title: 'Student details', fields: ['firstName', 'middleName', 'lastName', 'gender', 'dateOfBirth'] },
-  { key: 'birth_certificate', title: 'Birth certificate', fields: ['birthCertificateNumber', 'certificateName', 'birthCertificatePhoto'] },
-  { key: 'education_level', title: 'School level', fields: ['educationLevel'] }
+  { key: 'personal_information', title: 'Personal details', fields: ['firstName', 'middleName', 'lastName', 'gender', 'dateOfBirth'] },
+  { key: 'institution', title: 'Institution', fields: ['schoolName', 'schoolLevel', 'admissionNumber', 'bankName', 'bankBranch', 'accountNumber'] }
 ];
 
 export const CHILD_PROFILE_STEPS = [
