@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
-import { fetchDashboardRegistrationState } from '../../../lib/accountQueries';
+import { useCachedQuery } from '../../../lib/useCachedQuery';
+import { loadStudentRecord, studentRecordKey } from '../../../lib/portalData';
 import { DASHBOARD_STUDENT_STEPS } from '../../../lib/accountAllocation/wizardFlows';
 import { getTimeGreeting } from '../../../utils/greeting.js';
 import { ContinueRegistrationPrompt } from '../../../components/account/ContinueRegistrationPrompt.jsx';
@@ -18,31 +20,14 @@ function preparednessCopy(done, total) {
 export function StudentDashboardPage() {
   const { user } = useAuth();
   const greeting = getTimeGreeting();
-  const [profile, setProfile] = useState(null);
-  const [completedKeys, setCompletedKeys] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      if (!user?.id) return;
-      setLoading(true);
-      try {
-        const state = await fetchDashboardRegistrationState(user.id, 'student');
-        if (!active) return;
-        setProfile(state.profile);
-        setCompletedKeys(state.completedKeys || []);
-        setError('');
-      } catch (err) {
-        if (active) setError(err.message || 'Could not load your overview.');
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
+  const { data, loading, refreshing, error, refresh } = useCachedQuery(
+    user?.id ? studentRecordKey(user.id) : null,
+    () => loadStudentRecord(user.id),
+    { enabled: Boolean(user?.id) }
+  );
+  const profile = data?.registration?.profile || null;
+  const completedKeys = data?.registration?.completedKeys || [];
+  const showSkeleton = loading && !data;
 
   const steps = DASHBOARD_STUDENT_STEPS;
   const doneCount = steps.filter((step) => completedKeys.includes(step.key)).length;
@@ -68,12 +53,12 @@ export function StudentDashboardPage() {
           </div>
           <div className="student-hero__readiness">
             <div className="student-hero__ring" aria-hidden="true">
-              <span>{loading ? '…' : `${pct}%`}</span>
+              <span>{showSkeleton ? '…' : `${pct}%`}</span>
             </div>
             <div>
               <p className="student-hero__readiness-label">Preparedness</p>
               <p className="student-hero__readiness-desc">
-                {loading ? 'Checking your saved steps.' : preparednessCopy(doneCount, steps.length)}
+                {showSkeleton ? 'Checking your saved steps.' : preparednessCopy(doneCount, steps.length)}
               </p>
             </div>
           </div>
@@ -82,6 +67,8 @@ export function StudentDashboardPage() {
         <section className="dash-activity">
           <div className="dash-suite__head">
             <h2 className="stitch-section-title">Form steps</h2>
+            <div className="btn-row">
+              <RefreshButton onClick={refresh} busy={refreshing} />
             <Link
               className="btn btn--primary"
               to="/student/forms"
@@ -90,6 +77,7 @@ export function StudentDashboardPage() {
               <Icon name={complete ? 'applications' : 'chevronRight'} size={18} />
               {complete ? 'Review forms' : 'Finish remaining steps'}
             </Link>
+            </div>
           </div>
 
           {error ? (
@@ -99,7 +87,7 @@ export function StudentDashboardPage() {
             </div>
           ) : null}
 
-          {loading ? (
+          {showSkeleton ? (
             <div className="skeleton-wrap">
               <div className="skeleton skeleton--hero" />
             </div>

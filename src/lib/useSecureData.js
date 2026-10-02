@@ -1,61 +1,22 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from './supabase';
+import { useCachedQuery } from './useCachedQuery';
 
-export function useSecureData(fetchFn, deps = []) {
+export function useSecureData(fetchFn, deps = [], cacheName) {
   const { userId, isAuthenticated, loading: authLoading } = useAuth();
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const mountedRef = useRef(true);
-  const retryCountRef = useRef(0);
+  const fetchRef = useRef(fetchFn);
+  fetchRef.current = fetchFn;
+  const name = cacheName || fetchFn.name || 'query';
+  const depKey = deps.length ? JSON.stringify(deps) : '';
+  const cacheKey = isAuthenticated && userId ? `${userId}:${name}${depKey ? `:${depKey}` : ''}` : null;
+  const enabled = !authLoading && isAuthenticated && Boolean(userId);
 
-  const fetchData = useCallback(async () => {
-    if (!isAuthenticated || !userId) {
-      setLoading(false);
-      setData(null);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await fetchFn(userId);
-      if (mountedRef.current) {
-        setData(result);
-        retryCountRef.current = 0;
-      }
-    } catch (err) {
-      if (mountedRef.current) {
-        setError(err);
-        if (retryCountRef.current < 2) {
-          retryCountRef.current += 1;
-          setTimeout(fetchData, 1000 * retryCountRef.current);
-          return;
-        }
-      }
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, [userId, isAuthenticated, ...deps]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    if (!authLoading) {
-      fetchData();
-    }
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [authLoading, fetchData]);
-
-  const refresh = useCallback(() => {
-    retryCountRef.current = 0;
-    return fetchData();
-  }, [fetchData]);
-
-  return { data, error, loading, refresh };
+  return useCachedQuery(
+    cacheKey,
+    () => fetchRef.current(userId),
+    { enabled }
+  );
 }
 
 export function useRealtimeSubscription(table, filterColumn, filterValue, onInsert) {

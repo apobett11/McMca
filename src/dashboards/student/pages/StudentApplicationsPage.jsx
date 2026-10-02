@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
-import { fetchApplicationWindows } from '../../../lib/accountQueries';
-import { fetchAllApplications } from '../../../lib/queries';
+import { useCachedQuery } from '../../../lib/useCachedQuery';
+import { loadStudentRecord, studentRecordKey } from '../../../lib/portalData';
 import { applicationSerial, cycleTitle, formatMoney } from '../../../lib/household.js';
 import { EDUCATION_LEVEL_LABEL } from '../../../lib/accountAllocation/constants.js';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
@@ -30,34 +31,14 @@ function levelLabel(value) {
 
 export function StudentApplicationsPage() {
   const { user } = useAuth();
-  const [rows, setRows] = useState([]);
-  const [windows, setWindows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      if (!user?.id) return;
-      setLoading(true);
-      try {
-        const [apps, cycleWindows] = await Promise.all([
-          fetchAllApplications(user.id),
-          fetchApplicationWindows()
-        ]);
-        if (!active) return;
-        setRows(apps || []);
-        setWindows(cycleWindows || []);
-        setError('');
-      } catch (err) {
-        if (active) setError(err.message || 'Could not load applications.');
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
+  const { data, loading, refreshing, error, refresh } = useCachedQuery(
+    user?.id ? studentRecordKey(user.id) : null,
+    () => loadStudentRecord(user.id),
+    { enabled: Boolean(user?.id) }
+  );
+  const rows = data?.applications || [];
+  const windows = data?.windows || [];
+  const showSkeleton = loading && !data;
 
   return (
     <StudentLayout pageTitle="Applications" layout="dashboard">
@@ -69,6 +50,10 @@ export function StudentApplicationsPage() {
       </div>
 
       <section className="stitch-apps-history">
+        <div className="dash-suite__head">
+          <h2 className="stitch-section-title">History</h2>
+          <RefreshButton onClick={refresh} busy={refreshing} />
+        </div>
         {error ? (
           <div className="notice" role="alert">
             <strong>Could not load</strong>
@@ -76,7 +61,7 @@ export function StudentApplicationsPage() {
           </div>
         ) : null}
 
-        {loading ? (
+        {showSkeleton ? (
           <div className="skeleton-wrap">
             <div className="skeleton skeleton--hero" />
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useSecureData } from '../../../lib/useSecureData';
 import { fetchStudentProfile } from '../../../lib/queries';
@@ -199,7 +200,7 @@ function IdUploadModal({ onClose, onVerified }) {
 export function StudentProfilePage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { data: profile, loading, refresh } = useSecureData(fetchStudentProfile);
+  const { data: profile, loading, refreshing, refresh, update } = useSecureData(fetchStudentProfile, [], 'student-profile');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({});
@@ -231,9 +232,9 @@ export function StudentProfilePage() {
         .update(safeUpdates)
         .eq('auth_user_id', user.id);
       if (error) throw error;
+      update((prev) => ({ ...(prev || {}), ...safeUpdates }));
       setMessage({ type: 'success', text: 'Profile updated successfully.' });
       setEditing(false);
-      refresh();
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Failed to update profile.' });
     } finally {
@@ -246,7 +247,7 @@ export function StudentProfilePage() {
     navigate('/login');
   }
 
-  if (loading) {
+  if (loading && !profile) {
     return (
       <StudentLayout pageTitle="Profile" layout="dashboard">
         <ProfileSkeleton />
@@ -268,6 +269,9 @@ export function StudentProfilePage() {
 
   return (
     <StudentLayout pageTitle="Profile" layout="dashboard" studentName={studentName}>
+      <div className="btn-row" style={{ marginBottom: 16, justifyContent: 'flex-end' }}>
+        <RefreshButton onClick={refresh} busy={refreshing} />
+      </div>
       <div style={{
         background: 'linear-gradient(135deg, rgba(212,175,55,0.10) 0%, rgba(230,211,163,0.18) 50%, rgba(212,175,55,0.06) 100%)',
         borderRadius: '1.5rem',
@@ -486,13 +490,13 @@ export function StudentProfilePage() {
       </div>
 
       {verifyModal === 'phone' && (
-        <OtpModal title="Verify Phone" field="phone_verified" currentValue={phone} onClose={() => setVerifyModal(null)} onVerified={refresh} />
+        <OtpModal title="Verify Phone" field="phone_verified" currentValue={phone} onClose={() => setVerifyModal(null)} onVerified={() => update((prev) => ({ ...(prev || {}), phone_verified: true }))} />
       )}
       {verifyModal === 'email' && (
-        <OtpModal title="Verify Email" field="email_verified" currentValue={email} onClose={() => setVerifyModal(null)} onVerified={refresh} />
+        <OtpModal title="Verify Email" field="email_verified" currentValue={email} onClose={() => setVerifyModal(null)} onVerified={() => update((prev) => ({ ...(prev || {}), email_verified: true }))} />
       )}
       {verifyModal === 'national_id' && (
-        <IdUploadModal onClose={() => setVerifyModal(null)} onVerified={refresh} />
+        <IdUploadModal onClose={() => setVerifyModal(null)} onVerified={() => update((prev) => ({ ...(prev || {}), national_id_verified: true }))} />
       )}
     </StudentLayout>
   );

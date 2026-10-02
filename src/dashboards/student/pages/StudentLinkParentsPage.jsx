@@ -1,11 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { WizardShell } from '../../../components/account/WizardShell.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { VerifiedField } from '../../../components/account/VerifiedField.jsx';
 import { IdentityScanStep } from '../../../components/account/IdentityScanStep.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useWizardSession } from '../../../hooks/useWizardSession';
+import { useCachedQuery } from '../../../lib/useCachedQuery';
 import {
   DOCUMENT_KIND,
   WIZARD_FLOW,
@@ -23,8 +25,17 @@ import {
 
 export function StudentLinkParentsPage() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState(null);
-  const [links, setLinks] = useState([]);
+  const { data, loading, refreshing, refresh, update } = useCachedQuery(
+    user?.id ? `${user.id}:student-parents` : null,
+    async () => {
+      const student = await fetchStudentAccount(user.id);
+      const existing = student ? await fetchLinkedParents(student.id) : [];
+      return { profile: student, links: existing || [] };
+    },
+    { enabled: Boolean(user?.id) }
+  );
+  const profile = data?.profile || null;
+  const links = data?.links || [];
   const steps = useMemo(() => getWizardSteps(WIZARD_FLOW.STUDENT_LINK_PARENTS), []);
   const wizard = useWizardSession({
     flowId: WIZARD_FLOW.STUDENT_LINK_PARENTS,
@@ -36,20 +47,6 @@ export function StudentLinkParentsPage() {
     enabled: Boolean(profile?.id)
   });
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      if (!user?.id) return;
-      const student = await fetchStudentAccount(user.id);
-      if (!active || !student) return;
-      setProfile(student);
-      const existing = await fetchLinkedParents(student.id);
-      if (active) setLinks(existing);
-    }
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
 
   const slots = evaluateParentLinkSlots(links);
 
@@ -114,7 +111,7 @@ export function StudentLinkParentsPage() {
       }, ['idFront', 'idBack', 'idPhoto']);
 
       const existing = await fetchLinkedParents(profile.id);
-      setLinks(existing);
+      update((prev) => ({ ...(prev || {}), profile, links: existing || [] }));
     } catch (err) {
       wizard.setError(err.message || 'Could not link this parent.');
     } finally {
@@ -131,6 +128,9 @@ export function StudentLinkParentsPage() {
       <Link className="back-link" to="/student/dashboard">Back to dashboard</Link>
       <div className="stitch-support-hero">
         <h1 className="stitch-support-hero__title" style={{ fontSize: 32 }}>Link parents</h1>
+        <div className="btn-row" style={{ marginTop: 12 }}>
+          <RefreshButton onClick={refresh} busy={refreshing} />
+        </div>
         <p className="stitch-support-hero__desc">
           Independent students must verify one or two parents. Fill in their details and upload the front and back of their national ID. If that parent later registers with the same ID, they are linked automatically and you appear on their children page.
         </p>
@@ -147,6 +147,8 @@ export function StudentLinkParentsPage() {
           ))}
         </ul>
       ) : null}
+
+      {loading && !profile ? <p className="field__help">Loading saved parents…</p> : null}
 
       {slots.maxed ? (
         <div className="notice">Both parent slots are filled. Student category stays independent unless an administrator changes it.</div>

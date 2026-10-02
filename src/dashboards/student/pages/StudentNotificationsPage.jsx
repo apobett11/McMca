@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
-import { useAuth } from '../../../context/AuthContext';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useSecureData } from '../../../lib/useSecureData';
 import { fetchStudentNotifications } from '../../../lib/queries';
 
@@ -14,8 +14,9 @@ const TYPE_ICONS = {
 };
 
 export function StudentNotificationsPage() {
-  const { data: notifications, loading, refresh } = useSecureData(fetchStudentNotifications);
+  const { data: notifications, loading, refreshing, refresh } = useSecureData(fetchStudentNotifications, [], 'student-notifications');
   const notifs = notifications || [];
+  const showSkeleton = loading && !notifications;
 
   return (
     <StudentLayout pageTitle="Notifications" notificationBadge layout="dashboard">
@@ -27,9 +28,12 @@ export function StudentNotificationsPage() {
       <div className="stitch-docs-header">
         <h1 className="stitch-docs-header__title">Notifications</h1>
         <p className="stitch-docs-header__sub">Full history of alerts about your application, documents, and deadlines.</p>
+        <div className="btn-row" style={{ marginTop: 12 }}>
+          <RefreshButton onClick={refresh} busy={refreshing} />
+        </div>
       </div>
 
-      {loading ? (
+      {showSkeleton ? (
         <div className="skeleton-wrap">
           <div className="skeleton skeleton--line" />
           <div className="skeleton skeleton--line" />

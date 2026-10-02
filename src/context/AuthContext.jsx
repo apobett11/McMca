@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { clearQueryCache } from '../lib/queryCache';
 
 const AuthContext = createContext(null);
 
@@ -31,31 +32,42 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let active = true;
+    let booting = true;
+    let roleFor = null;
+    let rolePromise = null;
+
+    function applySession(nextSession) {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+      return nextSession?.user ?? null;
+    }
+
+    function ensureRole(userId) {
+      if (!userId) {
+        roleFor = null;
+        rolePromise = null;
+        setRole(null);
+        return Promise.resolve(null);
+      }
+      if (roleFor === userId && rolePromise) return rolePromise;
+      roleFor = userId;
+      rolePromise = fetchUserRole(userId);
+      return rolePromise;
+    }
 
     async function initAuth() {
       try {
-        setLoading(true);
-        if (!supabase) {
-          setLoading(false);
-          return;
-        }
+        if (!supabase) return;
         const { data: { session: s } } = await supabase.auth.getSession();
         if (!active) return;
-
-        setSession(s);
-        setUser(s?.user ?? null);
-
-        if (s?.user) {
-          await fetchUserRole(s.user.id);
-        } else {
-          setRole(null);
-        }
+        const current = applySession(s);
+        if (current) await ensureRole(current.id);
+        else setRole(null);
       } catch (err) {
         console.error('Error during auth initialization', err);
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        booting = false;
+        if (active) setLoading(false);
       }
     }
 
@@ -67,17 +79,34 @@ export function AuthProvider({ children }) {
       };
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       if (!active) return;
-      setLoading(true);
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        await fetchUserRole(s.user.id);
-      } else {
-        setRole(null);
+
+      if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        applySession(s);
+        return;
       }
-      setLoading(false);
+
+      if (event === 'SIGNED_OUT') {
+        clearQueryCache();
+        applySession(null);
+        roleFor = null;
+        rolePromise = null;
+        setRole(null);
+        setLoading(false);
+        return;
+      }
+
+      if (event === 'SIGNED_IN') {
+        const current = applySession(s);
+        if (booting || !current || roleFor === current.id) return;
+        setTimeout(() => {
+          if (!active) return;
+          ensureRole(current.id).finally(() => {
+            if (active) setLoading(false);
+          });
+        }, 0);
+      }
     });
 
     return () => {
@@ -87,6 +116,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    clearQueryCache();
     if (supabase) await supabase.auth.signOut();
     setSession(null);
     setUser(null);

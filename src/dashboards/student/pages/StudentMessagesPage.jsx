@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
+import { useCachedQuery } from '../../../lib/useCachedQuery';
 import { fetchStudentOfficeMessages, fetchStudentProfile, sendStudentOfficeMessage } from '../../../lib/queries';
 
 const OFFICES = [
@@ -35,29 +37,20 @@ export function StudentMessagesPage() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [sent, setSent] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [studentName, setStudentName] = useState('');
-
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      if (!user?.id) return;
-      try {
-        const [profile, history] = await Promise.all([
-          fetchStudentProfile(user.id),
-          fetchStudentOfficeMessages(user.id)
-        ]);
-        if (!active) return;
-        const name = [profile?.first_name, profile?.middle_name, profile?.last_name].filter(Boolean).join(' ');
-        setStudentName(name);
-        setMessages(history || []);
-      } catch (err) {
-        if (active) setError(err.message || 'Could not load messages.');
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
+  const { data, loading, refreshing, error: loadError, refresh, update } = useCachedQuery(
+    user?.id ? `${user.id}:student-messages` : null,
+    async () => {
+      const [profile, history] = await Promise.all([
+        fetchStudentProfile(user.id),
+        fetchStudentOfficeMessages(user.id)
+      ]);
+      const name = [profile?.first_name, profile?.middle_name, profile?.last_name].filter(Boolean).join(' ');
+      return { studentName: name, messages: history || [] };
+    },
+    { enabled: Boolean(user?.id) }
+  );
+  const studentName = data?.studentName || '';
+  const messages = data?.messages || [];
 
   async function handleSend(event) {
     event.preventDefault();
@@ -67,8 +60,19 @@ export function StudentMessagesPage() {
     setSent('');
     try {
       const result = await sendStudentOfficeMessage(user.id, { office, body });
-      const history = await fetchStudentOfficeMessages(user.id);
-      setMessages(history);
+      const text = body.trim();
+      update((prev) => ({
+        studentName: prev?.studentName || '',
+        messages: [
+          {
+            id: `local-${Date.now()}`,
+            metadata: { office_label: result.label },
+            activity_description: text,
+            created_at: new Date().toISOString()
+          },
+          ...(prev?.messages || [])
+        ]
+      }));
       setBody('');
       setSent(`Sent to the ${result.label.toLowerCase()}.`);
     } catch (err) {
@@ -87,6 +91,9 @@ export function StudentMessagesPage() {
         <p className="stitch-support-hero__desc">
           Send a message to the area chief, the MCA office, or the help desk.
         </p>
+        <div className="btn-row" style={{ marginTop: 12 }}>
+          <RefreshButton onClick={refresh} busy={refreshing} />
+        </div>
       </div>
 
       <div className="stitch-support-grid">
@@ -132,7 +139,9 @@ export function StudentMessagesPage() {
 
       <section className="dash-activity">
         <h2 className="stitch-section-title">Sent messages</h2>
-        {messages.length === 0 ? (
+        {loading && !data ? <p className="field__help">Loading saved messages…</p> : null}
+        {loadError ? <p className="field__help">{loadError}</p> : null}
+        {!loading && messages.length === 0 ? (
           <p className="field__help">Messages you send will appear here.</p>
         ) : (
           <div className="dash-activity__list">

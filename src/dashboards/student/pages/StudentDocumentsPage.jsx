@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useSecureData } from '../../../lib/useSecureData';
 import { fetchStudentDocuments, fetchStudentProfile, uploadStudentDocument } from '../../../lib/queries';
@@ -106,9 +107,15 @@ function UploadModal({ open, onClose, onUpload }) {
 export function StudentDocumentsSection() {
   const { userId } = useAuth();
   const [uploadOpen, setUploadOpen] = useState(false);
-  const { data: documents, loading: docsLoading, refresh: refreshDocs } = useSecureData(fetchStudentDocuments);
+  const {
+    data: documents,
+    loading: docsLoading,
+    refreshing,
+    refresh: refreshDocs,
+    update: updateDocs
+  } = useSecureData(fetchStudentDocuments, [], 'student-documents');
 
-  const loading = docsLoading;
+  const loading = docsLoading && !documents;
   const docList = documents || [];
 
   const uploadedTypes = new Set(docList.map(d => d.document_type));
@@ -148,8 +155,18 @@ export function StudentDocumentsSection() {
       if (!specs.ok) throw new Error(specs.reason);
     }
     await uploadStudentDocument(userId, null, docType, file);
-    refreshDocs();
-  }, [userId, refreshDocs]);
+    updateDocs((prev) => [
+      {
+        id: `local-${Date.now()}`,
+        document_type: docType,
+        original_filename: file.name,
+        file_size: file.size,
+        uploaded_at: new Date().toISOString(),
+        ai_verified: false
+      },
+      ...(prev || [])
+    ]);
+  }, [userId, updateDocs]);
 
   return (
     <>
@@ -162,6 +179,8 @@ export function StudentDocumentsSection() {
               Upload and track documents for your active application. All files are stored securely.
             </p>
           </div>
+          <div className="btn-row">
+            <RefreshButton onClick={refreshDocs} busy={refreshing} />
           <button
             className="stitch-docs-header__upload-btn"
             onClick={() => setUploadOpen(true)}
@@ -169,6 +188,7 @@ export function StudentDocumentsSection() {
             <Icon name="upload" size={18} />
             Upload New
           </button>
+          </div>
         </div>
       </div>
 

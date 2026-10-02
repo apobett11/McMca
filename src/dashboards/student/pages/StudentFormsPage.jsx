@@ -2,14 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
-import {
-  activeBursaryWindow,
-  fetchApplicationWindows,
-  fetchDashboardRegistrationState,
-  submitStudentCycleApplication
-} from '../../../lib/accountQueries';
-import { fetchAllApplications } from '../../../lib/queries';
+import { activeBursaryWindow, submitStudentCycleApplication } from '../../../lib/accountQueries';
+import { useCachedQuery } from '../../../lib/useCachedQuery';
+import { loadStudentRecord, studentRecordKey } from '../../../lib/portalData';
 import { DASHBOARD_STUDENT_STEPS } from '../../../lib/accountAllocation/wizardFlows';
 import { cycleTitle } from '../../../lib/household.js';
 import { CompleteRegistrationWizard } from '../../../components/account/CompleteRegistrationWizard.jsx';
@@ -18,11 +15,15 @@ import { StudentDocumentsSection } from './StudentDocumentsPage.jsx';
 export function StudentFormsPage() {
   const { user } = useAuth();
   const location = useLocation();
-  const [registration, setRegistration] = useState(null);
-  const [applications, setApplications] = useState([]);
-  const [windows, setWindows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data, loading, refreshing, error, refresh, update } = useCachedQuery(
+    user?.id ? studentRecordKey(user.id) : null,
+    () => loadStudentRecord(user.id),
+    { enabled: Boolean(user?.id) }
+  );
+  const registration = data?.registration || null;
+  const applications = data?.applications || [];
+  const windows = data?.windows || [];
+  const showSkeleton = loading && !data;
   const [wizardOpen, setWizardOpen] = useState(Boolean(location.state?.continueRegistration));
   const [startAtKey, setStartAtKey] = useState(location.state?.startAtKey || null);
   const [applyOpen, setApplyOpen] = useState(false);
@@ -30,38 +31,6 @@ export function StudentFormsPage() {
   const [applying, setApplying] = useState(false);
   const [justFinished, setJustFinished] = useState(false);
   const [notice, setNotice] = useState('');
-
-  async function reload() {
-    if (!user?.id) return null;
-    const [state, apps, cycleWindows] = await Promise.all([
-      fetchDashboardRegistrationState(user.id, 'student'),
-      fetchAllApplications(user.id).catch(() => []),
-      fetchApplicationWindows().catch(() => [])
-    ]);
-    setRegistration(state);
-    setApplications(apps || []);
-    setWindows(cycleWindows || []);
-    return { state, apps: apps || [], windows: cycleWindows || [] };
-  }
-
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      if (!user?.id) return;
-      setLoading(true);
-      try {
-        const next = await reload();
-        if (!active || !next) return;
-        setError('');
-      } catch (err) {
-        if (active) setError(err.message || 'Could not load your forms.');
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
 
   const steps = registration?.steps?.length ? registration.steps : DASHBOARD_STUDENT_STEPS;
   const completed = new Set(registration?.completedKeys || []);
@@ -75,11 +44,11 @@ export function StudentFormsPage() {
   );
 
   useEffect(() => {
-    if (loading || !complete || !user?.id || !cycleGate.window || cycleGate.reason || alreadyApplied) return;
+    if (showSkeleton || !complete || !user?.id || !cycleGate.window || cycleGate.reason || alreadyApplied) return;
     const key = `mcmca.apply-prompt.${user.id}.${cycleGate.window.id}`;
     if (!justFinished && sessionStorage.getItem(key)) return;
     setApplyOpen(true);
-  }, [loading, complete, user?.id, cycleGate.window, cycleGate.reason, alreadyApplied, justFinished]);
+  }, [showSkeleton, complete, user?.id, cycleGate.window, cycleGate.reason, alreadyApplied, justFinished]);
 
   function openStep(key) {
     const reached = complete || completed.has(key);
@@ -103,12 +72,18 @@ export function StudentFormsPage() {
       const result = await submitStudentCycleApplication(registration.profile);
       if (!result.ok) {
         setApplyError(result.reason || 'Could not submit this application.');
-        if (result.already) {
-          setApplications((prev) => (result.application ? [result.application, ...prev] : prev));
+        if (result.already && result.application) {
+          update((prev) => ({
+            ...(prev || {}),
+            applications: [result.application, ...((prev && prev.applications) || [])]
+          }));
         }
         return;
       }
-      setApplications((prev) => [result.application, ...prev]);
+      update((prev) => ({
+        ...(prev || {}),
+        applications: [result.application, ...((prev && prev.applications) || [])]
+      }));
       setApplyOpen(false);
       setJustFinished(false);
       setNotice(`Application sent for ${cycleTitle(result.application, result.windows, result.application.created_at)}.`);
@@ -148,15 +123,18 @@ export function StudentFormsPage() {
       <section className="stitch-apps-history">
         <div className="dash-suite__head">
           <h2 className="stitch-section-title">Steps</h2>
+          <div className="btn-row">
+            <RefreshButton onClick={refresh} busy={refreshing} />
           {!complete ? (
-            <button type="button" className="btn btn--primary" onClick={() => openStep(null)} disabled={loading}>
+            <button type="button" className="btn btn--primary" onClick={() => openStep(null)} disabled={showSkeleton}>
               <Icon name="chevronRight" size={18} />
               Continue
             </button>
           ) : null}
+          </div>
         </div>
 
-        {loading ? (
+        {showSkeleton ? (
           <div className="skeleton-wrap">
             <div className="skeleton skeleton--hero" />
           </div>
@@ -204,13 +182,13 @@ export function StudentFormsPage() {
           onClose={() => {
             setWizardOpen(false);
             setStartAtKey(null);
-            reload().catch(() => {});
+            refresh().catch(() => {});
           }}
           onFinished={() => {
             setWizardOpen(false);
             setStartAtKey(null);
             setJustFinished(true);
-            reload().catch(() => {});
+            refresh().catch(() => {});
           }}
         />
       ) : null}

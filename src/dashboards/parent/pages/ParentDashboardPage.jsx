@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ParentLayout } from '../components/ParentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
+import { useCachedQuery } from '../../../lib/useCachedQuery';
+import { loadParentBoard, parentBoardKey } from '../../../lib/portalData';
 import { joinFullName } from '../../../lib/accountAllocation';
-import { fetchParentApplicationBoard } from '../../../lib/accountQueries';
 import { cycleTitle, formatMoney, latestCycleFromWindows } from '../../../lib/household.js';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
 import { ContinueRegistrationPrompt } from '../../../components/account/ContinueRegistrationPrompt.jsx';
@@ -20,33 +22,16 @@ const QUICK_LINKS = [
 export function ParentDashboardPage() {
   const { user } = useAuth();
   const greeting = getTimeGreeting();
-  const [parent, setParent] = useState(null);
-  const [children, setChildren] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [windows, setWindows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      if (!user?.id) return;
-      try {
-        const board = await fetchParentApplicationBoard(user.id);
-        if (!active) return;
-        setParent(board.parent);
-        setChildren(board.children);
-        setApplications(board.applications);
-        setWindows(board.windows);
-      } catch (err) {
-        if (active) setError(err.message || 'Could not load children.');
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
+  const { data, loading, refreshing, error, refresh } = useCachedQuery(
+    user?.id ? parentBoardKey(user.id) : null,
+    () => loadParentBoard(user.id),
+    { enabled: Boolean(user?.id) }
+  );
+  const parent = data?.parent || null;
+  const children = data?.children || [];
+  const applications = data?.applications || [];
+  const windows = data?.windows || [];
+  const showSkeleton = loading && !data;
 
   const parentName = parent
     ? joinFullName({ firstName: parent.first_name, middleName: parent.middle_name, lastName: parent.last_name })
@@ -63,7 +48,7 @@ export function ParentDashboardPage() {
             <div className="student-hero__copy">
               <h1 className="student-hero__title">{greeting}, {parentName}</h1>
               <p className="student-hero__meta">
-                {loading ? 'Loading your household…' : `${children.length} linked student${children.length === 1 ? '' : 's'}`}
+                {showSkeleton ? 'Loading your household…' : `${children.length} linked student${children.length === 1 ? '' : 's'}`}
               </p>
             </div>
           </div>
@@ -74,7 +59,7 @@ export function ParentDashboardPage() {
             <div>
               <p className="student-hero__readiness-label">Household</p>
               <p className="student-hero__readiness-desc">
-                {loading
+                {showSkeleton
                   ? 'Checking linked students.'
                   : children.length
                     ? 'Open a student to continue their record.'
@@ -104,10 +89,13 @@ export function ParentDashboardPage() {
         <section className="dash-activity">
           <div className="dash-suite__head">
             <h2 className="stitch-section-title">Your children</h2>
+            <div className="btn-row">
+              <RefreshButton onClick={refresh} busy={refreshing} />
             <Link className="btn btn--primary" to="/parent/children/new">
               <Icon name="plus" size={18} />
               Add a child
             </Link>
+            </div>
           </div>
 
           {error ? (
@@ -117,7 +105,7 @@ export function ParentDashboardPage() {
             </div>
           ) : null}
 
-          {loading ? (
+          {showSkeleton ? (
             <div className="skeleton-wrap">
               <div className="skeleton skeleton--hero" />
             </div>
