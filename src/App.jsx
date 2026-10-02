@@ -2,6 +2,7 @@ import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { hasSupabaseConfig } from './lib/supabase.js';
 import { ProtectedRoute } from './lib/ProtectedRoute.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
 import { RegisterPage } from './pages/RegisterPage.jsx';
@@ -35,7 +36,41 @@ function RoleBasedRouter() {
   }
 }
 
+function MissingSupabaseConfig() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+      background: '#0B1120',
+      color: '#E2E8F0',
+      fontFamily: 'sans-serif'
+    }}>
+      <div style={{ maxWidth: 480 }}>
+        <h1 style={{ fontSize: 22, margin: '0 0 12px' }}>Database connection is not configured</h1>
+        <p style={{ lineHeight: 1.5, color: '#94A3B8' }}>
+          This Vercel deployment was built without Supabase keys. In the Vercel project, open
+          Settings → Environment Variables and add these for Production, then Redeploy:
+        </p>
+        <ul style={{ lineHeight: 1.7, color: '#E2E8F0' }}>
+          <li><code>VITE_SUPABASE_URL</code> — your project URL</li>
+          <li><code>VITE_SUPABASE_ANON_KEY</code> — the anon / publishable key</li>
+        </ul>
+        <p style={{ lineHeight: 1.5, color: '#94A3B8' }}>
+          Do not add the service role key. After saving, trigger a new deployment so Vite can bake the keys into the build.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function App() {
+  if (!hasSupabaseConfig) {
+    return <MissingSupabaseConfig />;
+  }
+
   return (
     <ThemeProvider>
       <AuthProvider>

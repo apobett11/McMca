@@ -35,6 +35,10 @@ export function AuthProvider({ children }) {
     async function initAuth() {
       try {
         setLoading(true);
+        if (!supabase) {
+          setLoading(false);
+          return;
+        }
         const { data: { session: s } } = await supabase.auth.getSession();
         if (!active) return;
 
@@ -57,6 +61,12 @@ export function AuthProvider({ children }) {
 
     initAuth();
 
+    if (!supabase) {
+      return () => {
+        active = false;
+      };
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
       if (!active) return;
       setLoading(true);
@@ -77,13 +87,14 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (supabase) await supabase.auth.signOut();
     setSession(null);
     setUser(null);
     setRole(null);
   }, []);
 
   const refreshRole = useCallback(async () => {
+    if (!supabase) return null;
     const { data: { user: current } } = await supabase.auth.getUser();
     if (!current) {
       setRole(null);
