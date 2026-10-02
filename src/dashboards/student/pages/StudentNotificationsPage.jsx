@@ -18,7 +18,7 @@ export function StudentNotificationsPage() {
   const notifs = notifications || [];
 
   return (
-    <StudentLayout pageTitle="Notifications" notificationBadge showBottomNav={false} layout="dashboard">
+    <StudentLayout pageTitle="Notifications" notificationBadge layout="dashboard">
       <Link className="back-link" to="/student/dashboard">
         <Icon name="chevronLeft" size={18} />
         Back to dashboard

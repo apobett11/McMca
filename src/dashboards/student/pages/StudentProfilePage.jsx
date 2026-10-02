@@ -267,7 +267,7 @@ export function StudentProfilePage() {
   const nationalIdVerified = !!profile?.national_id_verified;
 
   return (
-    <StudentLayout pageTitle="Profile" layout="dashboard">
+    <StudentLayout pageTitle="Profile" layout="dashboard" studentName={studentName}>
       <div style={{
         background: 'linear-gradient(135deg, rgba(212,175,55,0.10) 0%, rgba(230,211,163,0.18) 50%, rgba(212,175,55,0.06) 100%)',
         borderRadius: '1.5rem',
@@ -405,7 +405,7 @@ export function StudentProfilePage() {
                     placeholder="Enter email"
                   />
                 </div>
-                <div className="stitch-profile-form__field stitch-profile-form__field--full" style={{ display: 'flex', gap: 12, flexDirection: 'row' }}>
+                <div className="stitch-profile-form__field stitch-profile-form__field--full student-form-actions">
                   <button className="btn btn--primary" onClick={handleSave} disabled={saving} style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}>
                     {saving ? 'Saving...' : 'Save Changes'}
                   </button>
@@ -462,7 +462,7 @@ export function StudentProfilePage() {
                 <Icon name="shield" size={18} />
                 Change Password
               </button>
-              <button className="stitch-profile-security__btn" onClick={handleSignOut} style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#ba1a1a' }}>
+              <button type="button" className="stitch-profile-security__btn stitch-profile-security__btn--danger" onClick={handleSignOut}>
                 <Icon name="logout" size={18} />
                 Sign Out
               </button>

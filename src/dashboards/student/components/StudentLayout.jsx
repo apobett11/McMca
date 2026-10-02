@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { StudentHeader } from './StudentHeader.jsx';
 import { StudentFooter } from './StudentFooter.jsx';
-import { StudentBottomNav } from './StudentBottomNav.jsx';
 import { StudentSlideMenu } from './StudentSlideMenu.jsx';
 import { NotificationModal } from '../../../components/NotificationModal.jsx';
 
@@ -9,7 +8,6 @@ export function StudentLayout({
   pageTitle,
   studentName,
   children,
-  showBottomNav = true,
   showFooter = true,
   showNotifications = true,
   showProfile = true,
@@ -28,7 +26,7 @@ export function StudentLayout({
         : 'main';
 
   return (
-    <div className={`portal portal--student ${showBottomNav ? '' : 'portal--no-nav'}`}>
+    <div className="portal portal--student portal--no-nav">
       <StudentHeader
         pageTitle={pageTitle}
         studentName={studentName}
@@ -38,13 +36,10 @@ export function StudentLayout({
         onMenuOpen={() => setMenuOpen(true)}
         onNotificationsOpen={() => setNotificationsOpen(true)}
       />
-      <main className={mainClass} role="main" style={{flex: '1', width: '100%', maxWidth: layout === 'dashboard' ? '1280px' : '720px', margin: '0 auto', padding: '0 24px'}}>
-        <div className="main__content" style={{padding: '32px 0 64px'}}>{children}</div>
+      <main className={mainClass} role="main">
+        <div className="main__content">{children}</div>
       </main>
       {showFooter ? <StudentFooter /> : null}
-      {showBottomNav ? (
-        <StudentBottomNav />
-      ) : null}
       <StudentSlideMenu
         open={menuOpen}
         onClose={() => setMenuOpen(false)}

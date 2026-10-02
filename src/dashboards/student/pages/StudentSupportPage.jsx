@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
@@ -30,11 +30,31 @@ const SUPPORT_TOPICS = [
     title: 'FAQ',
     desc: 'Frequently asked questions about the bursary process.',
     icon: 'info',
-    route: '#'
+    route: '#student-faq'
+  }
+];
+
+const FAQS = [
+  {
+    id: 'review',
+    q: 'How long does the review process take?',
+    a: 'The review process typically takes 5–7 business days after all documents are submitted.'
+  },
+  {
+    id: 'docs',
+    q: 'What documents do I need to submit?',
+    a: 'You need a fee structure, student ID or birth certificate, admission or enrollment proof, and a guardian consent form.'
+  },
+  {
+    id: 'approved',
+    q: 'How will I know if my application is approved?',
+    a: 'You will receive a notification in your dashboard and through the linked parent or guardian phone number.'
   }
 ];
 
 export function StudentSupportPage() {
+  const [openId, setOpenId] = useState(FAQS[0].id);
+
   return (
     <StudentLayout pageTitle="Support" layout="dashboard">
       <div className="stitch-support-hero">
@@ -44,12 +64,17 @@ export function StudentSupportPage() {
         </p>
       </div>
 
-      <div className="stitch-support-grid">
+      <div className="stitch-support-grid stitch-support-grid--topics">
         {SUPPORT_TOPICS.map((topic) => (
           <Link
             key={topic.id}
             to={topic.route}
             className="stitch-support-card"
+            onClick={(event) => {
+              if (!topic.route.startsWith('#')) return;
+              event.preventDefault();
+              document.getElementById(topic.route.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
           >
             <div className="stitch-support-card__icon stitch-support-card__icon--primary">
               <Icon name={topic.icon} size={28} />
@@ -63,37 +88,31 @@ export function StudentSupportPage() {
         ))}
       </div>
 
-      <div className="stitch-faq">
+      <div className="stitch-faq" id="student-faq">
         <h2 className="stitch-faq__title">Frequently Asked Questions</h2>
         <p className="stitch-faq__desc">Common questions about the bursary application process.</p>
         <div className="stitch-faq__list">
-          <div className="stitch-faq__item stitch-faq__item--open">
-            <div className="stitch-faq__item-head">
-              <h3 className="stitch-faq__item-q">How long does the review process take?</h3>
-              <span className="stitch-faq__item-chevron"><Icon name="chevronRight" size={20} /></span>
-            </div>
-            <div className="stitch-faq__item-body">
-              <p className="stitch-faq__item-answer">The review process typically takes 5-7 business days after all documents are submitted.</p>
-            </div>
-          </div>
-          <div className="stitch-faq__item">
-            <div className="stitch-faq__item-head">
-              <h3 className="stitch-faq__item-q">What documents do I need to submit?</h3>
-              <span className="stitch-faq__item-chevron"><Icon name="chevronRight" size={20} /></span>
-            </div>
-            <div className="stitch-faq__item-body" style={{ display: 'none' }}>
-              <p className="stitch-faq__item-answer">You need: fee structure, student ID or birth certificate, admission/enrollment proof, and guardian consent form.</p>
-            </div>
-          </div>
-          <div className="stitch-faq__item">
-            <div className="stitch-faq__item-head">
-              <h3 className="stitch-faq__item-q">How will I know if my application is approved?</h3>
-              <span className="stitch-faq__item-chevron"><Icon name="chevronRight" size={20} /></span>
-            </div>
-            <div className="stitch-faq__item-body" style={{ display: 'none' }}>
-              <p className="stitch-faq__item-answer">You will receive a notification in your dashboard and via the linked parent/guardian phone number.</p>
-            </div>
-          </div>
+          {FAQS.map((item) => {
+            const open = openId === item.id;
+            return (
+              <div key={item.id} className={`stitch-faq__item ${open ? 'stitch-faq__item--open' : ''}`}>
+                <button
+                  type="button"
+                  className="stitch-faq__item-head"
+                  aria-expanded={open}
+                  onClick={() => setOpenId(open ? '' : item.id)}
+                >
+                  <h3 className="stitch-faq__item-q">{item.q}</h3>
+                  <span className="stitch-faq__item-chevron"><Icon name="chevronRight" size={20} /></span>
+                </button>
+                {open ? (
+                  <div className="stitch-faq__item-body">
+                    <p className="stitch-faq__item-answer">{item.a}</p>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </div>
 

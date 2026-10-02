@@ -42,6 +42,16 @@ function ErrorState({ message, onRetry }) {
   );
 }
 
+const PROGRESS_STEPS = ['Started', 'Documents', 'Review', 'Decision'];
+
+function progressIndex(status) {
+  const value = String(status || 'draft').toLowerCase();
+  if (['approved', 'funds sent', 'disbursed', 'chief_approved'].includes(value)) return 3;
+  if (['under review', 'submitted'].includes(value)) return 2;
+  if (value === 'rejected') return 3;
+  return 1;
+}
+
 function computeReadiness(profile, application) {
   if (!profile) return { pct: 0, label: 'Not started', desc: 'Begin your profile to get started' };
   let score = 0;
@@ -92,8 +102,7 @@ export function StudentDashboardPage() {
     </StudentLayout>
   );
 
-  const nextAction = application ? null : { required: true, title: 'Start your application', route: '/student/new-application' };
-  const timelineStages = [];
+  const activeIndex = application ? progressIndex(application.application_status) : -1;
 
   return (
     <StudentLayout
@@ -104,82 +113,23 @@ export function StudentDashboardPage() {
     >
       <ContinueRegistrationPrompt formsPath="/student/applications" />
       <div className="stitch-dashboard">
-        <section style={{
-          background: 'linear-gradient(135deg, rgba(212,175,55,0.10) 0%, rgba(230,211,163,0.18) 50%, rgba(212,175,55,0.06) 100%)',
-          borderRadius: '1.5rem',
-          padding: 'clamp(20px, 4vw, 32px)',
-          marginBottom: 24,
-          border: '1px solid rgba(212,175,55,0.15)',
-          boxShadow: '0px 12px 36px rgba(201,162,39,0.10)'
-        }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 'clamp(12px, 2vw, 20px)',
-            flexWrap: 'wrap', marginBottom: 20
-          }}>
-            <div style={{
-              width: 'clamp(48px, 8vw, 72px)', height: 'clamp(48px, 8vw, 72px)',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #DDBB6A, #E6D3A3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#5C4A1E', fontWeight: 700,
-              fontSize: 'clamp(18px, 3vw, 28px)', flexShrink: 0
-            }}>
-              {studentName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+        <section className="student-hero">
+          <div className="student-hero__identity">
+            <div className="student-hero__avatar" aria-hidden="true">
+              {studentName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)}
             </div>
-            <div style={{ flex: 1, minWidth: 180 }}>
-              <h1 style={{
-                margin: 0, fontWeight: 600, lineHeight: 1.1, letterSpacing: '-0.03em',
-                fontSize: 'clamp(20px, 4vw, 44px)',
-                color: 'var(--text, #141b2b)'
-              }}>
-                {greeting}, {studentName}
-              </h1>
-              {institutionName && (
-                <p style={{
-                  margin: '4px 0 0',
-                  fontSize: 'clamp(13px, 1.5vw, 16px)',
-                  color: 'var(--text-2, #434654)'
-                }}>
-                  {institutionName}
-                </p>
-              )}
+            <div className="student-hero__copy">
+              <h1 className="student-hero__title">{greeting}, {studentName}</h1>
+              {institutionName ? <p className="student-hero__meta">{institutionName}</p> : null}
             </div>
           </div>
-
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 'clamp(12px, 2vw, 16px)',
-            flexWrap: 'wrap', padding: 'clamp(12px, 2vw, 16px)',
-            background: 'rgba(255,255,255,0.5)',
-            borderRadius: '1rem',
-            backdropFilter: 'blur(4px)'
-          }}>
-            <div style={{
-              width: 'clamp(40px, 6vw, 48px)', height: 'clamp(40px, 6vw, 48px)',
-              borderRadius: '50%',
-              border: '4px solid #DDBB6A',
-              borderTopColor: 'rgba(221,187,106,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <span style={{ fontWeight: 700, color: '#7A6530', fontSize: 'clamp(12px, 1.5vw, 14px)' }}>
-                {readiness.pct}%
-              </span>
+          <div className="student-hero__readiness">
+            <div className="student-hero__ring" aria-hidden="true">
+              <span>{readiness.pct}%</span>
             </div>
             <div>
-              <p style={{
-                margin: 0,
-                fontSize: 'clamp(11px, 1.2vw, 12px)', fontWeight: 600,
-                letterSpacing: '0.05em', color: '#7A6530'
-              }}>
-                Overall Readiness
-              </p>
-              <p style={{
-                margin: '4px 0 0',
-                fontSize: 'clamp(12px, 1.5vw, 14px)',
-                color: 'var(--text-2, #434654)'
-              }}>
-                {readiness.desc}
-              </p>
+              <p className="student-hero__readiness-label">Overall readiness</p>
+              <p className="student-hero__readiness-desc">{readiness.desc}</p>
             </div>
           </div>
         </section>
@@ -188,54 +138,46 @@ export function StudentDashboardPage() {
           <div className="stitch-primary-card__glow" />
           <div className="stitch-primary-card__content">
             <div>
-              <span className="stitch-primary-card__badge">Active Process</span>
+              <span className="stitch-primary-card__badge">
+                {application ? 'Active process' : 'Next step'}
+              </span>
               <h2 className="stitch-primary-card__title">
-                {application ? 'Application In Progress' : 'No Active Application'}
+                {application ? (statusConfig?.label || 'Application in progress') : 'No active application'}
               </h2>
+              <p className="stitch-primary-card__hint">
+                {application
+                  ? (statusConfig?.hint || 'Your bursary application is on file.')
+                  : 'Start an application when your profile and documents are ready.'}
+              </p>
             </div>
-            {nextAction?.route && (
-              <Link className="stitch-primary-card__btn" to={nextAction.route}>
-                {nextAction.title || 'Resume Task'}
-              </Link>
-            )}
+            <Link
+              className="stitch-primary-card__btn"
+              to={application ? '/student/applications' : '/student/new-application'}
+            >
+              <Icon name={application ? 'applications' : 'plus'} size={16} />
+              {application ? 'View application' : 'Start application'}
+            </Link>
           </div>
-          <div className="stitch-primary-card__stepper">
-            <div className="stitch-stepper">
-              {timelineStages.length > 0 ? (
-                timelineStages.map((stage, idx) => (
-                  <div key={idx} className={`stitch-step ${stage.state === 'completed' ? 'stitch-step--done' : stage.state === 'current' ? 'stitch-step--active' : 'stitch-step--pending'}`}>
-                    <div className="stitch-step__node">
-                      {stage.state === 'completed' ? <Icon name="check" size={18} /> : <span>{idx + 1}</span>}
+          {application ? (
+            <div className="stitch-primary-card__stepper">
+              <div className="stitch-stepper">
+                {PROGRESS_STEPS.map((label, idx) => {
+                  const state = idx < activeIndex ? 'completed' : idx === activeIndex ? 'current' : 'pending';
+                  return (
+                    <div
+                      key={label}
+                      className={`stitch-step ${state === 'completed' ? 'stitch-step--done' : state === 'current' ? 'stitch-step--active' : 'stitch-step--pending'}`}
+                    >
+                      <div className="stitch-step__node">
+                        {state === 'completed' ? <Icon name="check" size={16} /> : <span>{idx + 1}</span>}
+                      </div>
+                      <span className="stitch-step__label">{label}</span>
                     </div>
-                    <span className="stitch-step__label">{stage.label}</span>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <div className="stitch-step stitch-step--done">
-                    <div className="stitch-step__node"><Icon name="check" size={18} /></div>
-                    <span className="stitch-step__label">Personal Info</span>
-                  </div>
-                  <div className="stitch-step stitch-step--active">
-                    <div className="stitch-step__node">02</div>
-                    <span className="stitch-step__label">Documents</span>
-                  </div>
-                  <div className="stitch-step stitch-step--pending">
-                    <div className="stitch-step__node">03</div>
-                    <span className="stitch-step__label">Reference</span>
-                  </div>
-                  <div className="stitch-step stitch-step--pending">
-                    <div className="stitch-step__node">04</div>
-                    <span className="stitch-step__label">Review</span>
-                  </div>
-                  <div className="stitch-step stitch-step--pending">
-                    <div className="stitch-step__node"><Icon name="check" size={18} /></div>
-                    <span className="stitch-step__label">Submit</span>
-                  </div>
-                </>
-              )}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          ) : null}
         </section>
 
         <section className="dash-suite">

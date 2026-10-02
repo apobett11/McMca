@@ -96,7 +96,9 @@ export function ParentChildWizardPage() {
 
   return (
     <ParentLayout pageTitle={name}>
-      <Link className="back-link" to="/parent/dashboard">Back to children</Link>
+      <Link className="back-link" to="/parent/dashboard">
+        Back to home
+      </Link>
       {child ? (
         <div className="notice" style={{ marginBottom: 16 }}>
           <strong>{describeAllocatedClass(child.account_class)}</strong>

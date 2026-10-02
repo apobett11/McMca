@@ -7887,3 +7887,926 @@ h1.section-card__title {
   }
 }
 
+/* Student portal — keep the dark gold/navy feel, pull stitch sections onto it */
+:is(.portal--student, .portal--parent) {
+  --student-gold: var(--gold-soft);
+  --student-gold-ink: #5c4a1e;
+}
+
+:is(.portal--student, .portal--parent) .header-branding__text {
+  display: none;
+}
+
+:is(.portal--student, .portal--parent) .main {
+  flex: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 16px 28px;
+}
+
+:is(.portal--student, .portal--parent) .main.main--dashboard {
+  max-width: 1080px;
+}
+
+:is(.portal--student, .portal--parent) .main__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px 0 48px;
+}
+
+:is(.portal--student, .portal--parent) .stitch-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+:is(.portal--student, .portal--parent) .stitch-primary-card,
+:is(.portal--student, .portal--parent) .dash-suite,
+:is(.portal--student, .portal--parent) .dash-activity,
+:is(.portal--student, .portal--parent) .stitch-apps-header,
+:is(.portal--student, .portal--parent) .stitch-apps-active,
+:is(.portal--student, .portal--parent) .stitch-apps-history,
+:is(.portal--student, .portal--parent) .stitch-apps-support,
+:is(.portal--student, .portal--parent) .stitch-docs-header,
+:is(.portal--student, .portal--parent) .stitch-docs-verify,
+:is(.portal--student, .portal--parent) .stitch-docs-checklist,
+:is(.portal--student, .portal--parent) .stitch-docs-history,
+:is(.portal--student, .portal--parent) .stitch-support-hero,
+:is(.portal--student, .portal--parent) .stitch-support-grid,
+:is(.portal--student, .portal--parent) .stitch-faq,
+:is(.portal--student, .portal--parent) .stitch-support-break {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+@media (min-width: 720px) {
+  :is(.portal--student, .portal--parent) .stitch-support-grid--topics {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+:is(.portal--student, .portal--parent) .skeleton {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.08) 0%, rgba(212, 175, 55, 0.16) 50%, rgba(148, 163, 184, 0.08) 100%);
+  background-size: 200% 100%;
+}
+
+:is(.portal--student, .portal--parent) .student-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(230, 211, 163, 0.08) 48%, rgba(212, 175, 55, 0.04) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  box-shadow: var(--gold-shadow);
+}
+
+:is(.portal--student, .portal--parent) .student-hero__identity,
+:is(.portal--student, .portal--parent) .student-hero__readiness {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+:is(.portal--student, .portal--parent) .student-hero__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #ddbb6a, #e6d3a3);
+  color: var(--student-gold-ink);
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-size: 1.35rem;
+}
+
+:is(.portal--student, .portal--parent) .student-hero__copy {
+  min-width: 0;
+}
+
+:is(.portal--student, .portal--parent) .student-hero__title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: clamp(1.45rem, 2.6vw, 2.15rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+:is(.portal--student, .portal--parent) .student-hero__meta,
+:is(.portal--student, .portal--parent) .student-hero__readiness-desc {
+  margin: 4px 0 0;
+  color: var(--text-2);
+  font-size: 0.92rem;
+}
+
+:is(.portal--student, .portal--parent) .student-hero__readiness {
+  padding: 12px 14px;
+  border-radius: 1rem;
+  background: rgba(11, 17, 32, 0.28);
+  border: 1px solid rgba(212, 175, 55, 0.16);
+}
+
+:is(.portal--student, .portal--parent) .student-hero__ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid #ddbb6a;
+  border-top-color: rgba(221, 187, 106, 0.28);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--gold-champagne);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+:is(.portal--student, .portal--parent) .student-hero__readiness-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-champagne);
+}
+
+:is(.portal--student, .portal--parent) .stitch-section-title,
+:is(.portal--student, .portal--parent) .stitch-apps-header__title,
+:is(.portal--student, .portal--parent) .stitch-docs-header__title,
+:is(.portal--student, .portal--parent) .stitch-docs-header__title-mobile,
+:is(.portal--student, .portal--parent) .stitch-support-hero__title,
+:is(.portal--student, .portal--parent) .stitch-apps-active__heading,
+:is(.portal--student, .portal--parent) .stitch-docs-verify__title,
+:is(.portal--student, .portal--parent) .stitch-docs-checklist__title,
+:is(.portal--student, .portal--parent) .stitch-docs-history__title,
+:is(.portal--student, .portal--parent) .stitch-faq__title,
+:is(.portal--student, .portal--parent) .stitch-profile-section__title,
+:is(.portal--student, .portal--parent) .stitch-primary-card__title,
+:is(.portal--student, .portal--parent) .dash-suite__card-title,
+:is(.portal--student, .portal--parent) .dash-activity__item-title,
+:is(.portal--student, .portal--parent) .dash-activity__head,
+:is(.portal--student, .portal--parent) .stitch-apps-support__title,
+:is(.portal--student, .portal--parent) .stitch-support-card__title,
+:is(.portal--student, .portal--parent) .stitch-apps-active__card-title,
+:is(.portal--student, .portal--parent) .stitch-apps-active__next-step-title,
+:is(.portal--student, .portal--parent) .stitch-faq__item-q,
+:is(.portal--student, .portal--parent) .stitch-profile-verify__item-name,
+:is(.portal--student, .portal--parent) .stitch-docs-checklist__item-name,
+:is(.portal--student, .portal--parent) .student-file__name {
+  color: var(--text);
+  font-family: var(--font-headline);
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-header__title,
+:is(.portal--student, .portal--parent) .stitch-docs-header__title,
+:is(.portal--student, .portal--parent) .stitch-docs-header__title-mobile,
+:is(.portal--student, .portal--parent) .stitch-support-hero__title {
+  font-size: clamp(1.55rem, 2.8vw, 2.15rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+:is(.portal--student, .portal--parent) .stitch-section-title,
+:is(.portal--student, .portal--parent) .stitch-apps-active__heading,
+:is(.portal--student, .portal--parent) .stitch-docs-verify__title,
+:is(.portal--student, .portal--parent) .stitch-docs-checklist__title,
+:is(.portal--student, .portal--parent) .stitch-docs-history__title,
+:is(.portal--student, .portal--parent) .stitch-faq__title,
+:is(.portal--student, .portal--parent) .stitch-profile-section__title {
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
+:is(.portal--student, .portal--parent) .stitch-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+:is(.portal--student, .portal--parent) .stitch-section-title::before,
+:is(.portal--student, .portal--parent) .stitch-docs-checklist__bar,
+:is(.portal--student, .portal--parent) .stitch-docs-history__bar,
+:is(.portal--student, .portal--parent) .stitch-docs-required__bar {
+  width: 3px;
+  height: 16px;
+  border-radius: 99px;
+  background: var(--gold-soft);
+  flex-shrink: 0;
+}
+
+:is(.portal--student, .portal--parent) .stitch-section-title::before {
+  content: '';
+}
+
+:is(.portal--student, .portal--parent) .stitch-body-text,
+:is(.portal--student, .portal--parent) .dash-suite__card-desc,
+:is(.portal--student, .portal--parent) .stitch-apps-header__sub,
+:is(.portal--student, .portal--parent) .stitch-docs-header__sub,
+:is(.portal--student, .portal--parent) .stitch-docs-verify__desc,
+:is(.portal--student, .portal--parent) .stitch-docs-verify__labels,
+:is(.portal--student, .portal--parent) .stitch-docs-verify__level-label,
+:is(.portal--student, .portal--parent) .stitch-support-hero__desc,
+:is(.portal--student, .portal--parent) .stitch-support-card__desc,
+:is(.portal--student, .portal--parent) .stitch-apps-support__desc,
+:is(.portal--student, .portal--parent) .stitch-apps-active__card-id,
+:is(.portal--student, .portal--parent) .stitch-apps-active__next-step-desc,
+:is(.portal--student, .portal--parent) .stitch-apps-active__next-step-label,
+:is(.portal--student, .portal--parent) .stitch-faq__desc,
+:is(.portal--student, .portal--parent) .stitch-faq__item-answer,
+:is(.portal--student, .portal--parent) .stitch-profile-form__label,
+:is(.portal--student, .portal--parent) .stitch-profile-security__hint,
+:is(.portal--student, .portal--parent) .stitch-docs-checklist__item-status--action,
+:is(.portal--student, .portal--parent) .student-file__meta,
+:is(.portal--student, .portal--parent) .stitch-primary-card__hint {
+  color: var(--text-2);
+  font-family: var(--font-body);
+}
+
+:is(.portal--student, .portal--parent) .stitch-primary-card__hint {
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  max-width: 46ch;
+}
+
+:is(.portal--student, .portal--parent) .luxury-gradient-card,
+:is(.portal--student, .portal--parent) .stitch-card,
+:is(.portal--student, .portal--parent) .stitch-profile-section,
+:is(.portal--student, .portal--parent) .stitch-docs-verify,
+:is(.portal--student, .portal--parent) .stitch-docs-checklist,
+:is(.portal--student, .portal--parent) .stitch-docs-history,
+:is(.portal--student, .portal--parent) .stitch-apps-table,
+:is(.portal--student, .portal--parent) .stitch-apps-active__card,
+:is(.portal--student, .portal--parent) .stitch-apps-support__card,
+:is(.portal--student, .portal--parent) .stitch-support-card,
+:is(.portal--student, .portal--parent) .stitch-faq,
+:is(.portal--student, .portal--parent) .stitch-faq__item,
+:is(.portal--student, .portal--parent) .student-file {
+  background: var(--surface-elevated);
+  border: 1px solid var(--glass-border);
+  color: var(--text);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+:is(.portal--student, .portal--parent) .stitch-primary-card {
+  background:
+    linear-gradient(160deg, rgba(201, 162, 39, 0.16), transparent 46%),
+    var(--surface-container);
+  color: var(--text);
+  border: 1px solid rgba(201, 162, 39, 0.28);
+  box-shadow: var(--gold-shadow);
+  padding: clamp(18px, 3vw, 28px);
+}
+
+:is(.portal--student, .portal--parent) .stitch-primary-card__content {
+  margin-bottom: 0;
+  gap: 14px;
+}
+
+:is(.portal--student, .portal--parent) .stitch-primary-card__badge,
+:is(.portal--student, .portal--parent) .stitch-apps-active__badge {
+  background: rgba(201, 162, 39, 0.16);
+  color: var(--gold-champagne);
+}
+
+:is(.portal--student, .portal--parent) .stitch-primary-card__btn,
+:is(.portal--student, .portal--parent) .stitch-docs-header__upload-btn,
+:is(.portal--student, .portal--parent) .stitch-support-card__btn,
+:is(.portal--student, .portal--parent) .stitch-profile-promo__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--primary-fixed-dim) 40%, transparent);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  min-height: 42px;
+}
+
+:is(.portal--student, .portal--parent) .stitch-primary-card__btn:hover,
+:is(.portal--student, .portal--parent) .stitch-docs-header__upload-btn:hover,
+:is(.portal--student, .portal--parent) .stitch-support-card__btn:hover,
+:is(.portal--student, .portal--parent) .stitch-profile-promo__btn:hover {
+  color: var(--on-primary-container);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+:is(.portal--student, .portal--parent) .stitch-stepper::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: rgba(201, 162, 39, 0.28);
+}
+
+:is(.portal--student, .portal--parent) .stitch-step--done .stitch-step__node {
+  background: var(--gold-soft);
+  color: var(--student-gold-ink);
+}
+
+:is(.portal--student, .portal--parent) .stitch-step--active .stitch-step__node {
+  background: var(--surface-container-lowest);
+  color: var(--gold-champagne);
+  border: 2px solid var(--gold-soft);
+  box-shadow: 0 0 0 4px rgba(201, 162, 39, 0.16);
+}
+
+:is(.portal--student, .portal--parent) .stitch-step--pending .stitch-step__node {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-3);
+  border: 2px solid var(--outline-variant);
+}
+
+:is(.portal--student, .portal--parent) .stitch-step--done .stitch-step__label,
+:is(.portal--student, .portal--parent) .stitch-step--active .stitch-step__label {
+  color: var(--text);
+}
+
+:is(.portal--student, .portal--parent) .stitch-step--pending .stitch-step__label {
+  color: var(--text-3);
+}
+
+:is(.portal--student, .portal--parent) .dash-suite__grid {
+  gap: 12px;
+}
+
+:is(.portal--student, .portal--parent) .dash-suite__card {
+  min-height: 148px;
+  border-radius: var(--radius-xl);
+}
+
+:is(.portal--student, .portal--parent) .dash-suite__card:hover,
+:is(.portal--student, .portal--parent) .stitch-support-card:hover,
+:is(.portal--student, .portal--parent) a.stitch-apps-support__card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(201, 162, 39, 0.4);
+}
+
+:is(.portal--student, .portal--parent) .dash-suite__icon--primary {
+  background: color-mix(in srgb, var(--primary-fixed) 16%, transparent);
+  color: var(--primary-fixed);
+}
+
+:is(.portal--student, .portal--parent) .dash-suite__icon--secondary,
+:is(.portal--student, .portal--parent) .stitch-support-card__icon--secondary {
+  background: color-mix(in srgb, var(--secondary-fixed-dim) 18%, transparent);
+  color: var(--secondary-fixed-dim);
+}
+
+:is(.portal--student, .portal--parent) .dash-suite__icon--tertiary,
+:is(.portal--student, .portal--parent) .dash-suite__icon--error,
+:is(.portal--student, .portal--parent) .stitch-support-card__icon--primary,
+:is(.portal--student, .portal--parent) .stitch-support-card__icon--tertiary,
+:is(.portal--student, .portal--parent) .stitch-apps-support__icon,
+:is(.portal--student, .portal--parent) .dash-activity__item-icon,
+:is(.portal--student, .portal--parent) .stitch-docs-verify__level-icon,
+:is(.portal--student, .portal--parent) .student-file__icon {
+  background: rgba(201, 162, 39, 0.14);
+  color: var(--gold-champagne);
+}
+
+:is(.portal--student, .portal--parent) .dash-activity__head {
+  background: transparent;
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text);
+}
+
+:is(.portal--student, .portal--parent) .stitch-primary-card__glow {
+  background: rgba(201, 162, 39, 0.08);
+}
+
+:is(.portal--student, .portal--parent) .dash-activity__item {
+  border-bottom-color: var(--border);
+}
+
+:is(.portal--student, .portal--parent) .dash-activity__item:hover {
+  background: color-mix(in srgb, var(--surface-container-high) 75%, transparent);
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-active__card {
+  border-left: 3px solid var(--gold-soft);
+  border-radius: var(--radius-xl);
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-active__next-step {
+  background: rgba(11, 17, 32, 0.28);
+  border: 1px solid var(--glass-border);
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-progress__bar,
+:is(.portal--student, .portal--parent) .stitch-docs-verify__bar {
+  background: rgba(148, 163, 184, 0.16);
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-progress__fill,
+:is(.portal--student, .portal--parent) .stitch-docs-verify__bar-fill {
+  background: linear-gradient(90deg, var(--gold-muted), var(--gold-soft));
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-progress__node--done {
+  background: var(--gold-soft);
+  color: var(--student-gold-ink);
+  box-shadow: none;
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-progress__node--pending {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-3);
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-progress__label--done,
+:is(.portal--student, .portal--parent) .stitch-docs-verify__level-value,
+:is(.portal--student, .portal--parent) .stitch-docs-checklist__item-status--verified,
+:is(.portal--student, .portal--parent) .stitch-profile-section__update-btn,
+:is(.portal--student, .portal--parent) .stitch-table-action {
+  color: var(--gold-champagne);
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-progress__label--pending {
+  color: var(--text-3);
+  opacity: 1;
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-history__head {
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-table thead {
+  background: color-mix(in srgb, var(--gold-primary) 12%, var(--surface-container));
+  color: var(--gold-champagne);
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-table th,
+:is(.portal--student, .portal--parent) .stitch-apps-table td {
+  color: var(--text);
+  border-bottom-color: var(--border);
+}
+
+:is(.portal--student, .portal--parent) .stitch-apps-table tbody tr:hover {
+  background: color-mix(in srgb, var(--surface-container-high) 80%, transparent);
+}
+
+:is(.portal--student, .portal--parent) .stitch-status-badge--admitted {
+  background: rgba(5, 150, 105, 0.18);
+  color: #6ee7b7;
+}
+
+:is(.portal--student, .portal--parent) .stitch-status-badge--declined {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fecaca;
+}
+
+:is(.portal--student, .portal--parent) .stitch-status-badge--review {
+  background: rgba(96, 165, 250, 0.16);
+  color: #bfdbfe;
+}
+
+:is(.portal--student, .portal--parent) .stitch-status-badge--withdrawn {
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--text-2);
+}
+
+:is(.portal--student, .portal--parent) a.stitch-apps-support__card {
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-xl);
+  transition: transform var(--ease), border-color var(--ease);
+}
+
+:is(.portal--student, .portal--parent) .stitch-docs-checklist__item,
+:is(.portal--student, .portal--parent) .stitch-profile-verify__item {
+  background: color-mix(in srgb, var(--surface-container-high) 72%, transparent);
+  border: 1px solid var(--border);
+}
+
+:is(.portal--student, .portal--parent) .stitch-docs-checklist__item-status--pending,
+:is(.portal--student, .portal--parent) .stitch-profile-verify__item-status--review {
+  color: var(--gold-champagne);
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-verify__item-status--verified,
+:is(.portal--student, .portal--parent) .stitch-profile-verify__item-icon--green {
+  color: #6ee7b7;
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-verify__item-icon--green {
+  background: rgba(5, 150, 105, 0.16);
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-verify__item-icon--blue {
+  background: rgba(201, 162, 39, 0.14);
+  color: var(--gold-champagne);
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-form__input,
+:is(.portal--student, .portal--parent) .stitch-profile-form__textarea,
+:is(.portal--student, .portal--parent) .field input,
+:is(.portal--student, .portal--parent) .field select,
+:is(.portal--student, .portal--parent) .field textarea {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  color: var(--text);
+  border-radius: 0.85rem;
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-form__input--readonly {
+  background: var(--surface-container-low);
+  color: var(--text-2);
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-form__input:focus,
+:is(.portal--student, .portal--parent) .stitch-profile-form__textarea:focus {
+  border-color: rgba(201, 162, 39, 0.55);
+  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.16);
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-security__btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text);
+  border-radius: 999px;
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-security__btn:hover {
+  background: color-mix(in srgb, var(--surface-container-high) 80%, transparent);
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-security__btn--danger {
+  border-color: rgba(248, 113, 113, 0.4);
+  color: var(--red);
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-promo {
+  background:
+    linear-gradient(160deg, rgba(212, 175, 55, 0.18), transparent 55%),
+    var(--surface-container);
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  color: var(--text);
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-promo__desc,
+:is(.portal--student, .portal--parent) .stitch-support-break__desc {
+  color: var(--text-2);
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-promo__btn {
+  background: linear-gradient(135deg, #ddbb6a, #e6d3a3);
+  color: var(--student-gold-ink);
+  border-color: transparent;
+}
+
+:is(.portal--student, .portal--parent) .stitch-profile-promo__btn:hover {
+  color: var(--student-gold-ink);
+}
+
+:is(.portal--student, .portal--parent) .student-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-card {
+  align-items: flex-start;
+  text-align: left;
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  text-decoration: none;
+  gap: 0;
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  margin-bottom: 14px;
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-card__title {
+  font-size: 1.05rem;
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-card__desc {
+  margin-bottom: 16px;
+}
+
+:is(.portal--student, .portal--parent) .student-contact-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: auto;
+}
+
+:is(.portal--student, .portal--parent) .student-contact-btn {
+  width: 100%;
+  border-radius: 999px;
+}
+
+:is(.portal--student, .portal--parent) .student-inline-note {
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+:is(.portal--student, .portal--parent) .student-inline-note--error {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+}
+
+:is(.portal--student, .portal--parent) .student-inline-note--ok {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.32);
+  color: #86efac;
+}
+
+:is(.portal--student, .portal--parent) .stitch-faq {
+  border-radius: var(--radius-xl);
+  padding: clamp(18px, 3vw, 28px);
+}
+
+:is(.portal--student, .portal--parent) .stitch-faq__item-head {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  gap: 12px;
+}
+
+:is(.portal--student, .portal--parent) .stitch-faq__item-q {
+  font-size: 1rem;
+}
+
+:is(.portal--student, .portal--parent) .stitch-faq__item-chevron {
+  color: var(--gold-champagne);
+  display: inline-flex;
+}
+
+:is(.portal--student, .portal--parent) .stitch-faq__item--open .stitch-faq__item-chevron {
+  transform: rotate(90deg);
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-break {
+  border: 1px solid var(--glass-border);
+  background: var(--surface-container);
+  border-radius: var(--radius-xl);
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-break__title {
+  color: var(--text);
+  font-family: var(--font-headline);
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-break__features {
+  flex-wrap: wrap;
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-break__feature {
+  color: var(--gold-champagne);
+}
+
+:is(.portal--student, .portal--parent) .student-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+:is(.portal--student, .portal--parent) .student-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+}
+
+:is(.portal--student, .portal--parent) .student-file__main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+:is(.portal--student, .portal--parent) .student-file__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+:is(.portal--student, .portal--parent) .student-file__name,
+:is(.portal--student, .portal--parent) .student-file__meta {
+  margin: 0;
+}
+
+:is(.portal--student, .portal--parent) .student-file__name {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+:is(.portal--student, .portal--parent) .student-file__meta {
+  margin-top: 3px;
+  font-size: 0.75rem;
+}
+
+:is(.portal--student, .portal--parent) .feed-list {
+  gap: 10px;
+}
+
+:is(.portal--student, .portal--parent) .wizard-panel,
+:is(.portal--student, .portal--parent) .upload-panel,
+:is(.portal--student, .portal--parent) .notice {
+  border-radius: var(--radius-xl);
+}
+
+@media (min-width: 768px) {
+  :is(.portal--student, .portal--parent) .student-hero {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  :is(.portal--student, .portal--parent) .student-hero__readiness {
+    min-width: 280px;
+  }
+
+  :is(.portal--student, .portal--parent) .header-branding__text {
+    display: inline;
+  }
+}
+
+@media (max-width: 720px) {
+  :is(.portal--student, .portal--parent) .dash-suite__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  :is(.portal--student, .portal--parent) .dash-suite__card {
+    padding: 16px;
+    min-height: 0;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-stepper {
+    overflow-x: auto;
+    justify-content: flex-start;
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-step {
+    min-width: 76px;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-history__head,
+  :is(.portal--student, .portal--parent) .stitch-docs-header__top {
+    align-items: stretch;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-docs-header__upload-btn,
+  :is(.portal--student, .portal--parent) .stitch-apps-history__head .btn {
+    width: 100%;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-table thead {
+    display: none;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-table,
+  :is(.portal--student, .portal--parent) .stitch-apps-table tbody,
+  :is(.portal--student, .portal--parent) .stitch-apps-table tr,
+  :is(.portal--student, .portal--parent) .stitch-apps-table td {
+    display: block;
+    width: 100%;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-table tr {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-table td {
+    padding: 6px 0;
+    border: none;
+    text-align: left !important;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-profile-section,
+  :is(.portal--student, .portal--parent) .stitch-docs-verify,
+  :is(.portal--student, .portal--parent) .stitch-docs-checklist,
+  :is(.portal--student, .portal--parent) .stitch-docs-history,
+  :is(.portal--student, .portal--parent) .stitch-faq {
+    padding: 16px;
+  }
+
+  :is(.portal--student, .portal--parent) .student-file {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 900px) {
+  .portal:is(.portal--student, .portal--parent) {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .portal:is(.portal--student, .portal--parent) .site-header,
+  .portal:is(.portal--student, .portal--parent) .site-footer,
+  .portal:is(.portal--student, .portal--parent) .main {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .portal:is(.portal--student, .portal--parent) .main--dashboard .main__content,
+  .portal:is(.portal--student, .portal--parent) .main--list .main__content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: none;
+  }
+}
+
+.portal--parent .linked-student-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+.portal--parent .linked-student-card__avatar--blue {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ddbb6a, #e6d3a3);
+  color: #5c4a1e;
+}
+
+.portal--parent .linked-student-card__name {
+  color: var(--text);
+  font-family: var(--font-headline);
+  font-size: 1rem;
+}
+
+.portal--parent .linked-student-card__school,
+.portal--parent .linked-student-card__meta dt {
+  color: var(--text-2);
+}
+
+.portal--parent .linked-student-card__meta dd {
+  color: var(--text);
+}
+
+.portal--parent .dash-suite__head {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.portal--parent .dash-suite__head .btn,
+.portal--parent .linked-student-card__actions .btn {
+  width: auto;
+  border-radius: 999px;
+}
+
+.portal--parent .stitch-profile-security__hint {
+  margin: 0 0 16px;
+}
+
+@media (max-width: 640px) {
+  .portal--parent .dash-suite__head .btn,
+  .portal--parent .linked-student-card__actions .btn {
+    width: 100%;
+  }
+
+  .portal--parent .linked-student-card__actions {
+    flex-direction: column;
+  }
+}
+

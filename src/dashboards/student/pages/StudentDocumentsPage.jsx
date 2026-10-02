@@ -238,38 +238,31 @@ export function StudentDocumentsPage() {
               </div>
             </div>
             {docList.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="student-file-list">
                 {docList.map((doc, idx) => (
-                  <div key={doc.id || idx} style={{
-                    background: 'white', padding: 20, borderRadius: 12,
-                    border: '1px solid rgba(195, 198, 214, 0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <div style={{
-                        width: 40, height: 40, borderRadius: 10,
-                        background: doc.mime_type === 'application/pdf' ? '#FFF9EB' : '#EFF6FF',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: doc.mime_type === 'application/pdf' ? '#755b00' : '#003594'
-                      }}>
+                  <div key={doc.id || idx} className="student-file">
+                    <div className="student-file__main">
+                      <div className="student-file__icon" aria-hidden="true">
                         <Icon name="documents" size={20} />
                       </div>
                       <div>
-                        <p style={{ fontWeight: 700, margin: 0, fontSize: 14 }}>{doc.original_filename || doc.document_type}</p>
-                        <p style={{ fontSize: 12, color: '#434654', margin: '4px 0 0' }}>
+                        <p className="student-file__name">{doc.original_filename || doc.document_type}</p>
+                        <p className="student-file__meta">
                           {doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)} MB` : ''}
-                          {doc.uploaded_at && ` · ${new Date(doc.uploaded_at).toLocaleDateString()}`}
+                          {doc.uploaded_at ? ` · ${new Date(doc.uploaded_at).toLocaleDateString()}` : ''}
                         </p>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      {doc.ai_verified ? <span className="doc-checklist__status doc-checklist__status--ok">Verified</span> : <span className="stitch-docs-checklist__item-status stitch-docs-checklist__item-status--pending">Pending</span>}
-                    </div>
+                    {doc.ai_verified ? (
+                      <span className="doc-checklist__status doc-checklist__status--ok">Verified</span>
+                    ) : (
+                      <span className="stitch-docs-checklist__item-status stitch-docs-checklist__item-status--pending">Pending</span>
+                    )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="notice" style={{ background: 'white' }}>
+              <div className="notice">
                 <strong>No documents uploaded yet</strong>
                 <p>Upload your first document using the button above.</p>
               </div>

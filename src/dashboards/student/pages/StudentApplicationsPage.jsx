@@ -64,7 +64,7 @@ export function StudentApplicationsPage() {
   }
 
   return (
-    <StudentLayout pageTitle="Applications">
+    <StudentLayout pageTitle="Applications" layout="dashboard">
       <div className="stitch-apps-header">
         <h1 className="stitch-apps-header__title">My Applications</h1>
         <p className="stitch-apps-header__sub">
@@ -211,33 +211,33 @@ export function StudentApplicationsPage() {
       </section>
 
       <section className="stitch-apps-support">
-        <div className="stitch-apps-support__card">
+        <Link to="/student/documents" className="stitch-apps-support__card">
           <div className="stitch-apps-support__icon">
-            <Icon name="documents" size={24} />
+            <Icon name="documents" size={22} />
           </div>
           <div>
             <p className="stitch-apps-support__title">Document Vault</p>
-            <p className="stitch-apps-support__desc">Manage your uploaded documents and check verification status.</p>
+            <p className="stitch-apps-support__desc">Manage uploaded files and verification status.</p>
           </div>
-        </div>
-        <div className="stitch-apps-support__card">
+        </Link>
+        <Link to="/student/support" className="stitch-apps-support__card">
           <div className="stitch-apps-support__icon">
-            <Icon name="support" size={24} />
+            <Icon name="support" size={22} />
           </div>
           <div>
             <p className="stitch-apps-support__title">Need Help?</p>
-            <p className="stitch-apps-support__desc">Contact the ward office or your assigned case officer.</p>
+            <p className="stitch-apps-support__desc">Contact the ward office or your case officer.</p>
           </div>
-        </div>
-        <div className="stitch-apps-support__card">
+        </Link>
+        <Link to="/student/notifications" className="stitch-apps-support__card">
           <div className="stitch-apps-support__icon">
-            <Icon name="bell" size={24} />
+            <Icon name="bell" size={22} />
           </div>
           <div>
             <p className="stitch-apps-support__title">Notifications</p>
-            <p className="stitch-apps-support__desc">Stay updated on your application status changes.</p>
+            <p className="stitch-apps-support__desc">Status changes and deadlines in one place.</p>
           </div>
-        </div>
+        </Link>
       </section>
 
       {wizardOpen ? (

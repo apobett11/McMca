@@ -191,8 +191,10 @@ export function ParentAddChildPage() {
   }
 
   return (
-    <ParentLayout pageTitle="Add a student">
-      <Link className="back-link" to="/parent/dashboard">Back to children</Link>
+    <ParentLayout pageTitle="Add a child" parentName={parent ? joinFullName({ firstName: parent.first_name, middleName: parent.middle_name, lastName: parent.last_name }) : ''}>
+      <Link className="back-link" to="/parent/dashboard">
+        Back to home
+      </Link>
       {wizard.loading || !parent ? (
         <p>Restoring saved progress…</p>
       ) : (
