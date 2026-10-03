@@ -8235,7 +8235,7 @@ h1.section-card__title {
 :is(.portal--student, .portal--parent) .stitch-apps-active__next-step-label,
 :is(.portal--student, .portal--parent) .stitch-faq__desc,
 :is(.portal--student, .portal--parent) .stitch-faq__item-answer,
-:is(.portal--student, .portal--parent) .stitch-profile-form__label,
+:is(.portal--student, .portal--parent, .portal--chief) .stitch-profile-form__label,
 :is(.portal--student, .portal--parent) .stitch-profile-security__hint,
 :is(.portal--student, .portal--parent) .stitch-docs-checklist__item-status--action,
 :is(.portal--student, .portal--parent) .student-file__meta,
@@ -8530,24 +8530,30 @@ h1.section-card__title {
   color: var(--gold-champagne);
 }
 
-:is(.portal--student, .portal--parent) .stitch-profile-form__input,
-:is(.portal--student, .portal--parent) .stitch-profile-form__textarea,
-:is(.portal--student, .portal--parent) .field input,
-:is(.portal--student, .portal--parent) .field select,
-:is(.portal--student, .portal--parent) .field textarea {
+:is(.portal--student, .portal--parent, .portal--chief) .stitch-profile-form__input,
+:is(.portal--student, .portal--parent, .portal--chief) .stitch-profile-form__textarea,
+:is(.portal--student, .portal--parent, .portal--chief) .field input,
+:is(.portal--student, .portal--parent, .portal--chief) .field select,
+:is(.portal--student, .portal--parent, .portal--chief) .field textarea {
   background: var(--surface-container);
   border: 1px solid var(--outline-variant);
   color: var(--text);
   border-radius: 0.85rem;
 }
 
-:is(.portal--student, .portal--parent) .stitch-profile-form__input--readonly {
+:is(.portal--student, .portal--parent, .portal--chief) select.stitch-profile-form__input option,
+:is(.portal--student, .portal--parent, .portal--chief) .field select option {
+  background: #151a28;
+  color: #f1f5f9;
+}
+
+:is(.portal--student, .portal--parent, .portal--chief) .stitch-profile-form__input--readonly {
   background: var(--surface-container-low);
   color: var(--text-2);
 }
 
-:is(.portal--student, .portal--parent) .stitch-profile-form__input:focus,
-:is(.portal--student, .portal--parent) .stitch-profile-form__textarea:focus {
+:is(.portal--student, .portal--parent, .portal--chief) .stitch-profile-form__input:focus,
+:is(.portal--student, .portal--parent, .portal--chief) .stitch-profile-form__textarea:focus {
   border-color: rgba(201, 162, 39, 0.55);
   box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.16);
 }

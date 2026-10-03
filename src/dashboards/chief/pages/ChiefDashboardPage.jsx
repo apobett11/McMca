@@ -8,7 +8,9 @@ import {
   saveChiefProfile,
   isChiefProfileComplete,
   getChiefApplications,
-  getChiefMessages
+  getChiefMessages,
+  CHIEF_ADMIN_AREAS,
+  getLocationKey
 } from '../utils/chiefData.js';
 import { CHIEF_SUMMARY } from '../../../data/chiefMock.js';
 
@@ -57,16 +59,92 @@ export function ChiefDashboardPage() {
 
   const profileComplete = isChiefProfileComplete(profile);
 
+  // Administrative hierarchy cascading options
+  const wardOptions = useMemo(() => Object.keys(CHIEF_ADMIN_AREAS), []);
+
+  const activeLocationKey = useMemo(() => {
+    return getLocationKey(profileForm.ward, profileForm.location);
+  }, [profileForm.ward, profileForm.location]);
+
+  const availableLocations = useMemo(() => {
+    if (!profileForm.ward || !CHIEF_ADMIN_AREAS[profileForm.ward]) return [];
+    return Object.keys(CHIEF_ADMIN_AREAS[profileForm.ward].locations || {});
+  }, [profileForm.ward]);
+
+  const availableSubLocations = useMemo(() => {
+    if (!profileForm.ward || !activeLocationKey) return [];
+    const locObj = CHIEF_ADMIN_AREAS[profileForm.ward]?.locations?.[activeLocationKey];
+    return locObj?.subLocations || [];
+  }, [profileForm.ward, activeLocationKey]);
+
+  const availableVillages = useMemo(() => {
+    if (!profileForm.ward || !activeLocationKey) return [];
+    const locObj = CHIEF_ADMIN_AREAS[profileForm.ward]?.locations?.[activeLocationKey];
+    return locObj?.villages || [];
+  }, [profileForm.ward, activeLocationKey]);
+
+  function handleWardChange(e) {
+    const nextWard = e.target.value;
+    const nextLocs = nextWard && CHIEF_ADMIN_AREAS[nextWard] ? Object.keys(CHIEF_ADMIN_AREAS[nextWard].locations || {}) : [];
+    const nextLoc = nextLocs[0] || '';
+    const locObj = nextWard && nextLoc ? CHIEF_ADMIN_AREAS[nextWard]?.locations?.[nextLoc] : null;
+    const subs = locObj?.subLocations || [];
+    const vils = locObj?.villages || [];
+
+    setProfileForm((prev) => ({
+      ...prev,
+      ward: nextWard,
+      location: nextLoc,
+      subLocation: subs[0] || '',
+      officeLocation: vils[0] || ''
+    }));
+  }
+
+  function handleLocationChange(e) {
+    const nextLoc = e.target.value;
+    const locObj = profileForm.ward && nextLoc ? CHIEF_ADMIN_AREAS[profileForm.ward]?.locations?.[nextLoc] : null;
+    const subs = locObj?.subLocations || [];
+    const vils = locObj?.villages || [];
+
+    setProfileForm((prev) => ({
+      ...prev,
+      location: nextLoc,
+      subLocation: subs[0] || '',
+      officeLocation: vils[0] || ''
+    }));
+  }
+
+  function handleSubLocationChange(e) {
+    setProfileForm((prev) => ({
+      ...prev,
+      subLocation: e.target.value
+    }));
+  }
+
+  function handleVillageChange(e) {
+    setProfileForm((prev) => ({
+      ...prev,
+      officeLocation: e.target.value
+    }));
+  }
+
   function handleSaveProfile(e) {
     e.preventDefault();
-    if (!profileForm.fullName.trim() || !profileForm.nationalId.trim() || !profileForm.ward.trim()) {
-      alert('Please fill in your Full Name, National ID, and Ward.');
+    if (
+      !profileForm.fullName.trim() ||
+      !profileForm.nationalId.trim() ||
+      !profileForm.phone.trim() ||
+      !profileForm.ward.trim() ||
+      !profileForm.location.trim() ||
+      !profileForm.subLocation.trim()
+    ) {
+      alert('Please fill in your Full Name, National ID, Phone, Ward, Location, and Sub-Location.');
       return;
     }
     const saved = saveChiefProfile(profileForm);
     setProfile(saved);
     setIsEditingProfile(false);
-    setProfileSuccessMsg('Administrative profile saved! Your ward analytics are now active.');
+    setProfileSuccessMsg('Administrative profile saved! Your ward applications and analytics are now active.');
     setTimeout(() => setProfileSuccessMsg(''), 5000);
   }
 
@@ -76,10 +154,10 @@ export function ChiefDashboardPage() {
       nationalId: '12345678',
       phone: '0722 100 099',
       email: 'chief.waweru@mcmca.gov.ke',
-      ward: 'Tendeno/Sorget Ward',
+      ward: 'Parklands Ward',
       location: 'Parklands',
       subLocation: 'Highridge',
-      officeLocation: 'Ward Central Office'
+      officeLocation: 'Highridge Village'
     };
     setProfileForm(demo);
   }
@@ -192,14 +270,17 @@ export function ChiefDashboardPage() {
 
         {/* REQUIREMENT 1: If personal info is NOT complete (or chief clicks edit), render personal information setup */}
         {(!profileComplete || isEditingProfile) && (
-          <section className="dash-single-card" style={{ padding: '24px 28px', border: '1px solid #d97706', background: 'var(--surface-elevated)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <section className="dash-single-card" style={{ padding: '24px 28px', background: 'var(--surface-elevated)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
               <div>
-                <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.25rem' }}>
-                  {profileComplete ? 'Update Personal Information' : 'Chief Personal Information & Ward Assignment'}
+                <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Icon name="profile" size={22} />
+                  {profileComplete ? 'Personal Information' : 'Chief Personal Registration'}
                 </h2>
-                <p style={{ margin: '6px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
-                  Please fill in your personal credentials, national ID, and assigned administrative jurisdiction. Ward analytics will remain locked until this is completed.
+                <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.85rem' }}>
+                  {profileComplete
+                    ? 'Review and manage your personal credentials and assigned administrative jurisdiction.'
+                    : 'You need to complete registration of personal details to access the applications.'}
                 </p>
               </div>
               {!profileComplete && (
@@ -207,31 +288,31 @@ export function ChiefDashboardPage() {
                   type="button"
                   className="btn btn--secondary"
                   onClick={handleQuickDemoFill}
-                  style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+                  style={{ fontSize: '0.78rem', borderRadius: 999, padding: '6px 14px' }}
                 >
-                  Fill Sample Credentials
+                  Fill Sample Details
                 </button>
               )}
             </div>
 
-            <form onSubmit={handleSaveProfile} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-              <div>
-                <label className="field__label" style={{ fontSize: '0.82rem' }}>Chief Full Name *</label>
+            <form onSubmit={handleSaveProfile} className="stitch-profile-form">
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">Full Name (Follows ID) *</label>
                 <input
                   type="text"
-                  className="field__input"
-                  placeholder="e.g. Chief Peter Waweru"
+                  className="stitch-profile-form__input"
+                  placeholder="Enter full legal name"
                   value={profileForm.fullName}
                   onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
                   required
                 />
               </div>
 
-              <div>
-                <label className="field__label" style={{ fontSize: '0.82rem' }}>National ID Number *</label>
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">National ID Number *</label>
                 <input
                   type="text"
-                  className="field__input"
+                  className="stitch-profile-form__input"
                   placeholder="e.g. 12345678"
                   value={profileForm.nationalId}
                   onChange={(e) => setProfileForm({ ...profileForm, nationalId: e.target.value })}
@@ -239,108 +320,134 @@ export function ChiefDashboardPage() {
                 />
               </div>
 
-              <div>
-                <label className="field__label" style={{ fontSize: '0.82rem' }}>Phone Number *</label>
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">Phone Number *</label>
                 <input
                   type="tel"
-                  className="field__input"
-                  placeholder="e.g. 0722 100 099"
+                  className="stitch-profile-form__input"
+                  placeholder="e.g. 0722 000 000"
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
                   required
                 />
               </div>
 
-              <div>
-                <label className="field__label" style={{ fontSize: '0.82rem' }}>Official Email</label>
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">Official Email Address</label>
                 <input
                   type="email"
-                  className="field__input"
-                  placeholder="e.g. chief@example.com"
+                  className="stitch-profile-form__input"
+                  placeholder="e.g. chief.waweru@mcmca.gov.ke"
                   value={profileForm.email}
                   onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                 />
               </div>
 
-              <div>
-                <label className="field__label" style={{ fontSize: '0.82rem' }}>Assigned Ward *</label>
-                <input
-                  type="text"
-                  className="field__input"
-                  placeholder="e.g. Tendeno/Sorget Ward"
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">Assigned Ward *</label>
+                <select
+                  className="stitch-profile-form__input"
                   value={profileForm.ward}
-                  onChange={(e) => setProfileForm({ ...profileForm, ward: e.target.value })}
+                  onChange={handleWardChange}
                   required
-                />
+                >
+                  <option value="">Select Ward...</option>
+                  {wardOptions.map((w) => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                </select>
               </div>
 
-              <div>
-                <label className="field__label" style={{ fontSize: '0.82rem' }}>Location *</label>
-                <input
-                  type="text"
-                  className="field__input"
-                  placeholder="e.g. Parklands or Tendeno"
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">Assigned Location *</label>
+                <select
+                  className="stitch-profile-form__input"
                   value={profileForm.location}
-                  onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
+                  onChange={handleLocationChange}
                   required
-                />
+                  disabled={!profileForm.ward}
+                >
+                  <option value="">{profileForm.ward ? 'Select Location...' : 'Select Ward first'}</option>
+                  {availableLocations.map((loc) => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
               </div>
 
-              <div>
-                <label className="field__label" style={{ fontSize: '0.82rem' }}>Sub-Location *</label>
-                <input
-                  type="text"
-                  className="field__input"
-                  placeholder="e.g. Highridge or Sorget"
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">Sub-Location *</label>
+                <select
+                  className="stitch-profile-form__input"
                   value={profileForm.subLocation}
-                  onChange={(e) => setProfileForm({ ...profileForm, subLocation: e.target.value })}
+                  onChange={handleSubLocationChange}
                   required
-                />
+                  disabled={!profileForm.location}
+                >
+                  <option value="">{profileForm.location ? 'Select Sub-Location...' : 'Select Location first'}</option>
+                  {availableSubLocations.map((sub) => (
+                    <option key={sub} value={sub}>{sub}</option>
+                  ))}
+                </select>
               </div>
 
-              <div>
-                <label className="field__label" style={{ fontSize: '0.82rem' }}>Office Address / Village</label>
-                <input
-                  type="text"
-                  className="field__input"
-                  placeholder="e.g. Central Chief Camp"
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">Village / Office Center</label>
+                <select
+                  className="stitch-profile-form__input"
                   value={profileForm.officeLocation}
-                  onChange={(e) => setProfileForm({ ...profileForm, officeLocation: e.target.value })}
-                />
+                  onChange={handleVillageChange}
+                  disabled={!profileForm.location}
+                >
+                  <option value="">{profileForm.location ? 'Select Village / Center...' : 'Select Location first'}</option>
+                  {availableVillages.map((v) => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </select>
               </div>
 
-              <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+              <div className="stitch-profile-form__field stitch-profile-form__field--full student-form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
                 {isEditingProfile && (
                   <button
                     type="button"
                     className="btn btn--secondary"
                     onClick={() => setIsEditingProfile(false)}
+                    style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}
                   >
                     Cancel
                   </button>
                 )}
-                <button type="submit" className="btn btn--primary" style={{ padding: '10px 24px' }}>
+                <button
+                  type="submit"
+                  className="btn btn--primary"
+                  style={{ borderRadius: 999, width: 'auto', padding: '10px 28px' }}
+                >
                   <Icon name="check" size={18} />
-                  Save & Activate Dashboard
+                  {profileComplete ? 'Save Changes' : 'Complete Registration'}
                 </button>
               </div>
             </form>
           </section>
         )}
 
-        {/* If NOT complete: show locked state placeholder for analytics */}
+        {/* If NOT complete: show clean direct notice */}
         {!profileComplete ? (
-          <section className="dash-single-card" style={{ padding: '60px 24px', textAlign: 'center', color: '#94a3b8', background: 'rgba(0,0,0,0.1)' }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(217, 119, 6, 0.1)', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <Icon name="shield" size={32} />
-            </div>
-            <h3 style={{ margin: '0 0 8px', color: 'var(--text)', fontSize: '1.25rem' }}>
-              Ward Analytics Locked
-            </h3>
-            <p style={{ margin: '0 auto', maxWidth: 460, lineHeight: 1.6, fontSize: '0.92rem' }}>
-              Please complete your chief credentials and administrative area in the form above. Once saved, your ward application analytics, verification metrics, and village distributions will unlock automatically.
-            </p>
-          </section>
+          <div
+            className="dash-single-card"
+            style={{
+              padding: '18px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              background: 'rgba(217, 119, 6, 0.08)',
+              border: '1px solid rgba(217, 119, 6, 0.25)',
+              borderRadius: '0.85rem'
+            }}
+          >
+            <Icon name="info" size={22} style={{ color: '#d97706', flexShrink: 0 }} />
+            <span style={{ fontSize: '0.92rem', color: 'var(--text)' }}>
+              You need to complete registration of personal details to access the applications.
+            </span>
+          </div>
         ) : (
           /* REQUIREMENT 3: General into THIN RANGES, then structured ANALYTICS below */
           <>

@@ -6,6 +6,46 @@ const PROFILE_KEY = 'mcmca_chief_profile';
 const APPS_KEY = 'mcmca_chief_applications';
 const MESSAGES_KEY = 'mcmca_chief_messages';
 
+export const CHIEF_ADMIN_AREAS = {
+  'Parklands Ward': {
+    locations: {
+      'Parklands': {
+        subLocations: ['Highridge', 'Spring Valley', 'City Park', 'Deep Sea'],
+        villages: ['Highridge Village', 'Spring Valley Village', 'City Park Village', 'Deep Sea Village', 'Parklands Chief Camp']
+      }
+    }
+  },
+  'Tendeno/Sorget Ward': {
+    locations: {
+      'Tendeno': {
+        subLocations: ['Tendeno Central', 'Tendeno East', 'Tendeno West'],
+        villages: ['Tendeno Central Village', 'Kapkures Village', 'Chepsir Village', 'Tendeno Chief Office']
+      },
+      'Sorget': {
+        subLocations: ['Sorget Central', 'Sorget Forest', 'Kipchorian'],
+        villages: ['Sorget Central Village', 'Kapsebet Village', 'Kapchelach Village', 'Sorget Camp Office']
+      }
+    }
+  },
+  'Westlands Ward': {
+    locations: {
+      'Westlands': {
+        subLocations: ['Kangemi', 'Mountain View', 'Kitisuru'],
+        villages: ['Kangemi Central', 'Mountain View Estate', 'Kitisuru Center', 'Westlands Chief Office']
+      }
+    }
+  }
+};
+
+export function getLocationKey(ward, location) {
+  if (!ward || !location || !CHIEF_ADMIN_AREAS[ward]) return '';
+  const locs = CHIEF_ADMIN_AREAS[ward].locations;
+  if (locs[location]) return location;
+  const stripped = location.replace(/\s+Location$/i, '').trim();
+  if (locs[stripped]) return stripped;
+  return Object.keys(locs)[0] || '';
+}
+
 export function getChiefProfile() {
   try {
     const raw = localStorage.getItem(PROFILE_KEY);

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import {
   getChiefProfile,
   getChiefApplications,
-  updateChiefApplicationDecision
+  updateChiefApplicationDecision,
+  isChiefProfileComplete
 } from '../utils/chiefData.js';
 
 export function ChiefApplicationsPage() {
@@ -141,11 +143,54 @@ export function ChiefApplicationsPage() {
     <ChiefLayout chiefName={chiefName} pageTitle="Applications" layout="dashboard">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        {/* TOP ANALYTICS: Total, Approval %, Suspicious & Village Distribution */}
-        <section className="dash-single-card" style={{ padding: '20px 24px', background: 'var(--surface-elevated)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-            {/* Total Applications */}
-            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
+        {!isChiefProfileComplete(profile) ? (
+          <div
+            className="dash-single-card"
+            style={{
+              padding: '40px 24px',
+              textAlign: 'center',
+              background: 'var(--surface-elevated)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 16
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                background: 'rgba(217, 119, 6, 0.15)',
+                color: '#d97706',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Icon name="info" size={26} />
+            </div>
+            <div>
+              <h2 style={{ margin: '0 0 6px', fontSize: '1.25rem', color: 'var(--text)' }}>Registration Required</h2>
+              <p style={{ margin: 0, color: 'var(--text-2, #94a3b8)', fontSize: '0.92rem', maxWidth: 440 }}>
+                You need to complete registration of personal details to access the applications.
+              </p>
+            </div>
+            <Link
+              to="/chief/home"
+              className="btn btn--primary"
+              style={{ borderRadius: 999, padding: '10px 24px', textDecoration: 'none' }}
+            >
+              Complete Registration on Dashboard
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* TOP ANALYTICS: Total, Approval %, Suspicious & Village Distribution */}
+            <section className="dash-single-card" style={{ padding: '20px 24px', background: 'var(--surface-elevated)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+                {/* Total Applications */}
+                <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
               <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
                 Total Applications
               </span>
@@ -647,6 +692,8 @@ export function ChiefApplicationsPage() {
               </div>
             </div>
           </div>
+        )}
+          </>
         )}
 
       </div>
