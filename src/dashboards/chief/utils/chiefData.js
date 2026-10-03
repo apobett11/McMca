@@ -305,7 +305,7 @@ const INITIAL_MESSAGES = [
     studentName: 'Brian Kamau',
     subject: 'Verification query for Highridge residence',
     body: 'Good morning Chief. I submitted Brian Kamau\'s bursary application. Kindly let me know if you need any additional utility bills to verify our Highridge residence.',
-    submittedDate: '2026-05-29T08:14:00',
+    submittedDate: '2026-10-02T08:14:00',
     status: 'unread',
     replies: []
   },
@@ -316,7 +316,7 @@ const INITIAL_MESSAGES = [
     studentName: 'Kevin Ochieng',
     subject: 'Clarification regarding National ID location mismatch',
     body: 'Greetings Chief. My national ID was issued in Nakuru West when my family lived there 2 years ago, but we have lived in Spring Valley for over 18 months now. Please advise how I can verify this.',
-    submittedDate: '2026-05-28T16:30:00',
+    submittedDate: '2026-10-01T16:30:00',
     status: 'to_be_replied',
     replies: []
   },
@@ -327,7 +327,7 @@ const INITIAL_MESSAGES = [
     studentName: 'Grace Mwangi',
     subject: 'Confirmation of approval status',
     body: 'Hello Chief, thank you for reviewing Grace\'s application. Is there any signed verification letter required to submit to the school bursar?',
-    submittedDate: '2026-05-27T11:20:00',
+    submittedDate: '2026-09-24T11:20:00',
     status: 'unread',
     replies: []
   },
@@ -338,15 +338,43 @@ const INITIAL_MESSAGES = [
     studentName: 'Faith Chebet',
     subject: 'Request for in-person appointment',
     body: 'Dear Chief, I would like to visit the office with my family registration book to clear up the address question on Faith\'s file.',
-    submittedDate: '2026-05-26T14:10:00',
+    submittedDate: '2026-09-15T14:10:00',
     status: 'replied',
     replies: [
       {
         sender: 'Chief Peter Waweru',
         body: 'Please visit the office on Tuesday morning between 9:00 AM and 11:30 AM with your original ID and two passport photos.',
-        sentAt: '2026-05-26T16:45:00'
+        sentAt: '2026-09-15T16:45:00'
       }
     ]
+  },
+  {
+    id: 'msg-5',
+    senderName: 'Joseph Mutua',
+    senderRole: 'Parent',
+    studentName: 'Samuel Mutua',
+    subject: 'Submission of amended guardianship affidavit',
+    body: 'Chief, I have uploaded the stamp from the commissioner of oaths to Samuel\'s bursary appeal dossier. Kindly review when convenient.',
+    submittedDate: '2026-08-28T09:45:00',
+    status: 'replied',
+    replies: [
+      {
+        sender: 'Chief Peter Waweru',
+        body: 'Affidavit received and verified against the sub-county civil registry records. Approved for committee consideration.',
+        sentAt: '2026-08-28T14:20:00'
+      }
+    ]
+  },
+  {
+    id: 'msg-6',
+    senderName: 'Beatrice Wanjiku',
+    senderRole: 'Applicant',
+    studentName: 'Beatrice Wanjiku',
+    subject: 'Appeal hearing schedule inquiry',
+    body: 'Respected Chief, my appeal regarding the Nairobi School tuition allocation was filed last month. May I know when the ward vetting panel sits?',
+    submittedDate: '2026-08-12T10:00:00',
+    status: 'to_be_replied',
+    replies: []
   }
 ];
 
@@ -467,3 +495,27 @@ export function getChiefUpdateCounts() {
     hasAnyUpdate: pendingApps > 0 || pendingAppeals > 0 || pendingMsgs > 0
   };
 }
+
+export function bulkApproveCleanApplications() {
+  const current = getChiefApplications();
+  let count = 0;
+  const updated = current.map((app) => {
+    // Only accept non-suspicious applications that are not already approved
+    if (!app.isSuspicious && app.applicationStatus !== 'Approved') {
+      count++;
+      return {
+        ...app,
+        applicationStatus: 'Approved',
+        reviewNotes: 'Bulk-approved by Chief: verified resident with consistent records.',
+        reviewedAt: new Date().toISOString()
+      };
+    }
+    return app;
+  });
+  if (count > 0) {
+    localStorage.setItem(APPS_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('mcmca_chief_apps_updated', { detail: updated }));
+  }
+  return { updated, count };
+}
+

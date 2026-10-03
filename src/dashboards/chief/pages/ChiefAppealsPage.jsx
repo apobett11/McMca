@@ -180,136 +180,81 @@ export function ChiefAppealsPage() {
           </div>
         ) : (
           <>
-            {/* TOP ANALYTICS: Total, Resolution %, Pending & Grounds Distribution */}
-            <section className="dash-single-card" style={{ padding: '20px 24px', background: 'var(--surface-elevated)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-                {/* Total Appeals */}
-                <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Total Appeals
-                  </span>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text)', marginTop: 4 }}>
-                    {totalCount}
-                  </div>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Filed for this cycle</span>
+            {/* COMPACT HORIZONTAL ANALYTICS (little numbers in a horizontal card) */}
+            <section
+              className="dash-single-card"
+              style={{
+                padding: '12px 18px',
+                background: 'var(--surface-elevated)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12
+              }}
+            >
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px 22px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Total:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text)' }}>{totalCount}</span>
                 </div>
-
-                {/* Resolution Percentage */}
-                <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Resolution Rate
-                  </span>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#10b981', marginTop: 4 }}>
-                    {resolvedPercentage}%
-                  </div>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{approvedCount} approved · {rejectedCount} rejected</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Resolution:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#10b981' }}>{resolvedPercentage}%</span>
                 </div>
-
-                {/* Pending Appeals */}
-                <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Pending Hearing
-                  </span>
-                  <div style={{ fontSize: '1.6rem', fontWeight: 700, color: pendingCount > 0 ? '#f59e0b' : '#10b981', marginTop: 4 }}>
-                    {pendingCount}
-                  </div>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Under review or pending documents</span>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Approved:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#10b981' }}>{approvedCount}</span>
                 </div>
-
-                {/* Appeal Grounds Summary */}
-                <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Appeal Grounds
-                  </span>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                    {groundsSummary.map((g) => (
-                      <span
-                        key={g.name}
-                        style={{
-                          fontSize: '0.74rem',
-                          padding: '3px 8px',
-                          borderRadius: 6,
-                          background: 'rgba(255,255,255,0.06)',
-                          color: 'var(--text)'
-                        }}
-                      >
-                        {g.name}: {g.count}
-                      </span>
-                    ))}
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: pendingCount > 0 ? '#f59e0b' : '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Pending Hearing:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: pendingCount > 0 ? '#f59e0b' : '#10b981' }}>{pendingCount}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Grounds:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text)' }}>{groundsSummary.length} categories</span>
                 </div>
               </div>
             </section>
 
-            {/* FILTERS & SEARCH BAR */}
-            <section className="dash-single-card" style={{ padding: '16px 20px', background: 'var(--surface-elevated)' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-                  {/* School Filter Dropdown */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 600, marginBottom: 2 }}>
-                      Institution
-                    </label>
-                    <select
-                      className="field__input"
-                      value={selectedSchool}
-                      onChange={(e) => setSelectedSchool(e.target.value)}
-                      style={{ minWidth: 160, padding: '7px 10px', fontSize: '0.85rem' }}
-                    >
-                      <option value="all">All Institutions</option>
-                      {schoolOptions.map((sch) => (
-                        <option key={sch} value={sch}>{sch}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Status Filter */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 600, marginBottom: 2 }}>
-                      Appeal Status
-                    </label>
-                    <select
-                      className="field__input"
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      style={{ minWidth: 160, padding: '7px 10px', fontSize: '0.85rem' }}
-                    >
-                      <option value="all">All Statuses</option>
-                      <option value="Submitted">Submitted</option>
-                      <option value="Under Review">Under Review</option>
-                      <option value="Clarification Requested">Clarification Requested</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
-                  </div>
+            {/* SORTABLE APPEALS TABLE WITH SORTS & FILTERS IN TABLE HEAD */}
+            <section className="dash-single-card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--glass-border)', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>
+                    Appeals Queue ({filteredRows.length})
+                  </h2>
+                  {search && (
+                    <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                      filtering for &quot;{search}&quot;
+                    </span>
+                  )}
                 </div>
-
-                {/* Search Bar */}
-                <div style={{ minWidth: 240, flex: '1 1 240px', maxWidth: 360 }}>
-                  <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 600, marginBottom: 2 }}>
-                    Search Appeals
-                  </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 220 }}>
                   <input
                     type="text"
                     className="field__input"
                     placeholder="Search applicant, school, reason..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    style={{ width: '100%', padding: '7px 12px', fontSize: '0.85rem' }}
+                    style={{ padding: '6px 12px', fontSize: '0.82rem', width: 220, borderRadius: 6 }}
                   />
+                  {(selectedSchool !== 'all' || statusFilter !== 'all' || search) && (
+                    <button
+                      type="button"
+                      className="btn btn--secondary"
+                      onClick={() => {
+                        setSelectedSchool('all');
+                        setStatusFilter('all');
+                        setSearch('');
+                      }}
+                      style={{ padding: '6px 10px', fontSize: '0.75rem', borderRadius: 6, whiteSpace: 'nowrap' }}
+                      title="Reset all filters"
+                    >
+                      Reset
+                    </button>
+                  )}
                 </div>
-              </div>
-            </section>
-
-            {/* SORTABLE APPEALS TABLE */}
-            <section className="dash-single-card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.1rem' }}>
-                  Appeals Queue ({filteredRows.length})
-                </h2>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                  Click column headers to sort table
-                </span>
               </div>
 
               <div className="data-table-wrap" style={{ overflowX: 'auto' }}>
@@ -319,17 +264,65 @@ export function ChiefAppealsPage() {
                       <th scope="col" onClick={() => handleSort('fullName')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                         Student {sortField === 'fullName' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                       </th>
-                      <th scope="col" onClick={() => handleSort('school')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                        School {sortField === 'school' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                      </th>
                       <th scope="col" style={{ whiteSpace: 'nowrap' }}>
-                        Appeal Grounds
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span onClick={() => handleSort('school')} style={{ cursor: 'pointer' }}>
+                            School {sortField === 'school' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                          </span>
+                          <select
+                            value={selectedSchool}
+                            onChange={(e) => setSelectedSchool(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '2px 4px',
+                              borderRadius: 4,
+                              border: '1px solid var(--border-subtle, #334155)',
+                              background: 'var(--surface-container-high, #1e293b)',
+                              color: 'inherit',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="all">All Schools</option>
+                            {schoolOptions.map((sch) => (
+                              <option key={sch} value={sch}>{sch}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </th>
+                      <th scope="col" onClick={() => handleSort('appealReason')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        Appeal Grounds {sortField === 'appealReason' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                       </th>
                       <th scope="col" onClick={() => handleSort('supportingDocumentsStatus')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                         Evidence Status {sortField === 'supportingDocumentsStatus' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
                       </th>
-                      <th scope="col" onClick={() => handleSort('appealStatus')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                        Appeal Status {sortField === 'appealStatus' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                      <th scope="col" style={{ whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span onClick={() => handleSort('appealStatus')} style={{ cursor: 'pointer' }}>
+                            Appeal Status {sortField === 'appealStatus' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                          </span>
+                          <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '2px 4px',
+                              borderRadius: 4,
+                              border: '1px solid var(--border-subtle, #334155)',
+                              background: 'var(--surface-container-high, #1e293b)',
+                              color: 'inherit',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="all">All Statuses</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Under Review">Under Review</option>
+                            <option value="Clarification Requested">Clarification</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                          </select>
+                        </div>
                       </th>
                       <th scope="col" onClick={() => handleSort('appealSubmissionDate')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
                         Submitted {sortField === 'appealSubmissionDate' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}

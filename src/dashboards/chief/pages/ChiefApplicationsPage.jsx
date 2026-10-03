@@ -6,6 +6,7 @@ import {
   getChiefProfile,
   getChiefApplications,
   updateChiefApplicationDecision,
+  bulkApproveCleanApplications,
   isChiefProfileComplete
 } from '../utils/chiefData.js';
 
@@ -38,8 +39,20 @@ export function ChiefApplicationsPage() {
   const totalCount = applications.length;
   const approvedCount = applications.filter((a) => a.applicationStatus === 'Approved').length;
   const rejectedCount = applications.filter((a) => a.applicationStatus === 'Rejected').length;
+  const underReviewCount = applications.filter((a) => a.applicationStatus === 'Under Review').length;
   const suspiciousCount = applications.filter((a) => a.isSuspicious).length;
+  const cleanPendingCount = applications.filter((a) => !a.isSuspicious && a.applicationStatus !== 'Approved').length;
   const approvalPercentage = totalCount > 0 ? Math.round((approvedCount / totalCount) * 100) : 0;
+
+  function handleAcceptAllClean() {
+    if (cleanPendingCount === 0) return;
+    const confirm = window.confirm(
+      `Approve all ${cleanPendingCount} verified applications in your ward?\n\nNote: Flagged suspicious applications with mismatched ID locations will remain pending for individual review.`
+    );
+    if (!confirm) return;
+    const { updated } = bulkApproveCleanApplications();
+    setApplications(updated);
+  }
 
   // Village / Sub-location distribution
   const villageDistribution = useMemo(() => {
@@ -186,213 +199,215 @@ export function ChiefApplicationsPage() {
           </div>
         ) : (
           <>
-            {/* TOP ANALYTICS: Total, Approval %, Suspicious & Village Distribution */}
-            <section className="dash-single-card" style={{ padding: '20px 24px', background: 'var(--surface-elevated)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-                {/* Total Applications */}
-                <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                Total Applications
-              </span>
-              <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text)', marginTop: 4 }}>
-                {totalCount}
-              </div>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Registered for this cycle</span>
-            </div>
-
-            {/* Approval Percentage */}
-            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                Approval Percentage
-              </span>
-              <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#10b981', marginTop: 4 }}>
-                {approvalPercentage}%
-              </div>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{approvedCount} approved · {rejectedCount} rejected</span>
-            </div>
-
-            {/* Suspicious Cases */}
-            <div
+            {/* COMPACT HORIZONTAL ANALYTICS (little numbers in a horizontal card) */}
+            <section
+              className="dash-single-card"
               style={{
-                padding: 14,
-                borderRadius: 10,
-                background: suspiciousCount > 0 ? 'rgba(239, 68, 68, 0.08)' : 'rgba(255,255,255,0.03)',
-                border: suspiciousCount > 0 ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--glass-border)',
-                cursor: 'pointer'
+                padding: '12px 18px',
+                background: 'var(--surface-elevated)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12
               }}
-              onClick={() => setSuspicionFilter(suspicionFilter === 'suspicious' ? 'all' : 'suspicious')}
-              title="Click to filter suspicious applications"
             >
-              <span style={{ fontSize: '0.75rem', color: suspiciousCount > 0 ? '#ef4444' : '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                ⚠️ Suspicious Applications
-              </span>
-              <div style={{ fontSize: '1.6rem', fontWeight: 700, color: suspiciousCount > 0 ? '#ef4444' : '#10b981', marginTop: 4 }}>
-                {suspiciousCount}
-              </div>
-              <span style={{ fontSize: '0.75rem', color: suspiciousCount > 0 ? '#ef4444' : '#94a3b8' }}>
-                {suspicionFilter === 'suspicious' ? '✓ Showing suspicious only' : 'ID location mismatch — click to filter'}
-              </span>
-            </div>
-
-            {/* Village Distribution Summary */}
-            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                Village Distribution
-              </span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                {villageDistribution.map((v) => (
-                  <span
-                    key={v.name}
-                    onClick={() => setSelectedLocation(selectedLocation === v.name ? 'all' : v.name)}
-                    style={{
-                      fontSize: '0.75rem',
-                      padding: '3px 8px',
-                      borderRadius: 6,
-                      background: selectedLocation === v.name ? '#d97706' : 'rgba(255,255,255,0.06)',
-                      color: selectedLocation === v.name ? '#fff' : 'var(--text)',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {v.name}: {v.count}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FILTERS & SEARCH BAR */}
-        <section className="dash-single-card" style={{ padding: '16px 20px', background: 'var(--surface-elevated)' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-              {/* Location Dropdown */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 600, marginBottom: 2 }}>
-                  Location / Village
-                </label>
-                <select
-                  className="field__input"
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  style={{ minWidth: 160, padding: '7px 10px', fontSize: '0.85rem' }}
-                >
-                  <option value="all">All Locations (Ward)</option>
-                  {locationOptions.map((loc) => (
-                    <option key={loc} value={loc}>{loc}</option>
-                  ))}
-                </select>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px 22px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Total:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text)' }}>{totalCount}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Approved:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#10b981' }}>{approvedCount} ({approvalPercentage}%)</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Under Review:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f59e0b' }}>{underReviewCount}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: suspiciousCount > 0 ? '#ef4444' : '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Suspicious:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: suspiciousCount > 0 ? '#ef4444' : '#10b981' }}>{suspiciousCount}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: '0.74rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Villages:</span>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text)' }}>{villageDistribution.length}</span>
+                </div>
               </div>
 
-              {/* Suspicion Filter Dropdown */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 600, marginBottom: 2 }}>
-                  Verification / Suspicion
-                </label>
-                <select
-                  className="field__input"
-                  value={suspicionFilter}
-                  onChange={(e) => setSuspicionFilter(e.target.value)}
-                  style={{
-                    minWidth: 180,
-                    padding: '7px 10px',
-                    fontSize: '0.85rem',
-                    borderColor: suspicionFilter === 'suspicious' ? '#ef4444' : undefined,
-                    color: suspicionFilter === 'suspicious' ? '#ef4444' : undefined
-                  }}
-                >
-                  <option value="all">All Applications</option>
-                  <option value="suspicious">⚠️ Suspicious (ID Mismatch only)</option>
-                  <option value="clean">Verified / Clean Only</option>
-                </select>
+              {/* Accept All Valid (Good Applications) Button */}
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={handleAcceptAllClean}
+                disabled={cleanPendingCount === 0}
+                style={{
+                  borderRadius: 8,
+                  padding: '7px 16px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  opacity: cleanPendingCount === 0 ? 0.5 : 1,
+                  cursor: cleanPendingCount === 0 ? 'not-allowed' : 'pointer'
+                }}
+                title={cleanPendingCount > 0 ? `Accept all ${cleanPendingCount} valid applications` : 'All valid applications are already approved'}
+              >
+                <Icon name="check" size={16} />
+                <span>Accept All Valid ({cleanPendingCount})</span>
+              </button>
+            </section>
+
+            {/* NOTICE: Suspicious applications cannot be bulk approved */}
+            {suspicionFilter === 'suspicious' && (
+              <div style={{ padding: '10px 14px', borderRadius: 8, background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Icon name="review" size={16} />
+                <span>
+                  <strong>Suspicious Applications Filter Active:</strong> There is no bulk approval for flagged files. Each suspicious application must be reviewed individually.
+                </span>
+              </div>
+            )}
+
+            {/* SORTABLE APPLICANTS TABLE WITH SORTS & FILTERS IN TABLE HEAD */}
+            <section className="dash-single-card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--glass-border)', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>
+                    Applicants Queue ({filteredRows.length})
+                  </h2>
+                  {search && (
+                    <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                      filtering for &quot;{search}&quot;
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 220 }}>
+                  <input
+                    type="text"
+                    className="field__input"
+                    placeholder="Search name, ID, school..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    style={{ padding: '6px 12px', fontSize: '0.82rem', width: 220, borderRadius: 6 }}
+                  />
+                  {(selectedLocation !== 'all' || suspicionFilter !== 'all' || statusFilter !== 'all' || search) && (
+                    <button
+                      type="button"
+                      className="btn btn--secondary"
+                      onClick={() => {
+                        setSelectedLocation('all');
+                        setSuspicionFilter('all');
+                        setStatusFilter('all');
+                        setSearch('');
+                      }}
+                      style={{ padding: '6px 10px', fontSize: '0.75rem', borderRadius: 6, whiteSpace: 'nowrap' }}
+                      title="Reset all filters"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Status Filter */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 600, marginBottom: 2 }}>
-                  Decision Status
-                </label>
-                <select
-                  className="field__input"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  style={{ minWidth: 140, padding: '7px 10px', fontSize: '0.85rem' }}
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="Under Review">Under Review</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Search Input */}
-            <div style={{ flex: '1 1 200px', maxWidth: 280 }}>
-              <label style={{ display: 'block', fontSize: '0.72rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 600, marginBottom: 2 }}>
-                Search Applicant
-              </label>
-              <input
-                type="text"
-                className="field__input"
-                placeholder="Name, School, ID..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ width: '100%', padding: '7px 10px', fontSize: '0.85rem' }}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* NOTICE: Suspicious applications cannot be bulk approved */}
-        {suspicionFilter === 'suspicious' && (
-          <div style={{ padding: '12px 16px', borderRadius: 8, background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon name="review" size={18} />
-            <span>
-              <strong>Suspicious Applications Filter Active:</strong> There is no bulk or &apos;Accept All&apos; action. Each flagged application must be reviewed individually by clicking <strong>Review</strong>.
-            </span>
-          </div>
-        )}
-
-        {/* SORTABLE APPLICANTS TABLE */}
-        <section className="dash-single-card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.1rem' }}>
-              Applicants Queue ({filteredRows.length})
-            </h2>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-              Click column headers to sort table
-            </span>
-          </div>
-
-          <div className="data-table-wrap" style={{ overflowX: 'auto' }}>
-            <table className="data-table data-table--chief" style={{ width: '100%', margin: 0 }}>
-              <thead>
-                <tr>
-                  <th scope="col" onClick={() => handleSort('fullName')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Student {sortField === 'fullName' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th scope="col" onClick={() => handleSort('school')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    School {sortField === 'school' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th scope="col" onClick={() => handleSort('subLocation')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Ward Residence {sortField === 'subLocation' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th scope="col" onClick={() => handleSort('idLocation')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    ID Location {sortField === 'idLocation' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th scope="col" onClick={() => handleSort('isSuspicious')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Suspicion / Risk {sortField === 'isSuspicious' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th scope="col" onClick={() => handleSort('applicationStatus')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Status {sortField === 'applicationStatus' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th scope="col" onClick={() => handleSort('submittedDate')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                    Submitted {sortField === 'submittedDate' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
-                  </th>
-                  <th scope="col" style={{ textAlign: 'right', paddingRight: 20 }}>
-                    Action
-                  </th>
-                </tr>
-              </thead>
+              <div className="data-table-wrap" style={{ overflowX: 'auto' }}>
+                <table className="data-table data-table--chief" style={{ width: '100%', margin: 0 }}>
+                  <thead>
+                    <tr>
+                      <th scope="col" onClick={() => handleSort('fullName')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        Student {sortField === 'fullName' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                      </th>
+                      <th scope="col" onClick={() => handleSort('school')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        School {sortField === 'school' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                      </th>
+                      <th scope="col" style={{ whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span onClick={() => handleSort('subLocation')} style={{ cursor: 'pointer' }}>
+                            Residence {sortField === 'subLocation' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                          </span>
+                          <select
+                            value={selectedLocation}
+                            onChange={(e) => setSelectedLocation(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '2px 4px',
+                              borderRadius: 4,
+                              border: '1px solid var(--border-subtle, #334155)',
+                              background: 'var(--surface-container-high, #1e293b)',
+                              color: 'inherit',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="all">All Villages</option>
+                            {locationOptions.map((loc) => (
+                              <option key={loc} value={loc}>{loc}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </th>
+                      <th scope="col" onClick={() => handleSort('idLocation')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        ID Location {sortField === 'idLocation' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                      </th>
+                      <th scope="col" style={{ whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span onClick={() => handleSort('isSuspicious')} style={{ cursor: 'pointer' }}>
+                            Risk {sortField === 'isSuspicious' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                          </span>
+                          <select
+                            value={suspicionFilter}
+                            onChange={(e) => setSuspicionFilter(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '2px 4px',
+                              borderRadius: 4,
+                              border: '1px solid var(--border-subtle, #334155)',
+                              background: 'var(--surface-container-high, #1e293b)',
+                              color: suspicionFilter === 'suspicious' ? '#ef4444' : 'inherit',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="all">All</option>
+                            <option value="suspicious">⚠️ Suspicious</option>
+                            <option value="clean">Verified</option>
+                          </select>
+                        </div>
+                      </th>
+                      <th scope="col" style={{ whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span onClick={() => handleSort('applicationStatus')} style={{ cursor: 'pointer' }}>
+                            Status {sortField === 'applicationStatus' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                          </span>
+                          <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '2px 4px',
+                              borderRadius: 4,
+                              border: '1px solid var(--border-subtle, #334155)',
+                              background: 'var(--surface-container-high, #1e293b)',
+                              color: 'inherit',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <option value="all">All</option>
+                            <option value="Under Review">Under Review</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                          </select>
+                        </div>
+                      </th>
+                      <th scope="col" onClick={() => handleSort('submittedDate')} style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                        Submitted {sortField === 'submittedDate' ? (sortOrder === 'asc' ? '▲' : '▼') : ''}
+                      </th>
+                      <th scope="col" style={{ textAlign: 'right', paddingRight: 20 }}>
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
               <tbody>
                 {filteredRows.length === 0 ? (
                   <tr>
