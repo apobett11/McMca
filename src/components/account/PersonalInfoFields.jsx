@@ -7,7 +7,8 @@ export function PersonalInfoFields({
   errors = {},
   includeAuth = false,
   includeContact = true,
-  idPrefix = ''
+  idPrefix = '',
+  isStudent = false
 }) {
   const id = (name) => `${idPrefix}${name}`;
 
@@ -88,6 +89,79 @@ export function PersonalInfoFields({
             error={errors.nationalId}
             onChange={(v) => onChange('nationalId', v)}
           />
+        </>
+      ) : null}
+      {isStudent ? (
+        <>
+          <div className={`field ${errors.parentStatus ? 'field--invalid' : ''}`} style={{ marginTop: 8 }}>
+            <label htmlFor={id('parentStatus')}>Parents' status</label>
+            <select
+              id={id('parentStatus')}
+              value={values.parentStatus || ''}
+              onChange={(e) => onChange('parentStatus', e.target.value)}
+              required
+              aria-invalid={Boolean(errors.parentStatus)}
+              className={errors.parentStatus ? 'is-invalid' : ''}
+            >
+              <option value="">Select parent status</option>
+              <option value="both">Both parents present</option>
+              <option value="single">Single parent</option>
+              <option value="orphan">Orphan</option>
+            </select>
+            {errors.parentStatus ? <p className="field__error-msg">{errors.parentStatus}</p> : null}
+            <p className="field__help">Indicate whether both parents are present, single parent, or orphan.</p>
+          </div>
+
+          {values.parentStatus === 'orphan' ? (
+            <div style={{ marginTop: 12, marginBottom: 8, padding: 14, borderRadius: 12, border: '1px solid var(--glass-border, rgba(148,163,184,0.2))', background: 'rgba(255,255,255,0.02)' }}>
+              <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                Custodian details (who will register as parent)
+              </p>
+              <VerifiedField
+                id={id('custodianFirstName')}
+                name="custodianFirstName"
+                label="Custodian first name"
+                value={values.custodianFirstName}
+                error={errors.custodianFirstName}
+                onChange={(v) => onChange('custodianFirstName', v)}
+              />
+              <VerifiedField
+                id={id('custodianMiddleName')}
+                name="custodianMiddleName"
+                label="Custodian middle name"
+                required={false}
+                value={values.custodianMiddleName}
+                error={errors.custodianMiddleName}
+                onChange={(v) => onChange('custodianMiddleName', v)}
+              />
+              <VerifiedField
+                id={id('custodianLastName')}
+                name="custodianLastName"
+                label="Custodian last name"
+                value={values.custodianLastName}
+                error={errors.custodianLastName}
+                onChange={(v) => onChange('custodianLastName', v)}
+              />
+              <VerifiedField
+                id={id('custodianPhone')}
+                name="custodianPhone"
+                label="Custodian phone number"
+                type="tel"
+                value={values.custodianPhone}
+                error={errors.custodianPhone}
+                onChange={(v) => onChange('custodianPhone', v)}
+                placeholder="07XX XXX XXX"
+              />
+              <VerifiedField
+                id={id('custodianNationalId')}
+                name="custodianNationalId"
+                label="Custodian National ID"
+                value={values.custodianNationalId}
+                error={errors.custodianNationalId}
+                onChange={(v) => onChange('custodianNationalId', v)}
+              />
+            </div>
+          ) : null}
         </>
       ) : null}
       {includeAuth ? (

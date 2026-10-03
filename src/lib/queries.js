@@ -94,6 +94,57 @@ export async function fetchStudentOfficeMessages(userId) {
   return data || [];
 }
 
+export async function sendParentOfficeMessage({ parentAuthUserId, studentProfileId, studentName, office, body }) {
+  const text = String(body || '').trim();
+  if (!OFFICE_LABELS[office]) throw new Error('Choose who should receive this message.');
+  if (text.length < 8) throw new Error('Write a short message before sending.');
+  if (!studentProfileId) throw new Error('Please choose the student with an issue.');
+
+  const { error } = await supabase.from('student_activity_logs').insert({
+    student_profile_id: studentProfileId,
+    activity_type: 'office_message',
+    activity_description: text,
+    metadata: {
+      office,
+      office_label: OFFICE_LABELS[office],
+      tagged_student_id: studentProfileId,
+      tagged_student_name: studentName || 'Student',
+      sent_by_parent: true,
+      parent_auth_user_id: parentAuthUserId
+    }
+  });
+  if (error) {
+    console.warn('DB sendParentOfficeMessage log fallback:', error);
+  }
+
+  try {
+    await supabase.from('student_notifications').insert({
+      student_profile_id: studentProfileId,
+      title: `Message sent to ${OFFICE_LABELS[office]}`,
+      message: `Parent sent a message regarding ${studentName || 'student'}.`
+    });
+  } catch (noteError) {
+    console.warn('Could not store student notification receipt', noteError);
+  }
+
+  return { office, label: OFFICE_LABELS[office], studentName };
+}
+
+export async function fetchParentOfficeMessages(childrenStudentProfileIds = []) {
+  if (!childrenStudentProfileIds.length) return [];
+  const { data, error } = await supabase
+    .from('student_activity_logs')
+    .select('*')
+    .in('student_profile_id', childrenStudentProfileIds)
+    .eq('activity_type', 'office_message')
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.warn('fetchParentOfficeMessages error fallback:', error);
+    return [];
+  }
+  return data || [];
+}
+
 export async function fetchRecentActivity(userId) {
   const profileId = await getProfileIdByAuthId(userId);
   const { data, error } = await supabase

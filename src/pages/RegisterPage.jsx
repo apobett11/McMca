@@ -93,6 +93,15 @@ export function RegisterPage() {
       nationalId: {},
       password: {}
     };
+    if (role === ACCOUNT_ROLE.STUDENT) {
+      schema.parentStatus = { label: "Parents' status" };
+      if (wizard.values.parentStatus === 'orphan') {
+        schema.custodianFirstName = { label: 'Custodian first name' };
+        schema.custodianLastName = { label: 'Custodian last name' };
+        schema.custodianPhone = { label: 'Custodian phone' };
+        schema.custodianNationalId = { label: 'Custodian National ID' };
+      }
+    }
     const check = validateForm(wizard.values, schema);
     if (!check.ok) {
       wizard.setError(Object.values(check.errors)[0]);
@@ -153,12 +162,55 @@ export function RegisterPage() {
           payload,
           completed: true
         });
+
+        if (wizard.values.parentStatus === 'orphan' && wizard.values.custodianNationalId) {
+          try {
+            await savePendingParentFromStudent({
+              studentProfileId: account.profileId,
+              parent: {
+                firstName: wizard.values.custodianFirstName,
+                middleName: wizard.values.custodianMiddleName || null,
+                lastName: wizard.values.custodianLastName,
+                phone: wizard.values.custodianPhone,
+                nationalId: wizard.values.custodianNationalId,
+                relationship: 'guardian'
+              },
+              documentsVerified: false
+            });
+          } catch (e) {
+            console.warn('Could not save pending custodian in DB:', e);
+          }
+        }
+      } else if (role === ACCOUNT_ROLE.PARENT) {
+        await saveWizardStep({
+          authUserId: account.userId,
+          ownerType: role,
+          ownerId: account.profileId,
+          flowId: WIZARD_FLOW.DASHBOARD_PARENT,
+          stepKey: 'personal_information',
+          payload,
+          completed: true
+        });
       }
-      const next = await wizard.completeStep('personal_information', payload, ['idPhoto', 'idBack']);
-      if (role === ACCOUNT_ROLE.PARENT || next.complete) {
-        await supabase.auth.signOut();
-        setFinished(true);
-      }
+
+      // Store ID -> Email mapping for fast ID login
+      try {
+        const idMap = JSON.parse(localStorage.getItem('mcmca_id_map') || '{}');
+        const cleanId = String(wizard.values.nationalId || '').trim().replace(/\D/g, '');
+        if (cleanId) {
+          idMap[cleanId] = wizard.values.email.trim();
+          localStorage.setItem('mcmca_id_map', JSON.stringify(idMap));
+        }
+        // Save initial completed steps and data for instant dashboard sync
+        const flowStoreKey = role === ACCOUNT_ROLE.STUDENT ? 'wizard_completed_dashboard_student' : 'wizard_completed_dashboard_parent';
+        const dataStoreKey = role === ACCOUNT_ROLE.STUDENT ? 'wizard_data_dashboard_student' : 'wizard_data_dashboard_parent';
+        sessionStorage.setItem(flowStoreKey, JSON.stringify(['personal_information']));
+        sessionStorage.setItem(dataStoreKey, JSON.stringify(payload));
+      } catch {}
+
+      await wizard.completeStep('personal_information', payload, ['idPhoto', 'idBack']);
+      await supabase.auth.signOut();
+      setFinished(true);
     } catch (err) {
       wizard.setError(err.message || 'Could not create the account.');
     } finally {
@@ -251,7 +303,7 @@ export function RegisterPage() {
 
   if (finished) {
     return (
-      <AuthFrame title="Account created" lead="Sign in to open your dashboard. You will finish the rest of registration from Forms.">
+      <AuthFrame title="Account created" lead="Sign in using your National ID number and the password you just set up to open your dashboard.">
         <Link className="btn btn--primary" to="/login" style={{ borderRadius: 999, display: 'inline-flex', width: 'auto' }}>
           Sign in
         </Link>
@@ -281,7 +333,7 @@ export function RegisterPage() {
   const title = isParent ? 'Parent account' : 'Student account';
   const lead = isParent
     ? 'Your details, then photos of both sides of your ID.'
-    : 'Your details and ID, then your parent’s details and ID.';
+    : 'Your details, ID photos, and parent details. You will use your National ID to sign in.';
 
   return (
     <AuthFrame title={title} lead={lead}>
@@ -294,18 +346,24 @@ export function RegisterPage() {
           stepIndex={wizard.stepIndex}
           error={wizard.error}
           submitting={submitting}
-          nextLabel={wizard.currentStep?.key === 'parent_information' || isParent ? 'Create account' : 'Continue'}
+          nextLabel="Create account"
           extraAction={
             <button type="button" className="btn btn--secondary" onClick={() => setRole(null)} style={{ borderRadius: 999, width: 'auto' }}>
               Back
             </button>
           }
           onBack={() => wizard.setStepIndex((i) => Math.max(0, i - 1))}
-          onNext={wizard.currentStep?.key === 'parent_information' ? handleParentStep : handlePersonalStep}
+          onNext={handlePersonalStep}
         >
           {wizard.currentStep?.key === 'personal_information' ? (
             <>
-              <PersonalInfoFields values={wizard.values} onChange={wizard.updateField} includeAuth idPrefix="reg-" />
+              <PersonalInfoFields
+                values={wizard.values}
+                onChange={wizard.updateField}
+                includeAuth
+                idPrefix="reg-"
+                isStudent={role === ACCOUNT_ROLE.STUDENT}
+              />
               <IdentityScanStep
                 values={wizard.values}
                 files={wizard.files}

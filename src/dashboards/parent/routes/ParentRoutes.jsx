@@ -8,6 +8,7 @@ const ParentNotificationsPage = lazy(() => import('../pages/ParentNotificationsP
 const ParentProfilePage = lazy(() => import('../pages/ParentProfilePage.jsx').then(m => ({ default: m.ParentProfilePage })));
 const ParentAddChildPage = lazy(() => import('../pages/ParentAddChildPage.jsx').then(m => ({ default: m.ParentAddChildPage })));
 const ParentChildWizardPage = lazy(() => import('../pages/ParentChildWizardPage.jsx').then(m => ({ default: m.ParentChildWizardPage })));
+const ParentMessagesPage = lazy(() => import('../pages/ParentMessagesPage.jsx').then(m => ({ default: m.ParentMessagesPage })));
 
 function RouteFallback() {
   return (
@@ -32,6 +33,7 @@ export function ParentRoutes() {
         <Route path="/parent/applications" element={<ParentApplicationsPage />} />
         <Route path="/parent/documents" element={<ParentDocumentsPage />} />
         <Route path="/parent/notifications" element={<ParentNotificationsPage />} />
+        <Route path="/parent/messages" element={<ParentMessagesPage />} />
         <Route path="/parent/profile" element={<ParentProfilePage />} />
         <Route path="/parent/children/new" element={<ParentAddChildPage />} />
         <Route path="/parent/children/:childId" element={<ParentChildWizardPage />} />

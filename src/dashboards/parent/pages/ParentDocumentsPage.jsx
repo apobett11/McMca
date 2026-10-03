@@ -61,6 +61,8 @@ export function ParentDocumentsPage() {
   const familyReady = familyComplete(household);
   const parentReady = Boolean(parent?.first_name && parent?.last_name && parent?.national_id);
   const sharedReady = parentReady && homeReady && familyReady;
+  const hasIncompleteChild = children.some((c) => !c.school_name || (!c.admission_number && !c.birth_certificate_number));
+  const canAddChild = sharedReady && !hasIncompleteChild;
 
   function remember(next) {
     if (user?.id) {
@@ -152,7 +154,13 @@ export function ParentDocumentsPage() {
           <h2 className="stitch-section-title">Students</h2>
           <div className="btn-row">
             <RefreshButton onClick={refresh} busy={refreshing} />
-            <button type="button" className="btn btn--primary" onClick={() => setChildModal({ mode: 'add' })} disabled={!sharedReady}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => setChildModal({ mode: 'add' })}
+              disabled={!canAddChild}
+              title={!sharedReady ? 'Household details needed first' : hasIncompleteChild ? 'Finish current child before adding another' : 'Add a child'}
+            >
               <Icon name="plus" size={18} />
               Add a child
             </button>
@@ -260,6 +268,7 @@ export function ParentDocumentsPage() {
         <AddChildModal
           parent={parent}
           child={childModal.child}
+          existingChildren={children}
           onClose={() => setChildModal(null)}
           onSaved={() => refresh().catch(() => {})}
         />

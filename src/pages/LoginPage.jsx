@@ -5,7 +5,7 @@ import { assertPortalLoginAllowed } from '../lib/accountQueries';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,7 +18,42 @@ export function LoginPage() {
       if (!supabase) {
         throw new Error('This site is not connected to the database yet.');
       }
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      let loginEmail = identifier.trim();
+      const isEmail = loginEmail.includes('@');
+      if (!isEmail) {
+        const cleanId = loginEmail.replace(/\D/g, '');
+        // Check local id map first
+        try {
+          const map = JSON.parse(localStorage.getItem('mcmca_id_map') || '{}');
+          if (map[cleanId]) {
+            loginEmail = map[cleanId];
+          }
+        } catch {}
+
+        if (!loginEmail.includes('@')) {
+          try {
+            const { data: student } = await supabase
+              .from('student_profiles')
+              .select('email')
+              .eq('national_id', cleanId)
+              .maybeSingle();
+            if (student?.email) {
+              loginEmail = student.email;
+            } else {
+              const { data: parent } = await supabase
+                .from('parent_profiles')
+                .select('email')
+                .eq('national_id', cleanId)
+                .maybeSingle();
+              if (parent?.email) {
+                loginEmail = parent.email;
+              }
+            }
+          } catch {}
+        }
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
       if (signInError) throw signInError;
 
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -65,7 +100,7 @@ export function LoginPage() {
         borderRadius: 24, padding: 32, border: '1px solid var(--glass-border)'
       }}>
         <h1 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 700, color: 'var(--text, #E2E8F0)' }}>Sign in</h1>
-        <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--text-2, #94A3B8)' }}>Use the email and password you registered with.</p>
+        <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--text-2, #94A3B8)' }}>Use the ID number and password you registered with.</p>
         {error && (
           <div style={{
             padding: '12px 16px', marginBottom: 16, borderRadius: 8,
@@ -75,8 +110,17 @@ export function LoginPage() {
         )}
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text, #E2E8F0)' }}>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" required style={fieldStyle} />
+            <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text, #E2E8F0)' }}>
+              National ID number or Email
+            </label>
+            <input
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="e.g. 40112233 or you@email.com"
+              required
+              style={fieldStyle}
+            />
           </div>
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text, #E2E8F0)' }}>Password</label>

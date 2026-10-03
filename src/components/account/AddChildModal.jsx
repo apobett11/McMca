@@ -7,8 +7,9 @@ import { mergeWizardCompleted, registerChildFromParent, updateChildFormDetails }
 import { WizardShell } from './WizardShell.jsx';
 import { PersonalInfoFields } from './PersonalInfoFields.jsx';
 import { InstitutionFields } from './InstitutionFields.jsx';
+import { VerifiedField } from './VerifiedField.jsx';
 
-export function AddChildModal({ parent, child, onClose, onSaved }) {
+export function AddChildModal({ parent, child, existingChildren = [], onClose, onSaved }) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState('');
@@ -50,14 +51,23 @@ export function AddChildModal({ parent, child, onClose, onSaved }) {
     const step = wizard.currentStep;
     wizard.setError('');
     if (step?.key === 'personal_information') {
+      if (!editing && existingChildren?.some(c => !c.school_name || (!c.admission_number && !c.birth_certificate_number))) {
+        wizard.setError('You must finish adding the current child before adding another student.');
+        return;
+      }
       const check = validateForm(wizard.values, {
         firstName: {},
         lastName: {},
         gender: { label: 'Gender' },
-        dateOfBirth: {}
+        dateOfBirth: {},
+        birthCertificateNumber: { label: 'Birth Certificate Number' }
       });
       if (!check.ok) {
         wizard.setError(Object.values(check.errors)[0]);
+        return;
+      }
+      if (!editing && !wizard.files.birthCertificate && !child?.birth_certificate_number) {
+        wizard.setError('Please upload a photo or document of the birth certificate.');
         return;
       }
       setSubmitting(true);
@@ -67,7 +77,8 @@ export function AddChildModal({ parent, child, onClose, onSaved }) {
           middleName: wizard.values.middleName,
           lastName: wizard.values.lastName,
           gender: wizard.values.gender,
-          dateOfBirth: wizard.values.dateOfBirth
+          dateOfBirth: wizard.values.dateOfBirth,
+          birthCertificateNumber: wizard.values.birthCertificateNumber
         };
         if (!editing) {
           await mergeWizardCompleted('parent_profiles', parent.id, { addChildDraft: personal });
@@ -95,7 +106,8 @@ export function AddChildModal({ parent, child, onClose, onSaved }) {
       middleName: wizard.values.middleName,
       lastName: wizard.values.lastName,
       gender: wizard.values.gender,
-      dateOfBirth: wizard.values.dateOfBirth
+      dateOfBirth: wizard.values.dateOfBirth,
+      birthCertificateNumber: wizard.values.birthCertificateNumber
     };
     const institution = {
       schoolName: wizard.values.schoolName,
@@ -176,7 +188,33 @@ export function AddChildModal({ parent, child, onClose, onSaved }) {
               {wizard.currentStep?.key === 'institution' ? (
                 <InstitutionFields values={wizard.values} onChange={wizard.updateField} idPrefix="child-inst-" />
               ) : (
-                <PersonalInfoFields values={wizard.values} onChange={wizard.updateField} includeContact={false} idPrefix="child-personal-" />
+                <>
+                  <PersonalInfoFields values={wizard.values} onChange={wizard.updateField} includeContact={false} idPrefix="child-personal-" />
+                  <VerifiedField
+                    id="child-personal-birthCertificateNumber"
+                    name="birthCertificateNumber"
+                    label="Birth Certificate Number"
+                    value={wizard.values.birthCertificateNumber}
+                    error={wizard.errors?.birthCertificateNumber}
+                    onChange={(v) => wizard.updateField('birthCertificateNumber', v)}
+                    placeholder="e.g. BC12345678"
+                  />
+                  <div className="field" style={{ marginTop: 8 }}>
+                    <label htmlFor="child-birth-cert-upload">Birth Certificate Document / Photo</label>
+                    <input
+                      id="child-birth-cert-upload"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          wizard.updateFile('birthCertificate', file);
+                        }
+                      }}
+                    />
+                    <p className="field__help">Attach a clear photo or scan of the birth certificate.</p>
+                  </div>
+                </>
               )}
             </WizardShell>
           )}

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { RefreshButton } from '../../../components/RefreshButton.jsx';
@@ -43,12 +43,24 @@ function levelLabel(value) {
 
 export function StudentDashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const greeting = getTimeGreeting();
   const { data, loading, refreshing, error, refresh } = useCachedQuery(
     user?.id ? studentRecordKey(user.id) : null,
     () => loadStudentRecord(user.id),
     { enabled: Boolean(user?.id) }
   );
+
+  const [extraCompleted, setExtraCompleted] = useState([]);
+  useEffect(() => {
+    function onStepCompleted(e) {
+      if (e.detail?.completedKeys) {
+        setExtraCompleted(e.detail.completedKeys);
+      }
+    }
+    window.addEventListener('mcmca_registration_step_completed', onStepCompleted);
+    return () => window.removeEventListener('mcmca_registration_step_completed', onStepCompleted);
+  }, []);
 
   // Merge session profile with DB profile
   const sessionProfile = (() => {
@@ -60,7 +72,7 @@ export function StudentDashboardPage() {
   })();
   const profile = { ...(data?.registration?.profile || {}), ...sessionProfile };
 
-  // Merge session completed keys with DB completed keys
+  // Merge session completed keys with DB completed keys and pre-checked personal info
   const sessionCompleted = (() => {
     try {
       return JSON.parse(sessionStorage.getItem('wizard_completed_dashboard_student') || '[]');
@@ -69,7 +81,7 @@ export function StudentDashboardPage() {
     }
   })();
   const dbCompleted = data?.registration?.completedKeys || [];
-  const completedKeys = Array.from(new Set([...dbCompleted, ...sessionCompleted]));
+  const completedKeys = Array.from(new Set([...dbCompleted, ...sessionCompleted, ...extraCompleted, 'personal_information']));
 
   // Merge session applications with DB applications
   const sessionApps = (() => {
@@ -133,62 +145,11 @@ export function StudentDashboardPage() {
           </div>
         </section>
 
-        {/* Analytics cards with thin progress ranges */}
-        <section className="dash-analytics-strips" aria-label="Portal Analytics">
-          <div className="dash-strip-card">
-            <div className="dash-strip-card__head">
-              <div>
-                <span className="dash-strip-card__label">Bursary Applications</span>
-                <h3 className="dash-strip-card__val">
-                  {apps.length > 0 ? `${apps.length} ${apps.length === 1 ? 'Application' : 'Applications'}` : '0 Applications'}
-                </h3>
-              </div>
-              <span className={`stitch-status-badge ${hasAppliedThisCycle ? 'stitch-status-badge--admitted' : activeCycle ? 'stitch-status-badge--review' : 'stitch-status-badge--withdrawn'}`}>
-                {hasAppliedThisCycle ? 'Submitted' : activeCycle ? 'Cycle open' : 'No cycle'}
-              </span>
-            </div>
-            <div className="dash-strip-card__track" role="progressbar" aria-valuenow={appStripPct} aria-valuemin="0" aria-valuemax="100">
-              <div
-                className="dash-strip-card__fill dash-strip-card__fill--gold"
-                style={{ width: `${appStripPct}%` }}
-              />
-            </div>
-            <div className="dash-strip-card__foot">
-              <span>{activeCycle ? cycleName : 'Cycle status'}</span>
-              <span>{hasAppliedThisCycle ? '100%' : apps.length > 0 ? 'Submitted' : '0%'}</span>
-            </div>
-          </div>
-
-          <div className="dash-strip-card">
-            <div className="dash-strip-card__head">
-              <div>
-                <span className="dash-strip-card__label">Form Fields</span>
-                <h3 className="dash-strip-card__val">
-                  {doneCount} of {steps.length} Steps
-                </h3>
-              </div>
-              <span className={`stitch-status-badge ${complete ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
-                {complete ? 'Complete' : `${steps.length - doneCount} Needed`}
-              </span>
-            </div>
-            <div className="dash-strip-card__track" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100">
-              <div
-                className={`dash-strip-card__fill ${complete ? 'dash-strip-card__fill--green' : 'dash-strip-card__fill--gold'}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <div className="dash-strip-card__foot">
-              <span>{complete ? 'Every step on file' : preparednessCopy(doneCount, steps.length)}</span>
-              <span>{pct}%</span>
-            </div>
-          </div>
-        </section>
-
-        {/* Consolidated checklist single card */}
+        {/* Consolidated single card: ranges, checklist, and applications */}
         <section className="dash-single-card">
           <div className="dash-single-card__head">
             <div>
-              <h2 className="stitch-section-title" style={{ margin: 0 }}>Registration Checklist</h2>
+              <h2 className="stitch-section-title" style={{ margin: 0 }}>Registration & Bursary Overview</h2>
               <p className="field__help" style={{ margin: '4px 0 0' }}>
                 Complete every form step to build your profile and unlock bursary applications.
               </p>
@@ -206,12 +167,70 @@ export function StudentDashboardPage() {
             </div>
           </div>
 
+          {/* Analytics cards with thin progress ranges inside card */}
+          <div className="dash-analytics-strips" style={{ margin: 0, padding: 16, borderBottom: '1px solid var(--glass-border)' }}>
+            <div className="dash-strip-card">
+              <div className="dash-strip-card__head">
+                <div>
+                  <span className="dash-strip-card__label">Bursary Applications</span>
+                  <h3 className="dash-strip-card__val">
+                    {apps.length > 0 ? `${apps.length} ${apps.length === 1 ? 'Application' : 'Applications'}` : '0 Applications'}
+                  </h3>
+                </div>
+                <span className={`stitch-status-badge ${hasAppliedThisCycle ? 'stitch-status-badge--admitted' : activeCycle ? 'stitch-status-badge--review' : 'stitch-status-badge--withdrawn'}`}>
+                  {hasAppliedThisCycle ? 'Submitted' : activeCycle ? 'Cycle open' : 'No cycle'}
+                </span>
+              </div>
+              <div className="dash-strip-card__track" role="progressbar" aria-valuenow={appStripPct} aria-valuemin="0" aria-valuemax="100">
+                <div
+                  className="dash-strip-card__fill dash-strip-card__fill--gold"
+                  style={{ width: `${appStripPct}%` }}
+                />
+              </div>
+              <div className="dash-strip-card__foot">
+                <span>{activeCycle ? cycleName : 'Cycle status'}</span>
+                <span>{hasAppliedThisCycle ? '100%' : apps.length > 0 ? 'Submitted' : '0%'}</span>
+              </div>
+            </div>
+
+            <div className="dash-strip-card">
+              <div className="dash-strip-card__head">
+                <div>
+                  <span className="dash-strip-card__label">Form Fields</span>
+                  <h3 className="dash-strip-card__val">
+                    {doneCount} of {steps.length} Steps
+                  </h3>
+                </div>
+                <span className={`stitch-status-badge ${complete ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
+                  {complete ? 'Complete' : `${steps.length - doneCount} Needed`}
+                </span>
+              </div>
+              <div className="dash-strip-card__track" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100">
+                <div
+                  className={`dash-strip-card__fill ${complete ? 'dash-strip-card__fill--green' : 'dash-strip-card__fill--gold'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <div className="dash-strip-card__foot">
+                <span>{complete ? 'Every step on file' : preparednessCopy(doneCount, steps.length)}</span>
+                <span>{pct}%</span>
+              </div>
+            </div>
+          </div>
+
           {error ? (
             <div className="notice" role="alert" style={{ margin: 16 }}>
               <strong>Could not load</strong>
               <p>{error}</p>
             </div>
           ) : null}
+
+          <div style={{ padding: '16px 22px 10px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>
+            <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>Registration Checklist</h3>
+            <p className="field__help" style={{ margin: '4px 0 0' }}>
+              Personal information is pre-checked from registration. Click any step to open and complete it.
+            </p>
+          </div>
 
           {showSkeleton ? (
             <div className="skeleton-wrap" style={{ padding: 16 }}>
@@ -221,17 +240,28 @@ export function StudentDashboardPage() {
             <ul className="checklist-single-card__list">
               {steps.map((step) => {
                 const done = completedKeys.includes(step.key);
+                const isOrphan = profile?.parentStatus === 'orphan' || sessionProfile?.parentStatus === 'orphan';
+                const stepTitle = step.key === 'parent_information'
+                  ? (isOrphan ? "Guardian's information" : "Parent's information")
+                  : step.title;
                 return (
-                  <li key={step.key} className={`checklist-single-card__row${done ? ' checklist-single-card__row--done' : ''}`}>
+                  <li
+                    key={step.key}
+                    className={`checklist-single-card__row${done ? ' checklist-single-card__row--done' : ''}`}
+                    onClick={() => navigate('/student/documents', { state: { startAtKey: step.key } })}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <input
                       type="checkbox"
                       checked={done}
-                      readOnly
-                      onChange={() => {}}
-                      tabIndex={-1}
-                      aria-label={`${step.title} ${done ? 'completed' : 'not completed'}`}
+                      onChange={() => {
+                        navigate('/student/documents', { state: { startAtKey: step.key } });
+                      }}
+                      tabIndex={0}
+                      aria-label={`${stepTitle} ${done ? 'completed' : 'not completed'}`}
+                      style={{ cursor: 'pointer' }}
                     />
-                    <span className="checklist-single-card__title">{step.title}</span>
+                    <span className="checklist-single-card__title">{stepTitle}</span>
                     <span className={`stitch-status-badge ${done ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
                       {done ? 'Done' : 'Needed'}
                     </span>
@@ -240,13 +270,11 @@ export function StudentDashboardPage() {
               })}
             </ul>
           )}
-        </section>
 
-        {/* Applications section below checklist */}
-        <section className="dash-single-card dash-apps-section">
-          <div className="dash-single-card__head">
+          {/* Applications inside single card */}
+          <div className="dash-single-card__head" style={{ borderTop: '1px solid var(--glass-border)' }}>
             <div>
-              <h2 className="stitch-section-title" style={{ margin: 0 }}>Applications</h2>
+              <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>Applications</h3>
               <p className="field__help" style={{ margin: '4px 0 0' }}>
                 {sortedApps.length > 0
                   ? 'Your latest bursary applications and award status.'

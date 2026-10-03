@@ -744,10 +744,18 @@ export async function saveStudentHousehold(studentId, household) {
   });
 }
 
-export async function saveParentHousehold(parentId, parentAuthUserId, household) {
+export async function saveParentHousehold(parentId, authUserIdOrHousehold, maybeHousehold) {
+  const household = maybeHousehold !== undefined ? maybeHousehold : authUserIdOrHousehold;
+  const parentAuthUserId = maybeHousehold !== undefined ? authUserIdOrHousehold : null;
   const saved = await mergeWizardCompleted('parent_profiles', parentId, { household });
-  const children = await fetchParentChildren(parentAuthUserId);
-  await Promise.all(children.map((child) => saveStudentHousehold(child.id, household)));
+  if (parentAuthUserId) {
+    try {
+      const children = await fetchParentChildren(parentAuthUserId);
+      await Promise.all(children.map((child) => saveStudentHousehold(child.id, household)));
+    } catch (e) {
+      console.warn('Could not sync household to children:', e);
+    }
+  }
   return saved;
 }
 

@@ -25,13 +25,17 @@ export async function loadStudentRecord(userId) {
 }
 
 export async function loadParentBoard(userId) {
-  const board = await fetchParentApplicationBoard(userId);
+  const [board, registration] = await Promise.all([
+    fetchParentApplicationBoard(userId),
+    fetchDashboardRegistrationState(userId, 'parent').catch(() => null)
+  ]);
   const record = {
     parent: board.parent,
     children: board.children || [],
     applications: board.applications || [],
     windows: board.windows || [],
-    household: readHousehold(board.parent)
+    household: readHousehold(board.parent),
+    registration
   };
   writeQueryCache(parentBoardKey(userId), record);
   return record;

@@ -8,6 +8,7 @@ const PARENT_ITEMS = [
   { label: 'Applications', path: '/parent/applications', icon: 'applications' },
   { label: 'Documents', path: '/parent/documents', icon: 'documents' },
   { label: 'Notifications', path: '/parent/notifications', icon: 'bell' },
+  { label: 'Contact', path: '/parent/messages', icon: 'support' },
   { label: 'Add child', path: '/parent/children/new', icon: 'plus' },
   { label: 'Profile', path: '/parent/profile', icon: 'profile' }
 ];

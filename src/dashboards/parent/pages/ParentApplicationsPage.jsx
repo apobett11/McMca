@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ParentLayout } from '../components/ParentLayout.jsx';
+import { Icon } from '../../../components/Icon.jsx';
 import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { joinFullName } from '../../../lib/accountAllocation';
@@ -8,6 +9,7 @@ import { formatMoney, groupApplicationsByCycle } from '../../../lib/household.js
 import { useCachedQuery } from '../../../lib/useCachedQuery';
 import { loadParentApplications } from '../../../lib/portalData';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
+import { AddChildModal } from '../../../components/account/AddChildModal.jsx';
 
 function statusClass(status) {
   const map = {
@@ -34,16 +36,41 @@ function childName(child) {
 
 export function ParentApplicationsPage() {
   const { user } = useAuth();
+  const [addChildModalOpen, setAddChildModalOpen] = useState(false);
+  const [actionNotice, setActionNotice] = useState('');
+
   const { data, loading, refreshing, error, refresh } = useCachedQuery(
     user?.id ? `${user.id}:parent-applications` : null,
     () => loadParentApplications(user.id),
     { enabled: Boolean(user?.id) }
   );
+
+  const parent = data?.parent || null;
   const children = data?.children || [];
   const applications = data?.applications || [];
   const windows = data?.windows || [];
+  const registrationIncomplete = Boolean(data?.registrationIncomplete);
   const showSkeleton = loading && !data;
   const groups = groupApplicationsByCycle(children, applications, windows);
+
+  // The parent must never be allowed to add another student child before they finish one.
+  const hasIncompleteChild = children.some(
+    (c) => !c.school_name || (!c.admission_number && !c.birth_certificate_number)
+  );
+
+  function handleAddStudentClick() {
+    if (registrationIncomplete) {
+      setActionNotice('Please complete your household registration steps before adding a student.');
+      setTimeout(() => setActionNotice(''), 6000);
+      return;
+    }
+    if (hasIncompleteChild) {
+      setActionNotice('You must finish adding the current child before adding another student.');
+      setTimeout(() => setActionNotice(''), 6000);
+      return;
+    }
+    setAddChildModalOpen(true);
+  }
 
   return (
     <ParentLayout pageTitle="Applications" layout="dashboard">
@@ -54,10 +81,34 @@ export function ParentApplicationsPage() {
         </p>
       </div>
 
+      {actionNotice ? (
+        <div className="notice" style={{ marginBottom: 16, background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }}>
+          <p style={{ margin: 0 }}>{actionNotice}</p>
+        </div>
+      ) : null}
+
       <section className="stitch-apps-history">
         <div className="stitch-apps-history__head">
           <h2 className="stitch-section-title">By cycle</h2>
-          <RefreshButton onClick={refresh} busy={refreshing} />
+          <div className="btn-row">
+            <RefreshButton onClick={refresh} busy={refreshing} />
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={handleAddStudentClick}
+              disabled={registrationIncomplete || hasIncompleteChild}
+              title={
+                registrationIncomplete
+                  ? 'Finish household registration first'
+                  : hasIncompleteChild
+                    ? 'Finish current child before adding another'
+                    : 'Add a student'
+              }
+            >
+              <Icon name="plus" size={18} />
+              Add a student
+            </button>
+          </div>
         </div>
 
         {error ? (
@@ -74,10 +125,21 @@ export function ParentApplicationsPage() {
         ) : groups.length === 0 ? (
           <div className="notice">
             <strong>No applications yet</strong>
-            <p>Add a child from Documents. Each student appears here under their bursary cycle.</p>
-            <Link className="btn btn--primary" to="/parent/documents" style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}>
-              Open documents
-            </Link>
+            <p>Add a student from here or Home. Each student appears here under their bursary cycle.</p>
+            <div className="btn-row" style={{ marginTop: 12 }}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={handleAddStudentClick}
+                style={{ borderRadius: 999, width: 'auto' }}
+                disabled={registrationIncomplete || hasIncompleteChild}
+              >
+                Add a student
+              </button>
+              <Link className="btn btn--secondary" to="/parent/documents" style={{ borderRadius: 999, width: 'auto' }}>
+                Open documents
+              </Link>
+            </div>
           </div>
         ) : (
           groups.map((group) => (
@@ -121,6 +183,18 @@ export function ParentApplicationsPage() {
           ))
         )}
       </section>
+
+      {addChildModalOpen && parent ? (
+        <AddChildModal
+          parent={parent}
+          existingChildren={children}
+          onClose={() => setAddChildModalOpen(false)}
+          onSaved={() => {
+            setAddChildModalOpen(false);
+            refresh().catch(() => {});
+          }}
+        />
+      ) : null}
     </ParentLayout>
   );
 }

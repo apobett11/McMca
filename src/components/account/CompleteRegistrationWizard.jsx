@@ -22,8 +22,10 @@ import {
   updateParentProfile,
   saveStudentHousehold,
   saveParentHousehold,
-  mergeWizardCompleted
+  mergeWizardCompleted,
+  saveWizardStep
 } from '../../lib/accountQueries';
+import { supabase } from '../../lib/supabase';
 import { useWizardSession } from '../../hooks/useWizardSession';
 import { WizardShell } from './WizardShell.jsx';
 import { PersonalInfoFields } from './PersonalInfoFields.jsx';
@@ -218,6 +220,8 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
     setSubmitting(true);
     wizard.setError('');
     try {
+      let stepPayload = {};
+
       if (key === 'personal_information') {
         const check = validateForm(wizard.values, {
           firstName: {},
@@ -249,23 +253,24 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           phone_number: wizard.values.phone,
           national_id: wizard.values.nationalId
         };
+        stepPayload = patch;
         setProfile((prev) => ({ ...prev, ...patch }));
 
-        setSaveStatus('success');
-        await new Promise((r) => setTimeout(r, 600));
-        setSaveStatus('idle');
-
-        const nextCompleted = wizard.completedKeys.includes('personal_information')
-          ? wizard.completedKeys
-          : [...wizard.completedKeys, 'personal_information'];
-        wizard.setCompletedKeys?.(nextCompleted);
-        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
-
-        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
-        if (nextIncompleteIdx >= 0) {
-          wizard.setStepIndex(nextIncompleteIdx);
+        try {
+          const table = role === ACCOUNT_ROLE.PARENT ? 'parent_profiles' : 'student_profiles';
+          await supabase.from(table).update(patch).eq('id', profile.id);
+          await saveWizardStep({
+            authUserId: user.id,
+            ownerType: role,
+            ownerId: profile.id,
+            flowId,
+            stepKey: key,
+            payload: patch,
+            completed: true
+          });
+        } catch (dbErr) {
+          console.warn('DB step save fallback:', dbErr);
         }
-        return;
       }
 
       if (key === 'parent_information') {
@@ -289,21 +294,40 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
         setStepErrors({});
         wizard.setError('');
 
-        setSaveStatus('success');
-        await new Promise((r) => setTimeout(r, 600));
-        setSaveStatus('idle');
+        stepPayload = {
+          parentFirstName: wizard.values.parentFirstName,
+          parentMiddleName: wizard.values.parentMiddleName,
+          parentLastName: wizard.values.parentLastName,
+          parentRelationship: wizard.values.parentRelationship,
+          parentPhone: wizard.values.parentPhone,
+          parentNationalId: wizard.values.parentNationalId
+        };
 
-        const nextCompleted = wizard.completedKeys.includes('parent_information')
-          ? wizard.completedKeys
-          : [...wizard.completedKeys, 'parent_information'];
-        wizard.setCompletedKeys?.(nextCompleted);
-        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
-
-        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
-        if (nextIncompleteIdx >= 0) {
-          wizard.setStepIndex(nextIncompleteIdx);
+        try {
+          await savePendingParentFromStudent({
+            studentProfileId: profile.id,
+            parent: {
+              firstName: wizard.values.parentFirstName,
+              middleName: wizard.values.parentMiddleName || null,
+              lastName: wizard.values.parentLastName,
+              relationship: wizard.values.parentRelationship,
+              phone: wizard.values.parentPhone,
+              nationalId: wizard.values.parentNationalId
+            },
+            documentsVerified: Boolean(wizard.files.parentIdFront && wizard.files.parentIdBack)
+          });
+          await saveWizardStep({
+            authUserId: user.id,
+            ownerType: role,
+            ownerId: profile.id,
+            flowId,
+            stepKey: key,
+            payload: stepPayload,
+            completed: true
+          });
+        } catch (dbErr) {
+          console.warn('DB parent save fallback:', dbErr);
         }
-        return;
       }
 
       if (key === 'institution') {
@@ -328,21 +352,40 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
         setStepErrors({});
         wizard.setError('');
 
-        setSaveStatus('success');
-        await new Promise((r) => setTimeout(r, 600));
-        setSaveStatus('idle');
+        stepPayload = {
+          schoolName: wizard.values.schoolName,
+          schoolLevel: wizard.values.schoolLevel,
+          admissionNumber: wizard.values.admissionNumber,
+          bankName: wizard.values.bankName,
+          bankBranch: wizard.values.bankBranch,
+          accountNumber: wizard.values.accountNumber
+        };
 
-        const nextCompleted = wizard.completedKeys.includes('institution')
-          ? wizard.completedKeys
-          : [...wizard.completedKeys, 'institution'];
-        wizard.setCompletedKeys?.(nextCompleted);
-        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
-
-        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
-        if (nextIncompleteIdx >= 0) {
-          wizard.setStepIndex(nextIncompleteIdx);
+        try {
+          await updateChildProfile(profile.id, {
+            school_name: wizard.values.schoolName,
+            school_level: wizard.values.schoolLevel,
+            admission_number: wizard.values.admissionNumber
+          });
+          await mergeWizardCompleted('student_profiles', profile.id, {
+            institution: {
+              bankName: wizard.values.bankName,
+              bankBranch: wizard.values.bankBranch,
+              accountNumber: wizard.values.accountNumber
+            }
+          });
+          await saveWizardStep({
+            authUserId: user.id,
+            ownerType: role,
+            ownerId: profile.id,
+            flowId,
+            stepKey: key,
+            payload: stepPayload,
+            completed: true
+          });
+        } catch (dbErr) {
+          console.warn('DB institution save fallback:', dbErr);
         }
-        return;
       }
 
       if (key === 'home_details') {
@@ -366,21 +409,37 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
         setStepErrors({});
         wizard.setError('');
 
-        setSaveStatus('success');
-        await new Promise((r) => setTimeout(r, 600));
-        setSaveStatus('idle');
+        stepPayload = {
+          constituency: wizard.values.constituency,
+          ward: wizard.values.ward,
+          county: wizard.values.county,
+          subCounty: wizard.values.subCounty,
+          pollingStation: wizard.values.pollingStation
+        };
 
-        const nextCompleted = wizard.completedKeys.includes('home_details')
-          ? wizard.completedKeys
-          : [...wizard.completedKeys, 'home_details'];
-        wizard.setCompletedKeys?.(nextCompleted);
-        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
-
-        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
-        if (nextIncompleteIdx >= 0) {
-          wizard.setStepIndex(nextIncompleteIdx);
+        try {
+          if (role === ACCOUNT_ROLE.STUDENT) {
+            await saveStudentHousehold(profile.id, stepPayload);
+            await supabase.from('student_profiles').update({
+              county: wizard.values.county,
+              ward: wizard.values.ward,
+              location_name: wizard.values.pollingStation || wizard.values.constituency
+            }).eq('id', profile.id);
+          } else {
+            await saveParentHousehold(profile.id, stepPayload);
+          }
+          await saveWizardStep({
+            authUserId: user.id,
+            ownerType: role,
+            ownerId: profile.id,
+            flowId,
+            stepKey: key,
+            payload: stepPayload,
+            completed: true
+          });
+        } catch (dbErr) {
+          console.warn('DB home save fallback:', dbErr);
         }
-        return;
       }
 
       if (key === 'family_details') {
@@ -414,29 +473,66 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
         setStepErrors({});
         wizard.setError('');
 
-        setSaveStatus('success');
-        await new Promise((r) => setTimeout(r, 600));
-        setSaveStatus('idle');
+        stepPayload = {
+          childrenInFamily: wizard.values.childrenInFamily,
+          childrenInSchool: wizard.values.childrenInSchool,
+          parentStatus: wizard.values.parentStatus,
+          monthlyIncome: wizard.values.monthlyIncome,
+          disability: wizard.values.disability,
+          disabilityNote: wizard.values.disabilityNote,
+          otherBursary: wizard.values.otherBursary
+        };
 
-        const nextCompleted = wizard.completedKeys.includes('family_details')
-          ? wizard.completedKeys
-          : [...wizard.completedKeys, 'family_details'];
-        wizard.setCompletedKeys?.(nextCompleted);
-        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
-
-        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
-        if (nextIncompleteIdx >= 0) {
-          wizard.setStepIndex(nextIncompleteIdx);
-        } else {
-          if (handoffOnComplete) {
-            onFinished?.();
-            return;
+        try {
+          if (role === ACCOUNT_ROLE.STUDENT) {
+            await saveStudentHousehold(profile.id, stepPayload);
+          } else {
+            await saveParentHousehold(profile.id, stepPayload);
           }
-          setDone(true);
-          onFinished?.();
+          await saveWizardStep({
+            authUserId: user.id,
+            ownerType: role,
+            ownerId: profile.id,
+            flowId,
+            stepKey: key,
+            payload: stepPayload,
+            completed: true
+          });
+        } catch (dbErr) {
+          console.warn('DB family save fallback:', dbErr);
         }
-        return;
       }
+
+      setSaveStatus('success');
+      await new Promise((r) => setTimeout(r, 600));
+      setSaveStatus('idle');
+
+      const nextCompleted = wizard.completedKeys.includes(key)
+        ? wizard.completedKeys
+        : [...wizard.completedKeys, key];
+      wizard.setCompletedKeys?.(nextCompleted);
+      sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
+      sessionStorage.setItem(`wizard_data_${flowId}`, JSON.stringify({ ...wizard.values, ...stepPayload }));
+
+      // Signal on successful completion to check the information
+      try {
+        window.dispatchEvent(new CustomEvent('mcmca_registration_step_completed', {
+          detail: { stepKey: key, flowId, completedKeys: nextCompleted }
+        }));
+      } catch {}
+
+      const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
+      if (nextIncompleteIdx >= 0) {
+        wizard.setStepIndex(nextIncompleteIdx);
+      } else {
+        if (handoffOnComplete) {
+          onFinished?.();
+          return;
+        }
+        setDone(true);
+        onFinished?.();
+      }
+      return;
     } catch (err) {
       wizard.setError(err.message || 'Could not complete this step.');
     } finally {

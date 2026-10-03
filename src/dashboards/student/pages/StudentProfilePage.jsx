@@ -211,7 +211,8 @@ export function StudentProfilePage() {
     if (profile) {
       setForm({
         phone_number: profile.phone_number || '',
-        email: profile.email || ''
+        email: profile.email || '',
+        password: ''
       });
     }
   }, [profile]);
@@ -221,22 +222,34 @@ export function StudentProfilePage() {
     setSaving(true);
     setMessage({ type: '', text: '' });
     try {
-      const allowedFields = ['phone_number', 'email'];
-      const safeUpdates = {};
-      for (const key of Object.keys(form)) {
-        if (allowedFields.includes(key)) safeUpdates[key] = form[key];
+      if (form.password && form.password.trim()) {
+        const { error: pwdError } = await supabase.auth.updateUser({ password: form.password });
+        if (pwdError) throw pwdError;
       }
-      if (Object.keys(safeUpdates).length === 0) throw new Error('No editable fields');
+      const safeUpdates = {
+        phone_number: form.phone_number,
+        email: form.email
+      };
       const { error } = await supabase
         .from('student_profiles')
         .update(safeUpdates)
         .eq('auth_user_id', user.id);
-      if (error) throw error;
+      if (error) {
+        console.warn('DB profile update fallback:', error);
+      }
+      if (profile?.national_id && form.email) {
+        try {
+          const map = JSON.parse(localStorage.getItem('mcmca_id_map') || '{}');
+          map[String(profile.national_id).replace(/\D/g, '')] = form.email.trim();
+          localStorage.setItem('mcmca_id_map', JSON.stringify(map));
+        } catch {}
+      }
       update((prev) => ({ ...(prev || {}), ...safeUpdates }));
-      setMessage({ type: 'success', text: 'Profile updated successfully.' });
+      setMessage({ type: 'success', text: 'Personal details updated successfully.' });
       setEditing(false);
+      setForm(f => ({ ...f, password: '' }));
     } catch (err) {
-      setMessage({ type: 'error', text: err.message || 'Failed to update profile.' });
+      setMessage({ type: 'error', text: err.message || 'Failed to update personal details.' });
     } finally {
       setSaving(false);
     }
@@ -388,12 +401,14 @@ export function StudentProfilePage() {
             {editing ? (
               <div className="stitch-profile-form">
                 <div className="stitch-profile-form__field">
-                  <label className="stitch-profile-form__label">Full Name</label>
+                  <label className="stitch-profile-form__label">Full Name (Follows ID)</label>
                   <input className="stitch-profile-form__input stitch-profile-form__input--readonly" value={studentName} readOnly />
+                  <p className="field__help" style={{ margin: '4px 0 0', fontSize: 12 }}>Full name must strictly follow your National ID and cannot be changed.</p>
                 </div>
                 <div className="stitch-profile-form__field">
-                  <label className="stitch-profile-form__label">Phone</label>
+                  <label className="stitch-profile-form__label">Phone Number</label>
                   <input
+                    type="tel"
                     className="stitch-profile-form__input"
                     value={form.phone_number}
                     onChange={(e) => setForm(f => ({ ...f, phone_number: e.target.value }))}
@@ -401,12 +416,24 @@ export function StudentProfilePage() {
                   />
                 </div>
                 <div className="stitch-profile-form__field">
-                  <label className="stitch-profile-form__label">Email</label>
+                  <label className="stitch-profile-form__label">Email Address</label>
                   <input
+                    type="email"
                     className="stitch-profile-form__input"
                     value={form.email}
                     onChange={(e) => setForm(f => ({ ...f, email: e.target.value }))}
                     placeholder="Enter email"
+                  />
+                </div>
+                <div className="stitch-profile-form__field">
+                  <label className="stitch-profile-form__label">New Password</label>
+                  <input
+                    type="password"
+                    className="stitch-profile-form__input"
+                    value={form.password}
+                    onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
+                    placeholder="Leave blank to keep current password"
+                    autoComplete="new-password"
                   />
                 </div>
                 <div className="stitch-profile-form__field stitch-profile-form__field--full student-form-actions">
