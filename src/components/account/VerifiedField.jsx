@@ -13,15 +13,17 @@ export function VerifiedField({
   placeholder,
   autoComplete,
   disabled,
+  error,
   children
 }) {
   const [touched, setTouched] = useState(false);
   const result = validateField(name, value, { required, label });
-  const show = touched || String(value || '').length > 0;
-  const invalid = show && !result.ok;
+  const show = touched || Boolean(error) || String(value || '').length > 0;
+  const invalid = Boolean(error) || (show && !result.ok);
+  const errorMessage = error || (!result.ok ? result.message : '');
 
   return (
-    <div className="field">
+    <div className={`field ${invalid ? 'field--invalid' : ''}`}>
       <label htmlFor={id || name}>{label}</label>
       {children || (
         <input
@@ -34,11 +36,12 @@ export function VerifiedField({
           disabled={disabled}
           required={required}
           aria-invalid={invalid}
+          className={invalid ? 'is-invalid' : ''}
           onChange={(e) => onChange(e.target.value)}
           onBlur={() => setTouched(true)}
         />
       )}
-      {invalid ? <p className="field__help">{result.message}</p> : null}
+      {invalid && errorMessage ? <p className="field__error-msg">{errorMessage}</p> : null}
       {!invalid && help ? <p className="field__help">{help}</p> : null}
     </div>
   );

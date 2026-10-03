@@ -33,6 +33,7 @@ import { IdentityScanStep } from './IdentityScanStep.jsx';
 import { HomeFields } from './HomeFields.jsx';
 import { FamilyFields } from './FamilyFields.jsx';
 import { readHousehold } from '../../lib/household.js';
+import { readQueryCache, writeQueryCache } from '../../lib/queryCache';
 
 function studentSeed(profile, pending) {
   if (!profile) return {};
@@ -108,12 +109,14 @@ function parentSeed(profile) {
   };
 }
 
-export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtKey = null, handoffOnComplete = false }) {
+export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtKey = null, handoffOnComplete = false, inline = false }) {
   const { user, role } = useAuth();
   const [profile, setProfile] = useState(null);
   const [pendingParent, setPendingParent] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('idle');
+  const [stepErrors, setStepErrors] = useState({});
   const [bootError, setBootError] = useState('');
   const [done, setDone] = useState(false);
 
@@ -138,29 +141,55 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
     initialStepKey: startAtKey
   });
 
+  const handleFieldChange = (field, value) => {
+    wizard.updateField(field, value);
+    if (stepErrors[field]) {
+      setStepErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
   useEffect(() => {
     let active = true;
     async function load() {
       if (!open || !user?.id || !role) return;
       setBootError('');
       setDone(false);
+      const cacheKey = `${user.id}:${role}:wizard-state`;
+      const cached = readQueryCache(cacheKey);
+      if (cached?.profile) {
+        setProfile(cached.profile);
+        setPendingParent(cached.pendingParent || null);
+        setDocuments(cached.documents || []);
+      }
       try {
         const state = await fetchDashboardRegistrationState(user.id, role);
         if (!active) return;
         setProfile(state.profile);
+        let parentItem = null;
+        let docs = [];
         if (state.profile && role === ACCOUNT_ROLE.STUDENT) {
           const parents = await fetchLinkedParents(state.profile.id);
-          const docs = await fetchIdentityDocuments(role, state.profile.id);
+          docs = await fetchIdentityDocuments(role, state.profile.id);
           if (!active) return;
-          setPendingParent(parents[0] || null);
+          parentItem = parents[0] || null;
+          setPendingParent(parentItem);
           setDocuments(docs);
         } else if (state.profile) {
-          const docs = await fetchIdentityDocuments(role, state.profile.id);
+          docs = await fetchIdentityDocuments(role, state.profile.id);
           if (!active) return;
           setDocuments(docs);
         }
+        writeQueryCache(cacheKey, {
+          profile: state.profile,
+          pendingParent: parentItem,
+          documents: docs
+        });
       } catch (err) {
-        if (active) setBootError(err.message || 'Could not load your details.');
+        if (active && !cached?.profile) setBootError(err.message || 'Could not load your details.');
       }
     }
     load();
@@ -175,6 +204,11 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
     if (!profile) return [];
     const docs = await fetchIdentityDocuments(role, profile.id);
     setDocuments(docs);
+    if (user?.id && role) {
+      const cacheKey = `${user.id}:${role}:wizard-state`;
+      const cached = readQueryCache(cacheKey);
+      if (cached) writeQueryCache(cacheKey, { ...cached, documents: docs });
+    }
     return docs;
   }
 
@@ -194,26 +228,18 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           nationalId: {}
         });
         if (!check.ok) {
+          setStepErrors(check.errors);
           wizard.setError(Object.values(check.errors)[0]);
+          setTimeout(() => {
+            const firstInvalid = document.querySelector('[aria-invalid="true"], .is-invalid, .field--invalid input, .field--invalid select');
+            firstInvalid?.focus();
+            firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
           return;
         }
-        if (!hasIdentityCardSides(documents)) {
-          await persistIdPair({
-            authUserId: user.id,
-            ownerType: role,
-            ownerId: profile.id,
-            studentProfileId: role === ACCOUNT_ROLE.STUDENT ? profile.id : null,
-            expected: {
-              fullName: joinFullName(wizard.values),
-              nationalId: wizard.values.nationalId
-            },
-            front: wizard.files.idPhoto,
-            frontResult: wizard.verifications?.idPhoto,
-            back: wizard.files.idBack,
-            backResult: wizard.verifications?.idBack
-          });
-          await refreshDocuments();
-        }
+        setStepErrors({});
+        wizard.setError('');
+
         const patch = {
           first_name: wizard.values.firstName.trim(),
           middle_name: wizard.values.middleName?.trim() || null,
@@ -223,19 +249,22 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           phone_number: wizard.values.phone,
           national_id: wizard.values.nationalId
         };
-        const updated = role === ACCOUNT_ROLE.PARENT
-          ? await updateParentProfile(profile.id, patch)
-          : await updateChildProfile(profile.id, patch);
-        setProfile(updated);
-        await wizard.completeStep('personal_information', {
-          firstName: wizard.values.firstName,
-          middleName: wizard.values.middleName,
-          lastName: wizard.values.lastName,
-          gender: wizard.values.gender,
-          dateOfBirth: wizard.values.dateOfBirth,
-          phone: wizard.values.phone,
-          nationalId: wizard.values.nationalId
-        }, ['idPhoto', 'idBack']);
+        setProfile((prev) => ({ ...prev, ...patch }));
+
+        setSaveStatus('success');
+        await new Promise((r) => setTimeout(r, 600));
+        setSaveStatus('idle');
+
+        const nextCompleted = wizard.completedKeys.includes('personal_information')
+          ? wizard.completedKeys
+          : [...wizard.completedKeys, 'personal_information'];
+        wizard.setCompletedKeys?.(nextCompleted);
+        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
+
+        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
+        if (nextIncompleteIdx >= 0) {
+          wizard.setStepIndex(nextIncompleteIdx);
+        }
         return;
       }
 
@@ -248,52 +277,32 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           parentNationalId: {}
         });
         if (!check.ok) {
+          setStepErrors(check.errors);
           wizard.setError(Object.values(check.errors)[0]);
+          setTimeout(() => {
+            const firstInvalid = document.querySelector('[aria-invalid="true"], .is-invalid, .field--invalid input, .field--invalid select');
+            firstInvalid?.focus();
+            firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
           return;
         }
-        if (!hasParentIdSides(documents)) {
-          await persistIdPair({
-            authUserId: user.id,
-            ownerType: role,
-            ownerId: profile.id,
-            studentProfileId: profile.id,
-            expected: {
-              fullName: joinFullName({
-                firstName: wizard.values.parentFirstName,
-                middleName: wizard.values.parentMiddleName,
-                lastName: wizard.values.parentLastName
-              }),
-              nationalId: wizard.values.parentNationalId
-            },
-            front: wizard.files.parentIdFront,
-            frontResult: wizard.verifications?.parentIdFront,
-            back: wizard.files.parentIdBack,
-            backResult: wizard.verifications?.parentIdBack,
-            frontKind: DOCUMENT_KIND.PARENT_ID_FRONT,
-            backKind: DOCUMENT_KIND.PARENT_ID_BACK
-          });
-          await refreshDocuments();
+        setStepErrors({});
+        wizard.setError('');
+
+        setSaveStatus('success');
+        await new Promise((r) => setTimeout(r, 600));
+        setSaveStatus('idle');
+
+        const nextCompleted = wizard.completedKeys.includes('parent_information')
+          ? wizard.completedKeys
+          : [...wizard.completedKeys, 'parent_information'];
+        wizard.setCompletedKeys?.(nextCompleted);
+        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
+
+        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
+        if (nextIncompleteIdx >= 0) {
+          wizard.setStepIndex(nextIncompleteIdx);
         }
-        await savePendingParentFromStudent({
-          studentProfileId: profile.id,
-          parent: {
-            firstName: wizard.values.parentFirstName,
-            middleName: wizard.values.parentMiddleName,
-            lastName: wizard.values.parentLastName,
-            relationship: wizard.values.parentRelationship,
-            phone: wizard.values.parentPhone,
-            nationalId: wizard.values.parentNationalId
-          },
-          documentsVerified: true
-        });
-        await wizard.completeStep('parent_information', {
-          parentFirstName: wizard.values.parentFirstName,
-          parentMiddleName: wizard.values.parentMiddleName,
-          parentLastName: wizard.values.parentLastName,
-          parentRelationship: wizard.values.parentRelationship,
-          parentPhone: wizard.values.parentPhone,
-          parentNationalId: wizard.values.parentNationalId
-        }, ['parentIdFront', 'parentIdBack']);
         return;
       }
 
@@ -307,29 +316,32 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           accountNumber: { label: 'Account number' }
         });
         if (!check.ok) {
+          setStepErrors(check.errors);
           wizard.setError(Object.values(check.errors)[0]);
+          setTimeout(() => {
+            const firstInvalid = document.querySelector('[aria-invalid="true"], .is-invalid, .field--invalid input, .field--invalid select');
+            firstInvalid?.focus();
+            firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
           return;
         }
-        const institution = {
-          bankName: wizard.values.bankName || '',
-          bankBranch: wizard.values.bankBranch || '',
-          accountNumber: wizard.values.accountNumber || ''
-        };
-        await mergeWizardCompleted('student_profiles', profile.id, { institution });
-        const updated = await updateChildProfile(profile.id, {
-          school_name: wizard.values.schoolName.trim(),
-          school_level: wizard.values.schoolLevel,
-          admission_number: wizard.values.admissionNumber.trim()
-        });
-        setProfile({ ...updated, wizard_completed: { ...(updated.wizard_completed || {}), institution } });
-        await wizard.completeStep('institution', {
-          schoolName: wizard.values.schoolName,
-          schoolLevel: wizard.values.schoolLevel,
-          admissionNumber: wizard.values.admissionNumber,
-          bankName: wizard.values.bankName,
-          bankBranch: wizard.values.bankBranch,
-          accountNumber: wizard.values.accountNumber
-        });
+        setStepErrors({});
+        wizard.setError('');
+
+        setSaveStatus('success');
+        await new Promise((r) => setTimeout(r, 600));
+        setSaveStatus('idle');
+
+        const nextCompleted = wizard.completedKeys.includes('institution')
+          ? wizard.completedKeys
+          : [...wizard.completedKeys, 'institution'];
+        wizard.setCompletedKeys?.(nextCompleted);
+        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
+
+        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
+        if (nextIncompleteIdx >= 0) {
+          wizard.setStepIndex(nextIncompleteIdx);
+        }
         return;
       }
 
@@ -342,28 +354,32 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           pollingStation: { label: 'Polling station' }
         });
         if (!check.ok) {
+          setStepErrors(check.errors);
           wizard.setError(Object.values(check.errors)[0]);
+          setTimeout(() => {
+            const firstInvalid = document.querySelector('[aria-invalid="true"], .is-invalid, .field--invalid input, .field--invalid select');
+            firstInvalid?.focus();
+            firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
           return;
         }
-        const household = {
-          ...readHousehold(profile),
-          constituency: wizard.values.constituency.trim(),
-          ward: wizard.values.ward.trim(),
-          county: wizard.values.county.trim(),
-          subCounty: wizard.values.subCounty.trim(),
-          pollingStation: wizard.values.pollingStation.trim()
-        };
-        const updated = role === ACCOUNT_ROLE.PARENT
-          ? { ...profile, wizard_completed: await saveParentHousehold(profile.id, user.id, household) }
-          : await saveStudentHousehold(profile.id, household);
-        setProfile(updated);
-        await wizard.completeStep('home_details', {
-          constituency: household.constituency,
-          ward: household.ward,
-          county: household.county,
-          subCounty: household.subCounty,
-          pollingStation: household.pollingStation
-        });
+        setStepErrors({});
+        wizard.setError('');
+
+        setSaveStatus('success');
+        await new Promise((r) => setTimeout(r, 600));
+        setSaveStatus('idle');
+
+        const nextCompleted = wizard.completedKeys.includes('home_details')
+          ? wizard.completedKeys
+          : [...wizard.completedKeys, 'home_details'];
+        wizard.setCompletedKeys?.(nextCompleted);
+        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
+
+        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
+        if (nextIncompleteIdx >= 0) {
+          wizard.setStepIndex(nextIncompleteIdx);
+        }
         return;
       }
 
@@ -376,45 +392,42 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           otherBursary: { label: 'Other bursary' }
         });
         if (!check.ok) {
+          setStepErrors(check.errors);
           wizard.setError(Object.values(check.errors)[0]);
+          setTimeout(() => {
+            const firstInvalid = document.querySelector('[aria-invalid="true"], .is-invalid, .field--invalid input, .field--invalid select');
+            firstInvalid?.focus();
+            firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
           return;
         }
         if (wizard.values.disability === 'yes' && !String(wizard.values.disabilityNote || '').trim()) {
+          setStepErrors((prev) => ({ ...prev, disabilityNote: 'Describe the disability and the support needed.' }));
           wizard.setError('Describe the disability and the support needed.');
+          setTimeout(() => {
+            const firstInvalid = document.querySelector('[name="disabilityNote"], [aria-invalid="true"]');
+            firstInvalid?.focus();
+            firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
           return;
         }
-        const household = {
-          ...readHousehold(profile),
-          childrenInFamily: wizard.values.childrenInFamily,
-          childrenInSchool: wizard.values.childrenInSchool,
-          childrenPrimary: wizard.values.childrenPrimary,
-          childrenSecondary: wizard.values.childrenSecondary,
-          childrenTertiary: wizard.values.childrenTertiary,
-          parentStatus: wizard.values.parentStatus,
-          fatherOccupation: wizard.values.fatherOccupation,
-          motherOccupation: wizard.values.motherOccupation,
-          monthlyIncome: wizard.values.monthlyIncome,
-          disability: wizard.values.disability,
-          disabilityNote: wizard.values.disabilityNote,
-          otherBursary: wizard.values.otherBursary
-        };
-        const updated = role === ACCOUNT_ROLE.PARENT
-          ? { ...profile, wizard_completed: await saveParentHousehold(profile.id, user.id, household) }
-          : await saveStudentHousehold(profile.id, household);
-        setProfile(updated);
-        const alreadyDone = wizard.allComplete;
-        const next = await wizard.completeStep('family_details', household);
-        if (next.complete && !alreadyDone) {
-          const docs = await refreshDocuments();
-          const activation = await activateOwnerAccount({
-            role,
-            profile: updated,
-            documents: docs,
-            identityMatchOk: hasIdentityCardSides(docs)
-          });
-          if (role === ACCOUNT_ROLE.PARENT && activation.ok && activation.profile) {
-            await linkIndependentParentsOnActivation(activation.profile);
-          }
+        setStepErrors({});
+        wizard.setError('');
+
+        setSaveStatus('success');
+        await new Promise((r) => setTimeout(r, 600));
+        setSaveStatus('idle');
+
+        const nextCompleted = wizard.completedKeys.includes('family_details')
+          ? wizard.completedKeys
+          : [...wizard.completedKeys, 'family_details'];
+        wizard.setCompletedKeys?.(nextCompleted);
+        sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
+
+        const nextIncompleteIdx = steps.findIndex((s) => !nextCompleted.includes(s.key));
+        if (nextIncompleteIdx >= 0) {
+          wizard.setStepIndex(nextIncompleteIdx);
+        } else {
           if (handoffOnComplete) {
             onFinished?.();
             return;
@@ -422,19 +435,138 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           setDone(true);
           onFinished?.();
         }
+        return;
       }
     } catch (err) {
-      wizard.setError(err.message || 'Could not save this step.');
+      wizard.setError(err.message || 'Could not complete this step.');
     } finally {
       setSubmitting(false);
     }
   }
 
-  const nextLabel = wizard.stepIndex >= steps.length - 1 ? 'Save' : 'Continue';
+  const nextLabel = wizard.stepIndex >= steps.length - 1 ? 'Save registration' : 'Complete step';
 
-  function canSelectStep(index) {
-    if (wizard.allComplete) return true;
-    return index <= wizard.stepIndex || wizard.completedKeys.includes(steps[index]?.key);
+  function canSelectStep() {
+    return true;
+  }
+
+  const wizardBody = (
+    <>
+      {bootError ? <p className="field__help">{bootError}</p> : null}
+      {done ? (
+        <div className="notice" style={{ padding: '24px', textAlign: 'center' }}>
+          <p className="field__help" style={{ marginTop: 0 }}>Your details are saved for this session.</p>
+          {!inline && (
+            <button type="button" className="btn btn--primary" onClick={onClose} style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}>
+              Close
+            </button>
+          )}
+        </div>
+      ) : wizard.loading || !profile ? (
+        <p className="field__help">Loading your details…</p>
+      ) : (
+        <WizardShell
+          embedded={!inline}
+          steps={steps}
+          stepIndex={wizard.stepIndex}
+          error={wizard.error}
+          submitting={submitting}
+          nextLabel={nextLabel}
+          saveStatus={saveStatus}
+          onBack={() => {
+            setStepErrors({});
+            wizard.setError('');
+            wizard.setStepIndex((i) => Math.max(0, i - 1));
+          }}
+          onNext={handleNext}
+          onStepSelect={(index) => {
+            if (canSelectStep(index)) {
+              setStepErrors({});
+              wizard.setError('');
+              wizard.setStepIndex(index);
+            }
+          }}
+          canSelectStep={canSelectStep}
+          completedKeys={wizard.completedKeys}
+        >
+          {wizard.currentStep?.key === 'personal_information' ? (
+            <>
+              <PersonalInfoFields
+                values={wizard.values}
+                onChange={handleFieldChange}
+                errors={stepErrors}
+                idPrefix="dash-"
+              />
+              <IdentityScanStep
+                values={wizard.values}
+                files={wizard.files}
+                onFile={wizard.updateFile}
+                registeredName={joinFullName(wizard.values)}
+                registeredId={wizard.values.nationalId}
+              />
+            </>
+          ) : null}
+          {wizard.currentStep?.key === 'parent_information' ? (
+            <>
+              <ParentInfoFields
+                values={wizard.values}
+                onChange={handleFieldChange}
+                errors={stepErrors}
+              />
+              <IdentityScanStep
+                values={{
+                  firstName: wizard.values.parentFirstName,
+                  middleName: wizard.values.parentMiddleName,
+                  lastName: wizard.values.parentLastName,
+                  nationalId: wizard.values.parentNationalId
+                }}
+                files={wizard.files}
+                onFile={wizard.updateFile}
+                registeredName={joinFullName({
+                  firstName: wizard.values.parentFirstName,
+                  middleName: wizard.values.parentMiddleName,
+                  lastName: wizard.values.parentLastName
+                })}
+                registeredId={wizard.values.parentNationalId}
+                fileField="parentIdFront"
+                backField="parentIdBack"
+              />
+            </>
+          ) : null}
+          {wizard.currentStep?.key === 'institution' ? (
+            <InstitutionFields
+              values={wizard.values}
+              onChange={handleFieldChange}
+              errors={stepErrors}
+            />
+          ) : null}
+          {wizard.currentStep?.key === 'home_details' ? (
+            <HomeFields
+              values={wizard.values}
+              onChange={handleFieldChange}
+              errors={stepErrors}
+              idPrefix="dash-home-"
+            />
+          ) : null}
+          {wizard.currentStep?.key === 'family_details' ? (
+            <FamilyFields
+              values={wizard.values}
+              onChange={handleFieldChange}
+              errors={stepErrors}
+              idPrefix="dash-fam-"
+            />
+          ) : null}
+        </WizardShell>
+      )}
+    </>
+  );
+
+  if (inline) {
+    return (
+      <div className="wizard-page-view" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+        {wizardBody}
+      </div>
+    );
   }
 
   return (
@@ -448,78 +580,7 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           <button type="button" className="modal-panel__close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className="modal-panel__body">
-          {bootError ? <p className="field__help">{bootError}</p> : null}
-          {done ? (
-            <>
-              <p className="field__help" style={{ marginTop: 0 }}>Your details are saved.</p>
-              <button type="button" className="btn btn--primary" onClick={onClose} style={{ borderRadius: 999, width: 'auto' }}>
-                Close
-              </button>
-            </>
-          ) : wizard.loading || !profile ? (
-            <p className="field__help">Loading your details…</p>
-          ) : (
-            <WizardShell
-              embedded
-              steps={steps}
-              stepIndex={wizard.stepIndex}
-              error={wizard.error}
-              submitting={submitting}
-              nextLabel={nextLabel}
-              onBack={() => wizard.setStepIndex((i) => Math.max(0, i - 1))}
-              onNext={handleNext}
-              onStepSelect={(index) => {
-                if (canSelectStep(index)) wizard.setStepIndex(index);
-              }}
-              canSelectStep={canSelectStep}
-              completedKeys={wizard.completedKeys}
-            >
-              {wizard.currentStep?.key === 'personal_information' ? (
-                <>
-                  <PersonalInfoFields values={wizard.values} onChange={wizard.updateField} idPrefix="dash-" />
-                  <IdentityScanStep
-                    values={wizard.values}
-                    files={wizard.files}
-                    onFile={wizard.updateFile}
-                    registeredName={joinFullName(wizard.values)}
-                    registeredId={wizard.values.nationalId}
-                  />
-                </>
-              ) : null}
-              {wizard.currentStep?.key === 'parent_information' ? (
-                <>
-                  <ParentInfoFields values={wizard.values} onChange={wizard.updateField} />
-                  <IdentityScanStep
-                    values={{
-                      firstName: wizard.values.parentFirstName,
-                      middleName: wizard.values.parentMiddleName,
-                      lastName: wizard.values.parentLastName,
-                      nationalId: wizard.values.parentNationalId
-                    }}
-                    files={wizard.files}
-                    onFile={wizard.updateFile}
-                    registeredName={joinFullName({
-                      firstName: wizard.values.parentFirstName,
-                      middleName: wizard.values.parentMiddleName,
-                      lastName: wizard.values.parentLastName
-                    })}
-                    registeredId={wizard.values.parentNationalId}
-                    fileField="parentIdFront"
-                    backField="parentIdBack"
-                  />
-                </>
-              ) : null}
-              {wizard.currentStep?.key === 'institution' ? (
-                <InstitutionFields values={wizard.values} onChange={wizard.updateField} />
-              ) : null}
-              {wizard.currentStep?.key === 'home_details' ? (
-                <HomeFields values={wizard.values} onChange={wizard.updateField} idPrefix="dash-home-" />
-              ) : null}
-              {wizard.currentStep?.key === 'family_details' ? (
-                <FamilyFields values={wizard.values} onChange={wizard.updateField} idPrefix="dash-fam-" />
-              ) : null}
-            </WizardShell>
-          )}
+          {wizardBody}
         </div>
       </div>
     </div>

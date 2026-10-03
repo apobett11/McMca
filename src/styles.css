@@ -1,4 +1,4 @@
-﻿/* McMCA ΓÇö Aetheric Portal Design System (stitch student dashboard design) */
+/* McMCA ΓÇö Aetheric Portal Design System (stitch student dashboard design) */
 
 :root {
   --font-headline: 'Sora', system-ui, sans-serif;
@@ -8914,7 +8914,7 @@ h1.section-card__title {
 }
 
 @media (max-width: 720px) {
-  .portal--parent .stitch-apps-table td[data-label]::before {
+  :is(.portal--student, .portal--parent) .stitch-apps-table td[data-label]::before {
     content: attr(data-label);
     display: block;
     margin-bottom: 2px;
@@ -8939,4 +8939,268 @@ h1.section-card__title {
     flex-direction: column;
   }
 }
+
+/* Inline form validation error borders & highlighting */
+.field input:is([aria-invalid="true"], .is-invalid),
+.field select:is([aria-invalid="true"], .is-invalid),
+.field textarea:is([aria-invalid="true"], .is-invalid),
+.field--invalid input,
+.field--invalid select,
+.field--invalid textarea {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25), inset 0 0 10px rgba(239, 68, 68, 0.08) !important;
+}
+
+.field__error-msg {
+  margin: 6px 0 0;
+  font-size: var(--text-xs, 12px);
+  color: #f87171 !important;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+/* Wizard steps bar tick and jump styling */
+.wizard-steps-bar__n--done,
+.wizard-steps-bar__item--done .wizard-steps-bar__n,
+.wizard-steps-bar__item--is-done .wizard-steps-bar__n {
+  background: rgba(34, 197, 94, 0.22) !important;
+  color: #22c55e !important;
+  border-color: rgba(34, 197, 94, 0.5) !important;
+  font-weight: 700 !important;
+}
+
+.wizard-steps-bar__jump {
+  cursor: pointer;
+}
+
+.wizard-steps-bar__jump:hover .wizard-steps-bar__label {
+  color: var(--text, #E2E8F0);
+  text-decoration: underline;
+}
+
+/* Complete button visibility on hover & reactive success state */
+.wizard-next-btn,
+.wizard-panel .btn--primary.wizard-next-btn {
+  background: var(--primary-container, #d4af37) !important;
+  color: #0b1320 !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.wizard-next-btn:hover:not(:disabled),
+.wizard-panel .btn--primary.wizard-next-btn:hover:not(:disabled) {
+  background: #f1c40f !important;
+  color: #0b1320 !important;
+  border-color: #ffd700 !important;
+  box-shadow: 0 0 16px rgba(241, 196, 15, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-1px) scale(1.02) !important;
+}
+
+.wizard-next-btn--success,
+.wizard-panel .btn--primary.wizard-next-btn--success {
+  background: #22c55e !important;
+  color: #ffffff !important;
+  border-color: #16a34a !important;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.45) !important;
+}
+
+.wizard-page-view {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Compact contact / support cards */
+:is(.portal--student, .portal--parent) .stitch-support-card.stitch-support-card--compact {
+  padding: 16px 18px !important;
+  border-radius: var(--radius-lg, 12px) !important;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-card.stitch-support-card--compact:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-fixed-dim, #1D4ED8);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-card--compact .stitch-support-card__icon {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 10px !important;
+  margin-bottom: 8px !important;
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-card--compact .stitch-support-card__title {
+  font-size: 0.95rem !important;
+  margin-bottom: 4px !important;
+}
+
+:is(.portal--student, .portal--parent) .stitch-support-card--compact .stitch-support-card__desc {
+  font-size: 0.8rem !important;
+  line-height: 1.4 !important;
+  margin-bottom: 0 !important;
+  color: var(--text-3, #94a3b8);
+}
+
+/* Dashboard analytics thin ranges / strips */
+:is(.portal--student, .portal--parent) .dash-analytics-strips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+:is(.portal--student, .portal--parent) .dash-strip-card {
+  padding: 18px 22px;
+  border-radius: var(--radius-xl);
+  background: var(--surface-elevated);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+:is(.portal--student, .portal--parent) .dash-strip-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+:is(.portal--student, .portal--parent) .dash-strip-card__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gold-champagne, #ddbb6a);
+}
+
+:is(.portal--student, .portal--parent) .dash-strip-card__val {
+  margin: 4px 0 0;
+  font-family: var(--font-headline);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+:is(.portal--student, .portal--parent) .dash-strip-card__track {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+  overflow: hidden;
+  position: relative;
+}
+
+:is(.portal--student, .portal--parent) .dash-strip-card__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+:is(.portal--student, .portal--parent) .dash-strip-card__fill--gold {
+  background: linear-gradient(90deg, var(--gold-muted), var(--gold-soft));
+}
+
+:is(.portal--student, .portal--parent) .dash-strip-card__fill--green {
+  background: linear-gradient(90deg, #10b981, #22c55e);
+}
+
+:is(.portal--student, .portal--parent) .dash-strip-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+
+/* Consolidated single checklist card & application section */
+:is(.portal--student, .portal--parent) .dash-single-card {
+  border-radius: var(--radius-xl);
+  background: var(--surface-elevated);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+:is(.portal--student, .portal--parent) .dash-single-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+:is(.portal--student, .portal--parent) .checklist-single-card__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+:is(.portal--student, .portal--parent) .checklist-single-card__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 22px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  transition: background 0.18s ease;
+}
+
+:is(.portal--student, .portal--parent) .checklist-single-card__row:last-child {
+  border-bottom: none;
+}
+
+:is(.portal--student, .portal--parent) .checklist-single-card__row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+:is(.portal--student, .portal--parent) .checklist-single-card__row--done {
+  background: rgba(34, 197, 94, 0.03);
+}
+
+:is(.portal--student, .portal--parent) .checklist-single-card__row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #15803d;
+  flex-shrink: 0;
+}
+
+:is(.portal--student, .portal--parent) .checklist-single-card__title {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+:is(.portal--student, .portal--parent) .dash-apps-empty {
+  padding: 36px 20px;
+  text-align: center;
+}
+
+:is(.portal--student, .portal--parent) .dash-apps-empty__msg {
+  margin: 0 0 16px;
+  color: var(--text-2);
+  font-size: 0.95rem;
+}
+
+:is(.portal--student, .portal--parent) .dash-apps-footer-note {
+  padding: 14px 22px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.88rem;
+  color: var(--text-2);
+}
+
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
@@ -8,44 +8,54 @@ import { LoginPage } from './pages/LoginPage.jsx';
 import { RegisterPage } from './pages/RegisterPage.jsx';
 import { AccountGate } from './lib/AccountGate.jsx';
 
-// Import Dashboard Routers
-import { StudentRoutes } from './dashboards/student/routes/StudentRoutes.jsx';
-import { ParentRoutes } from './dashboards/parent/routes/ParentRoutes.jsx';
-import { ChiefRoutes } from './dashboards/chief/routes/ChiefRoutes.jsx';
-import { MCARoutes } from './dashboards/mca/routes/MCARoutes.jsx';
+// Lazy-loaded Dashboard Routers — load on command and cached by browser
+const StudentRoutes = lazy(() => import('./dashboards/student/routes/StudentRoutes.jsx').then(m => ({ default: m.StudentRoutes })));
+const ParentRoutes = lazy(() => import('./dashboards/parent/routes/ParentRoutes.jsx').then(m => ({ default: m.ParentRoutes })));
+const ChiefRoutes = lazy(() => import('./dashboards/chief/routes/ChiefRoutes.jsx').then(m => ({ default: m.ChiefRoutes })));
+const MCARoutes = lazy(() => import('./dashboards/mca/routes/MCARoutes.jsx').then(m => ({ default: m.MCARoutes })));
+
+function RouterLoadingFallback() {
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'var(--background, #0B1120)',
+      color: 'var(--text, #E2E8F0)'
+    }}>
+      Loading...
+    </div>
+  );
+}
 
 function RoleBasedRouter() {
   const { role, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--background, #0B1120)',
-        color: 'var(--text, #E2E8F0)'
-      }}>
-        Loading...
-      </div>
-    );
+    return <RouterLoadingFallback />;
   }
 
   if (!role) return <LoginPage />;
 
-  switch (role) {
-    case 'student':
-      return <StudentRoutes />;
-    case 'parent':
-      return <ParentRoutes />;
-    case 'chief':
-      return <ChiefRoutes />;
-    case 'mca':
-      return <MCARoutes />;
-    default:
-      return <Navigate to="/login" replace />;
-  }
+  return (
+    <Suspense fallback={<RouterLoadingFallback />}>
+      {(() => {
+        switch (role) {
+          case 'student':
+            return <StudentRoutes />;
+          case 'parent':
+            return <ParentRoutes />;
+          case 'chief':
+            return <ChiefRoutes />;
+          case 'mca':
+            return <MCARoutes />;
+          default:
+            return <Navigate to="/login" replace />;
+        }
+      })()}
+    </Suspense>
+  );
 }
 
 function MissingSupabaseConfig() {

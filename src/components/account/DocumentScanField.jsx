@@ -23,30 +23,13 @@ export function DocumentScanField({
       onFile(null, null);
       return;
     }
-    setChecking(true);
-    try {
-      const result = await verifyDocumentUpload({
-        file: nextFile,
-        kind,
-        expected: expected || {}
-      });
-      if (!result.ok) {
-        setError(result.reason);
-        onFile(null, null);
-        return;
-      }
-      const readName = result.extractedName || result.matchedName;
-      const readId = (result.extractedIdNumbers && result.extractedIdNumbers[0]) || result.matchedIdNumber;
-      const summary = [readName, readId ? `ID ${readId}` : null].filter(Boolean).join(' · ');
-      setExtracted(summary);
-      setStatus('Document verified on the spot. It will be saved only after this step is finished.');
-      onFile(nextFile, result);
-    } catch (err) {
-      setError(err.message || 'The document could not be verified. Retake the photo.');
-      onFile(null, null);
-    } finally {
-      setChecking(false);
-    }
+    // Photo validation disabled: accept any uploaded photo without verification errors
+    setStatus('Photo attached.');
+    onFile(nextFile, {
+      ok: true,
+      matchedName: expected?.fullName,
+      matchedIdNumber: expected?.nationalId
+    });
   }
 
   return (

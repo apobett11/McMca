@@ -8,6 +8,7 @@ import { loadStudentRecord, studentRecordKey } from '../../../lib/portalData';
 import { applicationSerial, cycleTitle, formatMoney } from '../../../lib/household.js';
 import { EDUCATION_LEVEL_LABEL } from '../../../lib/accountAllocation/constants.js';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
+import { activeBursaryWindow } from '../../../lib/accountQueries';
 
 function statusClass(status) {
   const map = {
@@ -36,9 +37,25 @@ export function StudentApplicationsPage() {
     () => loadStudentRecord(user.id),
     { enabled: Boolean(user?.id) }
   );
-  const rows = data?.applications || [];
+  const sessionApps = (() => {
+    try {
+      return JSON.parse(sessionStorage.getItem('mcmca_session_applications') || '[]');
+    } catch {
+      return [];
+    }
+  })();
+  const dbRows = data?.applications || [];
+  const mergedRows = [...sessionApps, ...dbRows];
+  const rows = Array.from(new Map(mergedRows.map((item) => [item.id, item])).values());
   const windows = data?.windows || [];
   const showSkeleton = loading && !data;
+
+  const cycleGate = activeBursaryWindow(windows);
+  const activeCycle = cycleGate.window;
+  const cycleName = activeCycle ? cycleTitle({ application_window_id: activeCycle.id }, windows) : '';
+  const alreadyApplied = Boolean(
+    activeCycle && rows.some((row) => row.application_window_id === activeCycle.id)
+  );
 
   return (
     <StudentLayout pageTitle="Applications" layout="dashboard">
@@ -51,7 +68,14 @@ export function StudentApplicationsPage() {
 
       <section className="stitch-apps-history">
         <div className="dash-suite__head">
-          <h2 className="stitch-section-title">History</h2>
+          <div>
+            <h2 className="stitch-section-title">History</h2>
+            {activeCycle && (
+              <p className="field__help" style={{ margin: '4px 0 0' }}>
+                Cycle: {cycleName} — {alreadyApplied ? 'Application on file (one per cycle)' : 'Open for application'}
+              </p>
+            )}
+          </div>
           <RefreshButton onClick={refresh} busy={refreshing} />
         </div>
         {error ? (
@@ -68,7 +92,7 @@ export function StudentApplicationsPage() {
         ) : rows.length === 0 ? (
           <div className="notice">
             <strong>No applications yet</strong>
-            <p>Finish your forms first. When they are complete you can apply for the open cycle.</p>
+            <p>You have made no application. Complete the form registration, then apply for the cycle.</p>
             <Link className="btn btn--primary" to="/student/documents" style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}>
               Open forms
             </Link>

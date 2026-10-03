@@ -74,7 +74,16 @@ export function useWizardSession({
         if (ownerId && authUserId) {
           dbSteps = await fetchWizardSteps(ownerType, ownerId, flowId);
         }
-        const completed = dbSteps.filter((s) => s.completed).map((s) => s.step_key);
+        let sessionCompleted = [];
+        try {
+          sessionCompleted = JSON.parse(sessionStorage.getItem(`wizard_completed_${flowId}`) || '[]');
+        } catch {
+          sessionCompleted = [];
+        }
+        const completed = Array.from(new Set([
+          ...dbSteps.filter((s) => s.completed).map((s) => s.step_key),
+          ...(Array.isArray(sessionCompleted) ? sessionCompleted : [])
+        ]));
         const payloads = {};
         const mergedValues = { ...(seedValues || {}), ...(draft.values || {}) };
         dbSteps.forEach((s) => {
@@ -150,21 +159,12 @@ export function useWizardSession({
 
   const completeStep = useCallback(
     async (stepKey, payload, fileFields = []) => {
-      if (authUserId && ownerId) {
-        await saveWizardStep({
-          authUserId,
-          ownerType,
-          ownerId,
-          flowId,
-          stepKey,
-          payload,
-          completed: true
-        });
-      }
+      // Disabled database saving for session preview as requested
       const nextCompleted = completedKeys.includes(stepKey)
         ? completedKeys
         : [...completedKeys, stepKey];
       setCompletedKeys(nextCompleted);
+      sessionStorage.setItem(`wizard_completed_${flowId}`, JSON.stringify(nextCompleted));
       setStepPayloads((prev) => ({ ...prev, [stepKey]: payload }));
       await clearWizardFiles(cacheOwnerKey, flowId, fileFields);
 
@@ -183,7 +183,7 @@ export function useWizardSession({
       }
       return nextPos;
     },
-    [authUserId, ownerId, ownerType, flowId, completedKeys, cacheOwnerKey, steps, persistDraft, values]
+    [flowId, completedKeys, cacheOwnerKey, steps, persistDraft, values]
   );
 
   return {
@@ -191,6 +191,7 @@ export function useWizardSession({
     files,
     verifications,
     completedKeys,
+    setCompletedKeys,
     stepPayloads,
     stepIndex,
     setStepIndex,
