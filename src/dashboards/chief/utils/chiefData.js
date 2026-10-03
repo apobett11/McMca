@@ -2,9 +2,12 @@
  * Storage and management for Chief profile, applications, and messages.
  */
 
+import { CHIEF_APPEALS } from '../../../data/chiefMock.js';
+
 const PROFILE_KEY = 'mcmca_chief_profile';
 const APPS_KEY = 'mcmca_chief_applications';
 const MESSAGES_KEY = 'mcmca_chief_messages';
+const APPEALS_KEY = 'mcmca_chief_appeals';
 
 export const CHIEF_ADMIN_AREAS = {
   'Parklands Ward': {
@@ -395,5 +398,47 @@ export function replyToChiefMessage(msgId, answerText, chiefName = 'Chief') {
   });
   localStorage.setItem(MESSAGES_KEY, JSON.stringify(updated));
   window.dispatchEvent(new CustomEvent('mcmca_chief_messages_updated', { detail: updated }));
+  return updated;
+}
+
+export function getChiefAppeals() {
+  try {
+    const raw = localStorage.getItem(APPEALS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error('Failed to parse chief appeals', e);
+  }
+  localStorage.setItem(APPEALS_KEY, JSON.stringify(CHIEF_APPEALS));
+  return CHIEF_APPEALS;
+}
+
+export function updateChiefAppealDecision(appealId, decision, notes = '') {
+  const list = getChiefAppeals();
+  const statusMap = {
+    approve: 'Approved',
+    reject: 'Rejected',
+    clarify: 'Clarification Requested'
+  };
+  const updated = list.map((a) => {
+    if (a.id === appealId) {
+      return {
+        ...a,
+        appealStatus: statusMap[decision] || 'Under Review',
+        reviewNotes: notes,
+        lastUpdated: new Date().toISOString(),
+        actionHistory: [
+          ...(a.actionHistory || []),
+          {
+            action: `Appeal ${statusMap[decision] || decision}`,
+            timestamp: new Date().toISOString(),
+            note: notes
+          }
+        ]
+      };
+    }
+    return a;
+  });
+  localStorage.setItem(APPEALS_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new CustomEvent('mcmca_chief_appeals_updated', { detail: updated }));
   return updated;
 }

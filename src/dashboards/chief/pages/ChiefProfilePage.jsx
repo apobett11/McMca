@@ -1,126 +1,53 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
 import { SectionCard } from '../../../components/SectionCard.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import {
   getChiefProfile,
   saveChiefProfile,
-  isChiefProfileComplete,
-  CHIEF_ADMIN_AREAS,
-  getLocationKey
+  isChiefProfileComplete
 } from '../utils/chiefData.js';
 import { CHIEF } from '../../../data/chiefMock.js';
 
 export function ChiefProfilePage() {
   const [profile, setProfile] = useState(() => getChiefProfile() || CHIEF);
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState({
-    fullName: profile?.fullName || '',
-    nationalId: profile?.nationalId || '',
-    phone: profile?.phone || '',
-    email: profile?.email || '',
-    ward: profile?.ward || '',
-    location: profile?.location || '',
-    subLocation: profile?.subLocation || '',
-    officeLocation: profile?.officeLocation || ''
-  });
+  const [phone, setPhone] = useState(profile?.phone || '');
+  const [email, setEmail] = useState(profile?.email || '');
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
     function onUpdated(e) {
       setProfile(e.detail);
+      setPhone(e.detail?.phone || '');
+      setEmail(e.detail?.email || '');
     }
     window.addEventListener('mcmca_chief_profile_updated', onUpdated);
     return () => window.removeEventListener('mcmca_chief_profile_updated', onUpdated);
   }, []);
 
-  // Administrative hierarchy cascading options
-  const wardOptions = useMemo(() => Object.keys(CHIEF_ADMIN_AREAS), []);
-
-  const activeLocationKey = useMemo(() => {
-    return getLocationKey(form.ward, form.location);
-  }, [form.ward, form.location]);
-
-  const availableLocations = useMemo(() => {
-    if (!form.ward || !CHIEF_ADMIN_AREAS[form.ward]) return [];
-    return Object.keys(CHIEF_ADMIN_AREAS[form.ward].locations || {});
-  }, [form.ward]);
-
-  const availableSubLocations = useMemo(() => {
-    if (!form.ward || !activeLocationKey) return [];
-    const locObj = CHIEF_ADMIN_AREAS[form.ward]?.locations?.[activeLocationKey];
-    return locObj?.subLocations || [];
-  }, [form.ward, activeLocationKey]);
-
-  const availableVillages = useMemo(() => {
-    if (!form.ward || !activeLocationKey) return [];
-    const locObj = CHIEF_ADMIN_AREAS[form.ward]?.locations?.[activeLocationKey];
-    return locObj?.villages || [];
-  }, [form.ward, activeLocationKey]);
-
-  function handleWardChange(e) {
-    const nextWard = e.target.value;
-    const nextLocs = nextWard && CHIEF_ADMIN_AREAS[nextWard] ? Object.keys(CHIEF_ADMIN_AREAS[nextWard].locations || {}) : [];
-    const nextLoc = nextLocs[0] || '';
-    const locObj = nextWard && nextLoc ? CHIEF_ADMIN_AREAS[nextWard]?.locations?.[nextLoc] : null;
-    const subs = locObj?.subLocations || [];
-    const vils = locObj?.villages || [];
-
-    setForm((prev) => ({
-      ...prev,
-      ward: nextWard,
-      location: nextLoc,
-      subLocation: subs[0] || '',
-      officeLocation: vils[0] || ''
-    }));
-  }
-
-  function handleLocationChange(e) {
-    const nextLoc = e.target.value;
-    const locObj = form.ward && nextLoc ? CHIEF_ADMIN_AREAS[form.ward]?.locations?.[nextLoc] : null;
-    const subs = locObj?.subLocations || [];
-    const vils = locObj?.villages || [];
-
-    setForm((prev) => ({
-      ...prev,
-      location: nextLoc,
-      subLocation: subs[0] || '',
-      officeLocation: vils[0] || ''
-    }));
-  }
-
-  function handleSubLocationChange(e) {
-    setForm((prev) => ({
-      ...prev,
-      subLocation: e.target.value
-    }));
-  }
-
-  function handleVillageChange(e) {
-    setForm((prev) => ({
-      ...prev,
-      officeLocation: e.target.value
-    }));
-  }
-
   function handleSave(e) {
     e.preventDefault();
-    if (
-      !form.fullName.trim() ||
-      !form.nationalId.trim() ||
-      !form.phone.trim() ||
-      !form.ward.trim() ||
-      !form.location.trim() ||
-      !form.subLocation.trim()
-    ) {
-      alert('Please fill in your Full Name, National ID, Phone, Ward, Location, and Sub-Location.');
+    if (!phone.trim() || !email.trim()) {
+      alert('Please provide a valid phone number and email address.');
       return;
     }
-    const updated = saveChiefProfile(form);
+    // Only phone and email can be modified; all other administrative credentials remain strictly immutable
+    const updated = saveChiefProfile({
+      ...profile,
+      phone: phone.trim(),
+      email: email.trim()
+    });
     setProfile(updated);
     setIsEditing(false);
-    setMsg('Chief profile and administrative assignment saved successfully.');
+    setMsg('Contact information updated successfully.');
     setTimeout(() => setMsg(''), 4000);
+  }
+
+  function handleCancelEdit() {
+    setPhone(profile?.phone || '');
+    setEmail(profile?.email || '');
+    setIsEditing(false);
   }
 
   const complete = isChiefProfileComplete(profile);
@@ -136,11 +63,14 @@ export function ChiefProfilePage() {
             <button
               type="button"
               className="btn btn--secondary"
-              onClick={() => setIsEditing(!isEditing)}
-              style={{ fontSize: '0.85rem' }}
+              onClick={() => {
+                if (isEditing) handleCancelEdit();
+                else setIsEditing(true);
+              }}
+              style={{ fontSize: '0.85rem', borderRadius: 999 }}
             >
               <Icon name="review" size={16} />
-              {isEditing ? 'Cancel Edit' : 'Edit Information'}
+              {isEditing ? 'Cancel Edit' : 'Edit Contact Details'}
             </button>
           </div>
         </SectionCard>
@@ -152,118 +82,129 @@ export function ChiefProfilePage() {
         )}
 
         {isEditing ? (
-          <SectionCard title="Edit Personal Information & Ward">
+          <SectionCard title="Edit Contact Details">
+            <div style={{
+              margin: '0 0 18px',
+              padding: '12px 16px',
+              borderRadius: 8,
+              background: 'rgba(217, 119, 6, 0.08)',
+              border: '1px solid rgba(217, 119, 6, 0.25)',
+              fontSize: '0.85rem',
+              color: '#f59e0b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}>
+              <Icon name="shield" size={18} />
+              <span>
+                Administrative jurisdiction, National ID, and legal names are locked by the system. You can update your official phone number and email address below.
+              </span>
+            </div>
+
             <form onSubmit={handleSave} className="stitch-profile-form">
+              {/* EDITABLE FIELD 1: Phone */}
               <div className="stitch-profile-form__field">
-                <label className="stitch-profile-form__label">Full Name (Follows ID) *</label>
-                <input
-                  type="text"
-                  className="stitch-profile-form__input"
-                  value={form.fullName}
-                  onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="stitch-profile-form__field">
-                <label className="stitch-profile-form__label">National ID Number *</label>
-                <input
-                  type="text"
-                  className="stitch-profile-form__input"
-                  value={form.nationalId}
-                  onChange={(e) => setForm({ ...form, nationalId: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="stitch-profile-form__field">
-                <label className="stitch-profile-form__label">Phone Number *</label>
+                <label className="stitch-profile-form__label">Official Phone Number *</label>
                 <input
                   type="tel"
                   className="stitch-profile-form__input"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. 0722 000 000"
                   required
                 />
               </div>
 
+              {/* EDITABLE FIELD 2: Email */}
               <div className="stitch-profile-form__field">
-                <label className="stitch-profile-form__label">Official Email Address</label>
+                <label className="stitch-profile-form__label">Official Email Address *</label>
                 <input
                   type="email"
                   className="stitch-profile-form__input"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. chief.waweru@mcmca.gov.ke"
+                  required
                 />
               </div>
 
+              {/* LOCKED FIELD: Full Name */}
               <div className="stitch-profile-form__field">
-                <label className="stitch-profile-form__label">Assigned Ward *</label>
-                <select
-                  className="stitch-profile-form__input"
-                  value={form.ward}
-                  onChange={handleWardChange}
-                  required
-                >
-                  <option value="">Select Ward...</option>
-                  {wardOptions.map((w) => (
-                    <option key={w} value={w}>{w}</option>
-                  ))}
-                </select>
+                <label className="stitch-profile-form__label">Full Legal Name (Locked)</label>
+                <input
+                  type="text"
+                  className="stitch-profile-form__input stitch-profile-form__input--readonly"
+                  value={profile?.fullName || ''}
+                  readOnly
+                  disabled
+                />
               </div>
 
+              {/* LOCKED FIELD: National ID */}
               <div className="stitch-profile-form__field">
-                <label className="stitch-profile-form__label">Location *</label>
-                <select
-                  className="stitch-profile-form__input"
-                  value={form.location}
-                  onChange={handleLocationChange}
-                  required
-                  disabled={!form.ward}
-                >
-                  <option value="">{form.ward ? 'Select Location...' : 'Select Ward first'}</option>
-                  {availableLocations.map((loc) => (
-                    <option key={loc} value={loc}>{loc}</option>
-                  ))}
-                </select>
+                <label className="stitch-profile-form__label">National ID Number (Locked)</label>
+                <input
+                  type="text"
+                  className="stitch-profile-form__input stitch-profile-form__input--readonly"
+                  value={profile?.nationalId || ''}
+                  readOnly
+                  disabled
+                />
               </div>
 
+              {/* LOCKED FIELD: Assigned Ward */}
               <div className="stitch-profile-form__field">
-                <label className="stitch-profile-form__label">Sub-Location *</label>
-                <select
-                  className="stitch-profile-form__input"
-                  value={form.subLocation}
-                  onChange={handleSubLocationChange}
-                  required
-                  disabled={!form.location}
-                >
-                  <option value="">{form.location ? 'Select Sub-Location...' : 'Select Location first'}</option>
-                  {availableSubLocations.map((sub) => (
-                    <option key={sub} value={sub}>{sub}</option>
-                  ))}
-                </select>
+                <label className="stitch-profile-form__label">Assigned Ward (Locked)</label>
+                <input
+                  type="text"
+                  className="stitch-profile-form__input stitch-profile-form__input--readonly"
+                  value={profile?.ward || ''}
+                  readOnly
+                  disabled
+                />
               </div>
 
+              {/* LOCKED FIELD: Location */}
               <div className="stitch-profile-form__field">
-                <label className="stitch-profile-form__label">Village / Office Center</label>
-                <select
-                  className="stitch-profile-form__input"
-                  value={form.officeLocation}
-                  onChange={handleVillageChange}
-                  disabled={!form.location}
-                >
-                  <option value="">{form.location ? 'Select Village / Center...' : 'Select Location first'}</option>
-                  {availableVillages.map((v) => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
+                <label className="stitch-profile-form__label">Location (Locked)</label>
+                <input
+                  type="text"
+                  className="stitch-profile-form__input stitch-profile-form__input--readonly"
+                  value={profile?.location || ''}
+                  readOnly
+                  disabled
+                />
               </div>
 
-              <div className="stitch-profile-form__field stitch-profile-form__field--full student-form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
+              {/* LOCKED FIELD: Sub-Location */}
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">Sub-Location (Locked)</label>
+                <input
+                  type="text"
+                  className="stitch-profile-form__input stitch-profile-form__input--readonly"
+                  value={profile?.subLocation || ''}
+                  readOnly
+                  disabled
+                />
+              </div>
+
+              {/* LOCKED FIELD: Office Center / Village */}
+              <div className="stitch-profile-form__field">
+                <label className="stitch-profile-form__label">Office Address / Village (Locked)</label>
+                <input
+                  type="text"
+                  className="stitch-profile-form__input stitch-profile-form__input--readonly"
+                  value={profile?.officeLocation || ''}
+                  readOnly
+                  disabled
+                />
+              </div>
+
+              <div className="stitch-profile-form__field stitch-profile-form__field--full student-form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 12 }}>
                 <button
                   type="button"
                   className="btn btn--secondary"
-                  onClick={() => setIsEditing(false)}
+                  onClick={handleCancelEdit}
                   style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}
                 >
                   Cancel
@@ -274,7 +215,7 @@ export function ChiefProfilePage() {
                   style={{ borderRadius: 999, width: 'auto', padding: '10px 28px' }}
                 >
                   <Icon name="check" size={18} />
-                  Save Profile
+                  Save Changes
                 </button>
               </div>
             </form>
@@ -341,6 +282,7 @@ export function ChiefProfilePage() {
               type="button"
               className="btn btn--secondary"
               onClick={() => window.alert('Password change dialog.')}
+              style={{ borderRadius: 999 }}
             >
               <Icon name="shield" size={18} />
               Change password
@@ -349,6 +291,7 @@ export function ChiefProfilePage() {
               type="button"
               className="btn btn--secondary"
               onClick={() => window.alert('Two-factor OTP verified.')}
+              style={{ borderRadius: 999 }}
             >
               <Icon name="shield" size={18} />
               OTP settings

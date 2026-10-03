@@ -6587,6 +6587,12 @@ h1.section-card__title {
   }
 }
 
+@media (max-width: 839px) {
+  .chief-whatsapp-list--hidden-mobile {
+    display: none !important;
+  }
+}
+
 @media (max-width: 640px) {
   .portal--chief .main {
     padding: 0 14px !important;
