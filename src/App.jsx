@@ -8,11 +8,78 @@ import { LoginPage } from './pages/LoginPage.jsx';
 import { RegisterPage } from './pages/RegisterPage.jsx';
 import { AccountGate } from './lib/AccountGate.jsx';
 
-// Lazy-loaded Dashboard Routers — load on command and cached by browser
-const StudentRoutes = lazy(() => import('./dashboards/student/routes/StudentRoutes.jsx').then(m => ({ default: m.StudentRoutes })));
-const ParentRoutes = lazy(() => import('./dashboards/parent/routes/ParentRoutes.jsx').then(m => ({ default: m.ParentRoutes })));
-const ChiefRoutes = lazy(() => import('./dashboards/chief/routes/ChiefRoutes.jsx').then(m => ({ default: m.ChiefRoutes })));
-const MCARoutes = lazy(() => import('./dashboards/mca/routes/MCARoutes.jsx').then(m => ({ default: m.MCARoutes })));
+// Dashboard Routers
+import { StudentRoutes } from './dashboards/student/routes/StudentRoutes.jsx';
+import { ParentRoutes } from './dashboards/parent/routes/ParentRoutes.jsx';
+import { ChiefRoutes } from './dashboards/chief/routes/ChiefRoutes.jsx';
+import { MCARoutes } from './dashboards/mca/routes/MCARoutes.jsx';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      const isChunkError =
+        this.state.error?.message?.includes('dynamically imported module') ||
+        this.state.error?.message?.includes('Failed to fetch') ||
+        this.state.error?.name === 'ChunkLoadError';
+
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#0B1120',
+          color: '#E2E8F0',
+          padding: 24,
+          fontFamily: 'sans-serif',
+          textAlign: 'center'
+        }}>
+          <h2 style={{ fontSize: 20, marginBottom: 8 }}>
+            {isChunkError ? 'New update available' : 'Something went wrong'}
+          </h2>
+          <p style={{ color: '#94A3B8', maxWidth: 420, marginBottom: 20, lineHeight: 1.5 }}>
+            {isChunkError
+              ? 'A newer version of the dashboard is available. Reload the page to load it.'
+              : 'An unexpected error occurred while loading this view.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              window.sessionStorage.clear();
+              window.location.reload();
+            }}
+            style={{
+              padding: '10px 20px',
+              borderRadius: 8,
+              background: '#D97706',
+              color: '#FFFFFF',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function RouterLoadingFallback() {
   return (
@@ -91,27 +158,29 @@ function MissingSupabaseConfig() {
 
 export function App() {
   return (
-    <ThemeProvider>
-      {!hasSupabaseConfig ? (
-        <MissingSupabaseConfig />
-      ) : (
-        <AuthProvider>
-          <HashRouter>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/onboarding" element={<Navigate to="/" replace />} />
-              <Route path="/*" element={
-                <ProtectedRoute>
-                  <AccountGate>
-                    <RoleBasedRouter />
-                  </AccountGate>
-                </ProtectedRoute>
-              } />
-            </Routes>
-          </HashRouter>
-        </AuthProvider>
-      )}
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        {!hasSupabaseConfig ? (
+          <MissingSupabaseConfig />
+        ) : (
+          <AuthProvider>
+            <HashRouter>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/onboarding" element={<Navigate to="/" replace />} />
+                <Route path="/*" element={
+                  <ProtectedRoute>
+                    <AccountGate>
+                      <RoleBasedRouter />
+                    </AccountGate>
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </HashRouter>
+          </AuthProvider>
+        )}
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
