@@ -6556,6 +6556,46 @@ h1.section-card__title {
   margin-top: 24px;
 }
 
+@media (min-width: 900px) {
+  .portal--chief {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+    min-height: 100vh;
+  }
+  .portal--chief .bottom-nav {
+    display: none !important;
+  }
+  .portal--chief .main {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+}
+
+.chief-messages-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (min-width: 840px) {
+  .chief-messages-layout--active {
+    grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.3fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .portal--chief .main {
+    padding: 0 14px !important;
+  }
+  .portal--chief .main__content {
+    padding: 16px 0 84px !important;
+  }
+}
+
 @media (min-width: 1024px) {
   .portal--chief .main--dashboard .main__content {
     max-width: 1200px;
@@ -9045,13 +9085,13 @@ h1.section-card__title {
 }
 
 /* Dashboard analytics thin ranges / strips */
-:is(.portal--student, .portal--parent) .dash-analytics-strips {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-analytics-strips {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
 }
 
-:is(.portal--student, .portal--parent) .dash-strip-card {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-strip-card {
   padding: 18px 22px;
   border-radius: var(--radius-xl);
   background: var(--surface-elevated);
@@ -9062,14 +9102,14 @@ h1.section-card__title {
   gap: 12px;
 }
 
-:is(.portal--student, .portal--parent) .dash-strip-card__head {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-strip-card__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
 
-:is(.portal--student, .portal--parent) .dash-strip-card__label {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-strip-card__label {
   display: block;
   font-size: 0.72rem;
   font-weight: 700;
@@ -9078,7 +9118,7 @@ h1.section-card__title {
   color: var(--gold-champagne, #ddbb6a);
 }
 
-:is(.portal--student, .portal--parent) .dash-strip-card__val {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-strip-card__val {
   margin: 4px 0 0;
   font-family: var(--font-headline);
   font-size: 1.25rem;
@@ -9087,7 +9127,7 @@ h1.section-card__title {
   line-height: 1.2;
 }
 
-:is(.portal--student, .portal--parent) .dash-strip-card__track {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-strip-card__track {
   width: 100%;
   height: 6px;
   border-radius: 999px;
@@ -9096,21 +9136,21 @@ h1.section-card__title {
   position: relative;
 }
 
-:is(.portal--student, .portal--parent) .dash-strip-card__fill {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-strip-card__fill {
   height: 100%;
   border-radius: 999px;
   transition: width 0.4s ease;
 }
 
-:is(.portal--student, .portal--parent) .dash-strip-card__fill--gold {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-strip-card__fill--gold {
   background: linear-gradient(90deg, var(--gold-muted), var(--gold-soft));
 }
 
-:is(.portal--student, .portal--parent) .dash-strip-card__fill--green {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-strip-card__fill--green {
   background: linear-gradient(90deg, #10b981, #22c55e);
 }
 
-:is(.portal--student, .portal--parent) .dash-strip-card__foot {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-strip-card__foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -9119,7 +9159,7 @@ h1.section-card__title {
 }
 
 /* Consolidated single checklist card & application section */
-:is(.portal--student, .portal--parent) .dash-single-card {
+:is(.portal--student, .portal--parent, .portal--chief) .dash-single-card {
   border-radius: var(--radius-xl);
   background: var(--surface-elevated);
   border: 1px solid var(--glass-border);

@@ -1,16 +1,19 @@
 import React, { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/Icon.jsx';
+import { useAuth } from '../../../context/AuthContext.jsx';
 
 const CHIEF_ITEMS = [
   { label: 'Home', path: '/chief/dashboard', icon: 'home' },
   { label: 'Applications', path: '/chief/applications', icon: 'applications' },
+  { label: 'Messages', path: '/chief/messages', icon: 'bell' },
   { label: 'Appeals', path: '/chief/appeals', icon: 'documents' },
   { label: 'Profile', path: '/chief/profile', icon: 'profile' }
 ];
 
 export function ChiefSlideMenu({ open, onClose }) {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -28,10 +31,14 @@ export function ChiefSlideMenu({ open, onClose }) {
     };
   }, [open, onClose]);
 
-  function handleLogout() {
+  async function handleLogout() {
     onClose();
-    window.alert('You would be signed out safely — demo not connected yet.');
-    navigate('/chief/dashboard');
+    try {
+      if (signOut) await signOut();
+    } catch {
+      // fallback
+    }
+    navigate('/login');
   }
 
   return (

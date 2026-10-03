@@ -5,6 +5,7 @@ import { Icon } from '../../../components/Icon.jsx';
 const CHIEF_TABS = [
   { label: 'Home', path: '/chief/dashboard', icon: 'home' },
   { label: 'Applications', path: '/chief/applications', icon: 'applications' },
+  { label: 'Messages', path: '/chief/messages', icon: 'bell' },
   { label: 'Appeals', path: '/chief/appeals', icon: 'documents' },
   { label: 'Profile', path: '/chief/profile', icon: 'profile' }
 ];

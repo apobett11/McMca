@@ -6,6 +6,7 @@ import { ChiefApplicationReviewPage } from '../pages/ChiefApplicationReviewPage.
 import { ChiefAppealsPage } from '../pages/ChiefAppealsPage.jsx';
 import { ChiefAppealReviewPage } from '../pages/ChiefAppealReviewPage.jsx';
 import { ChiefProfilePage } from '../pages/ChiefProfilePage.jsx';
+import { ChiefMessagesPage } from '../pages/ChiefMessagesPage.jsx';
 
 export function ChiefRoutes() {
   return (
@@ -14,6 +15,7 @@ export function ChiefRoutes() {
       <Route path="/chief/dashboard" element={<ChiefDashboardPage />} />
       <Route path="/chief/applications" element={<ChiefApplicationsPage />} />
       <Route path="/chief/application-review" element={<ChiefApplicationReviewPage />} />
+      <Route path="/chief/messages" element={<ChiefMessagesPage />} />
       <Route path="/chief/appeals" element={<ChiefAppealsPage />} />
       <Route path="/chief/appeal-review" element={<ChiefAppealReviewPage />} />
       <Route path="/chief/profile" element={<ChiefProfilePage />} />
