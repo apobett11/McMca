@@ -442,3 +442,28 @@ export function updateChiefAppealDecision(appealId, decision, notes = '') {
   window.dispatchEvent(new CustomEvent('mcmca_chief_appeals_updated', { detail: updated }));
   return updated;
 }
+
+export function getChiefUpdateCounts() {
+  const apps = getChiefApplications();
+  const appeals = getChiefAppeals();
+  const msgs = getChiefMessages();
+
+  const pendingApps = apps.filter(
+    (a) => a.applicationStatus === 'Under Review' || a.applicationStatus === 'Submitted' || a.isSuspicious
+  ).length;
+
+  const pendingAppeals = appeals.filter(
+    (a) => a.appealStatus === 'Submitted' || a.appealStatus === 'Under Review' || a.appealStatus === 'Clarification Requested'
+  ).length;
+
+  const pendingMsgs = msgs.filter(
+    (m) => m.status === 'unread' || m.status === 'to_be_replied'
+  ).length;
+
+  return {
+    applications: pendingApps,
+    appeals: pendingAppeals,
+    messages: pendingMsgs,
+    hasAnyUpdate: pendingApps > 0 || pendingAppeals > 0 || pendingMsgs > 0
+  };
+}

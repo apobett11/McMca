@@ -6619,6 +6619,53 @@ h1.section-card__title {
   }
 }
 
+/* Chief Portal Update Indicator Dots */
+.nav-update-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+  display: inline-block;
+  margin-left: auto;
+  flex-shrink: 0;
+  animation: pulse-update-dot 2s ease-in-out infinite;
+}
+
+.card-update-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+  display: inline-block;
+  flex-shrink: 0;
+  animation: pulse-update-dot 2s ease-in-out infinite;
+}
+
+.btn-update-dot-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+  animation: pulse-update-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-update-dot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.8;
+  }
+}
+
 /* ============================================================
    PARENT PORTAL — EXACT STITCH STYLE TRANSFER
    Extracted from parent portal design/dashboard_overview_refined_surfaces

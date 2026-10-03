@@ -1,19 +1,35 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext.jsx';
+import { getChiefUpdateCounts } from '../utils/chiefData.js';
 
 const CHIEF_ITEMS = [
-  { label: 'Home', path: '/chief/dashboard', icon: 'home' },
-  { label: 'Applications', path: '/chief/applications', icon: 'applications' },
-  { label: 'Messages', path: '/chief/messages', icon: 'bell' },
-  { label: 'Appeals', path: '/chief/appeals', icon: 'documents' },
-  { label: 'Profile', path: '/chief/profile', icon: 'profile' }
+  { label: 'Home', path: '/chief/dashboard', icon: 'home', key: 'home' },
+  { label: 'Applications', path: '/chief/applications', icon: 'applications', key: 'applications' },
+  { label: 'Appeals', path: '/chief/appeals', icon: 'documents', key: 'appeals' },
+  { label: 'Messages', path: '/chief/messages', icon: 'bell', key: 'messages' },
+  { label: 'Profile', path: '/chief/profile', icon: 'profile', key: 'profile' }
 ];
 
 export function ChiefSlideMenu({ open, onClose }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [counts, setCounts] = useState(() => getChiefUpdateCounts());
+
+  useEffect(() => {
+    function refreshCounts() {
+      setCounts(getChiefUpdateCounts());
+    }
+    window.addEventListener('mcmca_chief_apps_updated', refreshCounts);
+    window.addEventListener('mcmca_chief_appeals_updated', refreshCounts);
+    window.addEventListener('mcmca_chief_messages_updated', refreshCounts);
+    return () => {
+      window.removeEventListener('mcmca_chief_apps_updated', refreshCounts);
+      window.removeEventListener('mcmca_chief_appeals_updated', refreshCounts);
+      window.removeEventListener('mcmca_chief_messages_updated', refreshCounts);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -60,20 +76,31 @@ export function ChiefSlideMenu({ open, onClose }) {
           </button>
         </div>
         <nav className="slide-menu__nav">
-          {CHIEF_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === '/chief/dashboard'}
-              className={({ isActive }) =>
-                `slide-menu__link ${isActive ? 'slide-menu__link--active' : ''}`
-              }
-              onClick={onClose}
-            >
-              <Icon name={item.icon} size={22} />
-              {item.label}
-            </NavLink>
-          ))}
+          {CHIEF_ITEMS.map((item) => {
+            const hasUpdate =
+              (item.key === 'applications' && counts.applications > 0) ||
+              (item.key === 'appeals' && counts.appeals > 0) ||
+              (item.key === 'messages' && counts.messages > 0);
+
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/chief/dashboard'}
+                className={({ isActive }) =>
+                  `slide-menu__link ${isActive ? 'slide-menu__link--active' : ''}`
+                }
+                onClick={onClose}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}
+              >
+                <Icon name={item.icon} size={22} />
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {hasUpdate && (
+                  <span className="nav-update-dot" title="Update available" />
+                )}
+              </NavLink>
+            );
+          })}
           <button type="button" className="slide-menu__link slide-menu__link--logout" onClick={handleLogout}>
             <Icon name="logout" size={22} />
             Logout

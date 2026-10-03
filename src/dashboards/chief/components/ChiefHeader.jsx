@@ -19,9 +19,9 @@ export function ChiefHeader({
       <div className="site-header__inner">
         <button
           type="button"
-          className="header-icon-btn header-icon-btn--hamburger"
+          className={`header-icon-btn header-icon-btn--hamburger ${notificationBadge ? 'header-icon-btn--pulse' : ''}`}
           onClick={onMenuOpen}
-          aria-label="Open navigation menu"
+          aria-label={notificationBadge ? 'Open navigation menu (updates available)' : 'Open navigation menu'}
         >
           <span className="header-icon-btn__bars" aria-hidden="true">
             <span />

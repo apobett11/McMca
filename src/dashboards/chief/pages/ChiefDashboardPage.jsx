@@ -9,6 +9,7 @@ import {
   isChiefProfileComplete,
   getChiefApplications,
   getChiefMessages,
+  getChiefAppeals,
   CHIEF_ADMIN_AREAS,
   getLocationKey
 } from '../utils/chiefData.js';
@@ -32,9 +33,10 @@ export function ChiefDashboardPage() {
   });
   const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
 
-  // Applications & messages state
+  // Applications, appeals & messages state
   const [applications, setApplications] = useState(() => getChiefApplications());
   const [messages, setMessages] = useState(() => getChiefMessages());
+  const [appeals, setAppeals] = useState(() => getChiefAppeals());
 
   useEffect(() => {
     function onProfileUpdated(e) {
@@ -46,14 +48,19 @@ export function ChiefDashboardPage() {
     function onMsgsUpdated(e) {
       setMessages(e.detail);
     }
+    function onAppealsUpdated(e) {
+      setAppeals(e.detail);
+    }
     window.addEventListener('mcmca_chief_profile_updated', onProfileUpdated);
     window.addEventListener('mcmca_chief_apps_updated', onAppsUpdated);
     window.addEventListener('mcmca_chief_messages_updated', onMsgsUpdated);
+    window.addEventListener('mcmca_chief_appeals_updated', onAppealsUpdated);
 
     return () => {
       window.removeEventListener('mcmca_chief_profile_updated', onProfileUpdated);
       window.removeEventListener('mcmca_chief_apps_updated', onAppsUpdated);
       window.removeEventListener('mcmca_chief_messages_updated', onMsgsUpdated);
+      window.removeEventListener('mcmca_chief_appeals_updated', onAppealsUpdated);
     };
   }, []);
 
@@ -172,11 +179,13 @@ export function ChiefDashboardPage() {
   const appProcessedPct = totalApps > 0 ? Math.round(((approvedApps + rejectedApps) / totalApps) * 100) : 0;
   const approvalRatePct = totalApps > 0 ? Math.round((approvedApps / totalApps) * 100) : 0;
 
-  // Appeals (from mock/summary)
-  const totalAppeals = 42;
-  const resolvedAppeals = 28;
-  const pendingAppeals = 14;
-  const appealResolvedPct = Math.round((resolvedAppeals / totalAppeals) * 100);
+  // Appeals (live state from appeals store)
+  const totalAppeals = appeals.length;
+  const approvedAppeals = appeals.filter((a) => a.appealStatus === 'Approved').length;
+  const rejectedAppeals = appeals.filter((a) => a.appealStatus === 'Rejected').length;
+  const pendingAppeals = appeals.filter((a) => a.appealStatus === 'Submitted' || a.appealStatus === 'Under Review' || a.appealStatus === 'Clarification Requested').length;
+  const resolvedAppeals = approvedAppeals + rejectedAppeals;
+  const appealResolvedPct = totalAppeals > 0 ? Math.round((resolvedAppeals / totalAppeals) * 100) : 0;
 
   // Village / Sub-location breakdown
   const villageCounts = useMemo(() => {
@@ -195,12 +204,15 @@ export function ChiefDashboardPage() {
   // Messages pending reply
   const pendingReplyCount = messages.filter((m) => m.status === 'to_be_replied' || m.status === 'unread').length;
 
+  // Global indicator for any unreviewed or pending updates
+  const hasUpdates = pendingReplyCount > 0 || underReviewApps > 0 || suspiciousApps > 0 || pendingAppeals > 0;
+
   return (
     <ChiefLayout
       chiefName={profile?.fullName || 'Chief'}
       pageTitle="Home"
       layout="dashboard"
-      notificationBadge={pendingReplyCount > 0}
+      notificationBadge={hasUpdates}
     >
       <div className="chief-dashboard-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
@@ -457,7 +469,12 @@ export function ChiefDashboardPage() {
               <div className="dash-strip-card">
                 <div className="dash-strip-card__head">
                   <div>
-                    <span className="dash-strip-card__label">Ward Applications</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className="dash-strip-card__label">Ward Applications</span>
+                      {(underReviewApps > 0 || suspiciousApps > 0) && (
+                        <span className="card-update-dot" title="Pending applications" />
+                      )}
+                    </div>
                     <h3 className="dash-strip-card__val">
                       {totalApps} Total Applications
                     </h3>
@@ -482,7 +499,12 @@ export function ChiefDashboardPage() {
               <div className="dash-strip-card">
                 <div className="dash-strip-card__head">
                   <div>
-                    <span className="dash-strip-card__label">Ward Appeals</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className="dash-strip-card__label">Ward Appeals</span>
+                      {pendingAppeals > 0 && (
+                        <span className="card-update-dot" title="Pending appeals" />
+                      )}
+                    </div>
                     <h3 className="dash-strip-card__val">
                       {totalAppeals} Appeals
                     </h3>
@@ -498,7 +520,7 @@ export function ChiefDashboardPage() {
                   />
                 </div>
                 <div className="dash-strip-card__foot">
-                  <span>{resolvedAppeals} Resolved · 3 Urgent</span>
+                  <span>{resolvedAppeals} Resolved · {pendingAppeals} In Queue</span>
                   <span>{appealResolvedPct}% Resolved</span>
                 </div>
               </div>
@@ -507,9 +529,14 @@ export function ChiefDashboardPage() {
               <div className="dash-strip-card">
                 <div className="dash-strip-card__head">
                   <div>
-                    <span className="dash-strip-card__label" style={{ color: suspiciousApps > 0 ? '#ef4444' : undefined }}>
-                      Suspicious Applications
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className="dash-strip-card__label" style={{ color: suspiciousApps > 0 ? '#ef4444' : undefined }}>
+                        Suspicious Applications
+                      </span>
+                      {suspiciousApps > 0 && (
+                        <span className="card-update-dot" title="Action required" />
+                      )}
+                    </div>
                     <h3 className="dash-strip-card__val">
                       {suspiciousApps} Flagged Cases
                     </h3>
@@ -551,8 +578,11 @@ export function ChiefDashboardPage() {
                     <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{approvedApps} approved of {totalApps}</span>
                   </div>
 
-                  <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Pending Inquiries</span>
+                  <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', position: 'relative' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Pending Inquiries</span>
+                      {pendingReplyCount > 0 && <span className="card-update-dot" title="Unanswered inquiries" />}
+                    </div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 700, color: pendingReplyCount > 0 ? '#f59e0b' : '#10b981', marginTop: 4 }}>
                       {pendingReplyCount}
                     </div>
@@ -561,8 +591,11 @@ export function ChiefDashboardPage() {
                     </Link>
                   </div>
 
-                  <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Suspicious Rate</span>
+                  <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', position: 'relative' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Suspicious Rate</span>
+                      {suspiciousApps > 0 && <span className="card-update-dot" title="Flagged cases" />}
+                    </div>
                     <div style={{ fontSize: '1.4rem', fontWeight: 700, color: suspiciousApps > 0 ? '#ef4444' : '#10b981', marginTop: 4 }}>
                       {totalApps > 0 ? Math.round((suspiciousApps / totalApps) * 100) : 0}%
                     </div>
@@ -601,21 +634,57 @@ export function ChiefDashboardPage() {
                 </div>
               </section>
 
-              {/* Section 3: Quick Action Workflows */}
+              {/* Section 3: Quick Action Workflows (Applications -> Appeals -> Messages -> Profile) */}
               <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
                 <h3 className="stitch-section-title" style={{ margin: '0 0 16px', fontSize: '1.1rem' }}>
                   Verification Workflows
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
+                  {/* 1. Applications */}
                   <Link
                     to="/chief/applications"
                     className="btn btn--secondary"
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 10px', textAlign: 'center', borderRadius: 12 }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '16px 10px',
+                      textAlign: 'center',
+                      borderRadius: 12,
+                      position: 'relative'
+                    }}
                   >
+                    {(underReviewApps > 0 || suspiciousApps > 0) && (
+                      <span className="btn-update-dot-badge" title="Pending applications" />
+                    )}
                     <Icon name="applications" size={24} />
                     <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Applications</span>
                   </Link>
 
+                  {/* 2. Appeals */}
+                  <Link
+                    to="/chief/appeals"
+                    className="btn btn--secondary"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '16px 10px',
+                      textAlign: 'center',
+                      borderRadius: 12,
+                      position: 'relative'
+                    }}
+                  >
+                    {pendingAppeals > 0 && (
+                      <span className="btn-update-dot-badge" title="Pending appeals" />
+                    )}
+                    <Icon name="documents" size={24} />
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Appeals</span>
+                  </Link>
+
+                  {/* 3. Messages (next to profile) */}
                   <Link
                     to="/chief/messages"
                     className="btn btn--secondary"
@@ -627,24 +696,20 @@ export function ChiefDashboardPage() {
                       padding: '16px 10px',
                       textAlign: 'center',
                       borderRadius: 12,
+                      position: 'relative',
                       borderColor: pendingReplyCount > 0 ? '#f59e0b' : undefined
                     }}
                   >
+                    {pendingReplyCount > 0 && (
+                      <span className="btn-update-dot-badge" title="Unanswered messages" />
+                    )}
                     <Icon name="bell" size={24} />
                     <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>
                       Messages {pendingReplyCount > 0 && `(${pendingReplyCount})`}
                     </span>
                   </Link>
 
-                  <Link
-                    to="/chief/appeals"
-                    className="btn btn--secondary"
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 10px', textAlign: 'center', borderRadius: 12 }}
-                  >
-                    <Icon name="documents" size={24} />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Appeals</span>
-                  </Link>
-
+                  {/* 4. Area Profile */}
                   <Link
                     to="/chief/profile"
                     className="btn btn--secondary"
@@ -659,9 +724,12 @@ export function ChiefDashboardPage() {
               {/* Section 4: Urgent Alerts & Inconsistencies */}
               <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                  <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.1rem' }}>
-                    Urgent Inconsistency Notices
-                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.1rem' }}>
+                      Urgent Inconsistency Notices
+                    </h3>
+                    {suspiciousApps > 0 && <span className="card-update-dot" title="Attention required" />}
+                  </div>
                   <Link to="/chief/applications" style={{ fontSize: '0.8rem', color: '#d97706', textDecoration: 'none' }}>
                     View all &gt;
                   </Link>
