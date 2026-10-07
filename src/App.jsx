@@ -13,6 +13,7 @@ import { StudentRoutes } from './dashboards/student/routes/StudentRoutes.jsx';
 import { ParentRoutes } from './dashboards/parent/routes/ParentRoutes.jsx';
 import { ChiefRoutes } from './dashboards/chief/routes/ChiefRoutes.jsx';
 import { MCARoutes } from './dashboards/mca/routes/MCARoutes.jsx';
+import { HelpDeskRoutes } from './dashboards/helpdesk/routes/HelpDeskRoutes.jsx';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -117,6 +118,9 @@ function RoleBasedRouter() {
             return <ChiefRoutes />;
           case 'mca':
             return <MCARoutes />;
+          case 'helpdesk':
+          case 'help_desk':
+            return <HelpDeskRoutes />;
           default:
             return <Navigate to="/login" replace />;
         }
@@ -169,6 +173,7 @@ export function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/onboarding" element={<Navigate to="/" replace />} />
+                <Route path="/helpdesk/*" element={<HelpDeskRoutes />} />
                 <Route path="/*" element={
                   <ProtectedRoute>
                     <AccountGate>

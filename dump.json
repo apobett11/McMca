@@ -1,0 +1,197 @@
+{
+  "application_details": [
+    {
+      "id": "bab7feb8-fe1d-4ecc-b1bd-1d92c1c74c30",
+      "application_id": "52f940a5-57e1-4c22-b8b5-a5ad8e0c0766",
+      "household_income": 45000.0,
+      "guardian_name": "Alex Kiprotich",
+      "guardian_phone": "+254700111222",
+      "school_fee_total": 120000.0,
+      "amount_paid": 64000.0,
+      "balance": 56000.0,
+      "bank_name": "KCB Bank",
+      "bank_branch": "Nakuru Branch",
+      "account_number": "1234567890",
+      "additional_notes": "Student requires financial support for tuition and accommodation.",
+      "created_at": "2026-06-05T18:06:35.848487+00:00"
+    }
+  ],
+  "application_windows": [
+    {
+      "id": "4646f2ce-8509-4734-81a5-d8c51be50c45",
+      "title": "2026 Ward Education Bursary",
+      "academic_year": 2026,
+      "term": "Term 1",
+      "opens_at": "2026-06-05T18:06:35.848487+00:00",
+      "closes_at": "2026-09-03T18:06:35.848487+00:00",
+      "is_active": true,
+      "created_at": "2026-06-05T18:06:35.848487+00:00"
+    }
+  ],
+  "parent_student_links": [],
+  "student_activity_logs": [
+    {
+      "id": "fce58171-cc43-49d7-8627-3dffe29d4842",
+      "student_profile_id": "e4592478-53e9-4e15-885e-15f86765388e",
+      "activity_type": "application_submission",
+      "activity_description": "Student submitted bursary application.",
+      "metadata": {
+        "source": "student_dashboard",
+        "status": "under_review"
+      },
+      "created_at": "2026-06-05T18:06:35.848487+00:00"
+    }
+  ],
+  "student_applications": [
+    {
+      "id": "52f940a5-57e1-4c22-b8b5-a5ad8e0c0766",
+      "student_profile_id": "e4592478-53e9-4e15-885e-15f86765388e",
+      "application_window_id": "4646f2ce-8509-4734-81a5-d8c51be50c45",
+      "application_status": "under_review",
+      "institution_name": "Egerton University",
+      "institution_level": "University",
+      "fee_balance": 56000.0,
+      "requested_amount": 40000.0,
+      "allocated_amount": null,
+      "chief_approval_status": "approved",
+      "mca_approval_status": "pending",
+      "appeal_status": "none",
+      "readiness_score": 92,
+      "submitted_at": "2026-06-05T18:06:35.848487+00:00",
+      "approved_at": null,
+      "created_at": "2026-06-05T18:06:35.848487+00:00",
+      "updated_at": "2026-06-05T18:06:35.848487+00:00"
+    }
+  ],
+  "student_documents": [
+    {
+      "id": "fddd093d-7046-4caa-90a9-8dc7dd92eedc",
+      "student_profile_id": "e4592478-53e9-4e15-885e-15f86765388e",
+      "application_id": "52f940a5-57e1-4c22-b8b5-a5ad8e0c0766",
+      "document_type": "fee_structure",
+      "bucket_name": "student-documents",
+      "storage_path": "student-documents/e4592478-53e9-4e15-885e-15f86765388e/52f940a5-57e1-4c22-b8b5-a5ad8e0c0766/fee-structure.pdf",
+      "original_filename": "fee-structure.pdf",
+      "mime_type": "application/pdf",
+      "file_size": 245678,
+      "ai_verified": true,
+      "readability_passed": true,
+      "visibility_passed": true,
+      "uploaded_by": null,
+      "uploaded_at": "2026-06-05T18:06:35.848487+00:00"
+    },
+    {
+      "id": "614d62a5-8437-4ba9-913b-225421702264",
+      "student_profile_id": "e4592478-53e9-4e15-885e-15f86765388e",
+      "application_id": null,
+      "document_type": "student-id",
+      "bucket_name": "student-documents",
+      "storage_path": "student-documents/e4592478-53e9-4e15-885e-15f86765388e/general/1780806539137_student-id.jpg",
+      "original_filename": "89a905ac-5fce-4c7d-a0cc-c469eacbaeef.jpg",
+      "mime_type": "image/jpeg",
+      "file_size": 260993,
+      "ai_verified": false,
+      "readability_passed": false,
+      "visibility_passed": false,
+      "uploaded_by": "937b0d74-764e-450b-9c8a-d66002f46655",
+      "uploaded_at": "2026-06-07T04:29:01.469958+00:00"
+    }
+  ],
+  "student_notifications": [
+    {
+      "id": "6a5fb8c7-3d3e-40e3-a64f-79b37d422888",
+      "student_profile_id": "e4592478-53e9-4e15-885e-15f86765388e",
+      "title": "Application Submitted",
+      "message": "Your bursary application has been successfully submitted.",
+      "is_read": false,
+      "created_at": "2026-06-05T18:06:35.848487+00:00"
+    }
+  ],
+  "student_profiles": [
+    {
+      "id": "e4592478-53e9-4e15-885e-15f86765388e",
+      "auth_user_id": "937b0d74-764e-450b-9c8a-d66002f46655",
+      "student_type": "IND",
+      "admission_number": "EG2026001",
+      "first_name": "Brian",
+      "middle_name": "Kiptoo",
+      "last_name": "Langat",
+      "gender": "Male",
+      "date_of_birth": "2005-04-12",
+      "national_id": "40112233",
+      "email": "student1@gmail.com",
+      "phone_number": "+254712345678",
+      "email_verified": true,
+      "phone_verified": true,
+      "national_id_verified": true,
+      "delegated_access": false,
+      "parent_created": false,
+      "school_name": "Egerton University",
+      "school_level": "University",
+      "institution_code": "EG-U-001",
+      "county": "Nakuru",
+      "ward": "Kuresoi South",
+      "location_name": "Amalo",
+      "profile_photo_url": null,
+      "is_active": true,
+      "created_at": "2026-06-05T18:06:35.848487+00:00",
+      "updated_at": "2026-06-05T18:06:35.848487+00:00"
+    }
+  ],
+  "user_roles": [
+    {
+      "id": "6dfc0160-7eff-4af0-b6f1-68ee6b37804d",
+      "auth_user_id": "937b0d74-764e-450b-9c8a-d66002f46655",
+      "role": "student",
+      "is_active": true,
+      "created_at": "2026-06-05T18:17:18.298945+00:00",
+      "updated_at": "2026-06-05T18:17:18.298945+00:00"
+    }
+  ],
+  "auth_users": [
+    {
+      "instance_id": "00000000-0000-0000-0000-000000000000",
+      "id": "937b0d74-764e-450b-9c8a-d66002f46655",
+      "aud": "authenticated",
+      "role": "authenticated",
+      "email": "student1@gmail.com",
+      "encrypted_password": "$2a$10$H5dwalflsUAids1m6u2PFem3ZH0IEU2i227XxHlrM05xlQyZ3o112",
+      "email_confirmed_at": "2026-06-05T18:01:50.141263+00:00",
+      "invited_at": null,
+      "confirmation_token": "",
+      "confirmation_sent_at": null,
+      "recovery_token": "",
+      "recovery_sent_at": null,
+      "email_change_token_new": "",
+      "email_change": "",
+      "email_change_sent_at": null,
+      "last_sign_in_at": "2026-06-20T08:10:10.173879+00:00",
+      "raw_app_meta_data": {
+        "provider": "email",
+        "providers": [
+          "email"
+        ]
+      },
+      "raw_user_meta_data": {
+        "email_verified": true
+      },
+      "is_super_admin": null,
+      "created_at": "2026-06-05T18:01:50.126131+00:00",
+      "updated_at": "2026-06-20T08:10:10.207632+00:00",
+      "phone": null,
+      "phone_confirmed_at": null,
+      "phone_change": "",
+      "phone_change_token": "",
+      "phone_change_sent_at": null,
+      "confirmed_at": "2026-06-05T18:01:50.141263+00:00",
+      "email_change_token_current": "",
+      "email_change_confirm_status": 0,
+      "banned_until": null,
+      "reauthentication_token": "",
+      "reauthentication_sent_at": null,
+      "is_sso_user": false,
+      "deleted_at": null,
+      "is_anonymous": false
+    }
+  ]
+}

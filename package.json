@@ -8,6 +8,7 @@
     "dev:parent": "vite --port 5173 --strictPort --open http://localhost:5173/#/dashboard",
     "dev:chief": "vite --port 5174 --strictPort --open http://localhost:5174/#/chief/dashboard",
     "dev:student": "vite --port 5175 --strictPort --open http://localhost:5175/#/student/dashboard",
+    "dev:helpdesk": "vite --port 5176 --strictPort --open http://localhost:5176/#/helpdesk/dashboard",
     "build": "npx vite build",
     "preview": "vite preview"
   },

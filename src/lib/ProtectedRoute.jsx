@@ -31,7 +31,8 @@ export function ProtectedRoute({ children, requiredRole }) {
 
   if (requiredRole && role !== requiredRole) {
     if (role) {
-      return <Navigate to={`/${role}/dashboard`} replace />;
+      const target = (role === 'helpdesk' || role === 'help_desk') ? '/helpdesk/dashboard' : `/${role}/dashboard`;
+      return <Navigate to={target} replace />;
     }
     return <Navigate to="/login" replace />;
   }

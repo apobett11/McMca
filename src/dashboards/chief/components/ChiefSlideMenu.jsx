@@ -9,6 +9,7 @@ const CHIEF_ITEMS = [
   { label: 'Applications', path: '/chief/applications', icon: 'applications', key: 'applications' },
   { label: 'Appeals', path: '/chief/appeals', icon: 'documents', key: 'appeals' },
   { label: 'Messages', path: '/chief/messages', icon: 'bell', key: 'messages' },
+  { label: 'Help Desk', path: '/helpdesk/dashboard', icon: 'support', key: 'helpdesk' },
   { label: 'Profile', path: '/chief/profile', icon: 'profile', key: 'profile' }
 ];
 

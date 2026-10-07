@@ -6,6 +6,7 @@ const MCA_ITEMS = [
   { label: 'Home', path: '/mca/dashboard', icon: 'home' },
   { label: 'Applications', path: '/mca/applications', icon: 'applications' },
   { label: 'Documents', path: '/mca/documents', icon: 'documents' },
+  { label: 'Help Desk', path: '/helpdesk/dashboard', icon: 'support' },
   { label: 'Notifications', path: '/mca/notifications', icon: 'bell' },
   { label: 'Profile', path: '/mca/profile', icon: 'profile' }
 ];

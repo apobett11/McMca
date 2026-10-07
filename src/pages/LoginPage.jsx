@@ -75,6 +75,7 @@ export function LoginPage() {
       else if (role === 'parent') navigate('/parent/dashboard');
       else if (role === 'chief') navigate('/chief/dashboard');
       else if (role === 'mca') navigate('/mca/dashboard');
+      else if (role === 'helpdesk' || role === 'help_desk') navigate('/helpdesk/dashboard');
       else throw new Error('Invalid user role');
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -141,6 +142,9 @@ export function LoginPage() {
         </form>
         <p style={{ marginTop: 16, fontSize: 12, color: 'var(--text-3, #64748B)', textAlign: 'center' }}>
           New here? <Link to="/register" style={{ color: 'var(--primary-fixed, #60A5FA)' }}>Create an account</Link>
+        </p>
+        <p style={{ marginTop: 8, fontSize: 12, color: 'var(--text-3, #64748B)', textAlign: 'center' }}>
+          Staff access: <Link to="/helpdesk/dashboard" style={{ color: 'var(--gold-champagne, #DDBB6A)' }}>Help Desk Portal</Link>
         </p>
       </div>
     </div>
