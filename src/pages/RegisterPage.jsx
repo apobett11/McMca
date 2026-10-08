@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   ACCOUNT_ROLE,
@@ -38,7 +38,14 @@ function stripPassword(values) {
 
 export function RegisterPage() {
   const { refreshRole } = useAuth();
-  const [role, setRole] = useState(null);
+  const [searchParams] = useSearchParams();
+  const paramRole = searchParams.get('role');
+  const initialRole = paramRole === 'parent'
+    ? ACCOUNT_ROLE.PARENT
+    : paramRole === 'student'
+      ? ACCOUNT_ROLE.STUDENT
+      : null;
+  const [role, setRole] = useState(initialRole);
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState(null);
   const [finished, setFinished] = useState(false);

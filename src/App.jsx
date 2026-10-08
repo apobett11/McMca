@@ -6,6 +6,7 @@ import { hasSupabaseConfig } from './lib/supabase.js';
 import { ProtectedRoute } from './lib/ProtectedRoute.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
 import { RegisterPage } from './pages/RegisterPage.jsx';
+import { GuestPage } from './pages/GuestPage.jsx';
 import { AccountGate } from './lib/AccountGate.jsx';
 
 // Dashboard Routers
@@ -160,6 +161,23 @@ function MissingSupabaseConfig() {
   );
 }
 
+function HomeRoute() {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) {
+    return <RouterLoadingFallback />;
+  }
+  if (isAuthenticated) {
+    return (
+      <ProtectedRoute>
+        <AccountGate>
+          <RoleBasedRouter />
+        </AccountGate>
+      </ProtectedRoute>
+    );
+  }
+  return <GuestPage />;
+}
+
 export function App() {
   return (
     <ErrorBoundary>
@@ -170,6 +188,8 @@ export function App() {
           <AuthProvider>
             <HashRouter>
               <Routes>
+                <Route path="/" element={<HomeRoute />} />
+                <Route path="/guest" element={<GuestPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/onboarding" element={<Navigate to="/" replace />} />

@@ -146,6 +146,9 @@ export function LoginPage() {
         <p style={{ marginTop: 8, fontSize: 12, color: 'var(--text-3, #64748B)', textAlign: 'center' }}>
           Staff access: <Link to="/helpdesk/dashboard" style={{ color: 'var(--gold-champagne, #DDBB6A)' }}>Help Desk Portal</Link>
         </p>
+        <p style={{ marginTop: 12, fontSize: 12, color: 'var(--text-3, #64748B)', textAlign: 'center' }}>
+          <Link to="/" style={{ color: 'var(--text-2, #94A3B8)', textDecoration: 'none' }}>← Back to Public Ward Portal</Link>
+        </p>
       </div>
     </div>
   );
