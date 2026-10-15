@@ -1,18 +1,20 @@
 import React, { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/Icon.jsx';
+import { useAuth } from '../../../context/AuthContext.jsx';
 
 const MCA_ITEMS = [
   { label: 'Home', path: '/mca/dashboard', icon: 'home' },
   { label: 'Applications', path: '/mca/applications', icon: 'applications' },
-  { label: 'Documents', path: '/mca/documents', icon: 'documents' },
-  { label: 'Help Desk', path: '/helpdesk/dashboard', icon: 'support' },
-  { label: 'Notifications', path: '/mca/notifications', icon: 'bell' },
+  { label: 'Institutes', path: '/mca/institutes', icon: 'documents' },
+  { label: 'Issues & Developments', path: '/mca/issues', icon: 'calendar' },
+  { label: 'Help Desk Messages', path: '/mca/messages', icon: 'bell' },
   { label: 'Profile', path: '/mca/profile', icon: 'profile' }
 ];
 
 export function MCASlideMenu({ open, onClose }) {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -30,10 +32,14 @@ export function MCASlideMenu({ open, onClose }) {
     };
   }, [open, onClose]);
 
-  function handleLogout() {
+  async function handleLogout() {
     onClose();
-    window.alert('You would be signed out safely — demo not connected yet.');
-    navigate('/mca/dashboard');
+    try {
+      if (signOut) await signOut();
+    } catch {
+      // fallback
+    }
+    navigate('/login');
   }
 
   return (
@@ -49,7 +55,10 @@ export function MCASlideMenu({ open, onClose }) {
         aria-label="MCA menu"
       >
         <div className="slide-menu__header">
-          <span className="slide-menu__title">MCA menu</span>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="slide-menu__title" style={{ fontWeight: 700 }}>MCA Portal</span>
+            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Tendeno / Sorget Ward</span>
+          </div>
           <button type="button" className="slide-menu__close" onClick={onClose} aria-label="Close menu">
             ×
           </button>
@@ -69,9 +78,18 @@ export function MCASlideMenu({ open, onClose }) {
               {item.label}
             </NavLink>
           ))}
+          <NavLink
+            to="/helpdesk/dashboard"
+            className="slide-menu__link"
+            onClick={onClose}
+            style={{ color: '#fbbf24', borderTop: '1px solid var(--border-subtle, rgba(255,255,255,0.08))', marginTop: 8 }}
+          >
+            <Icon name="support" size={22} />
+            Help Desk Portal
+          </NavLink>
           <button type="button" className="slide-menu__link slide-menu__link--logout" onClick={handleLogout}>
             <Icon name="logout" size={22} />
-            Logout
+            Sign Out / Login
           </button>
         </nav>
       </aside>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Icon } from '../../../components/Icon.jsx';
 import { useTheme } from '../../../context/ThemeContext.jsx';
 
@@ -30,7 +30,16 @@ export function MCAHeader({
           </span>
         </button>
 
-        <h1 className="site-header__page-title">{pageTitle}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <h1 className="site-header__page-title" style={{ margin: 0 }}>{pageTitle}</h1>
+          <nav className="mca-header-desktop-nav" aria-label="MCA header navigation">
+            <NavLink to="/mca/dashboard" end>Home</NavLink>
+            <NavLink to="/mca/applications">Applications</NavLink>
+            <NavLink to="/mca/issues">Issues</NavLink>
+            <NavLink to="/mca/messages">Messages</NavLink>
+            <NavLink to="/mca/profile">Profile</NavLink>
+          </nav>
+        </div>
 
         <div className="header-actions header-actions--right">
           <div className="header-branding">
@@ -39,7 +48,7 @@ export function MCAHeader({
               alt="NG-CDF"
               className="header-branding__logo"
             />
-            <span className="header-branding__text">Tendeno/Sorget Bursary Portal</span>
+            <span className="header-branding__text">Tendeno/Sorget MCA Office</span>
           </div>
 
           <button
@@ -65,7 +74,7 @@ export function MCAHeader({
 
           {showProfile ? (
             <Link className="header-avatar" to="/mca/profile" aria-label="Open profile">
-              <span aria-hidden="true">{mcaName ? mcaName.split(' ').map(n=>n[0]).join('') : 'MA'}</span>
+              <span aria-hidden="true">{mcaName ? mcaName.split(' ').map(n=>n[0]).slice(0, 2).join('') : 'HB'}</span>
             </Link>
           ) : null}
         </div>

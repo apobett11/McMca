@@ -10,23 +10,24 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState(null);
 
-  async function fetchUserRole(userId) {
+  async function fetchUserRole(userId, fallbackUser) {
     try {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('auth_user_id', userId)
-        .single();
-      if (!error && data) {
+        .maybeSingle();
+      if (!error && data?.role) {
         setRole(data.role);
         return data.role;
-      } else {
-        setRole(null);
-        return null;
       }
+      const metaRole = fallbackUser?.user_metadata?.role || (await supabase.auth.getUser())?.data?.user?.user_metadata?.role || null;
+      setRole(metaRole);
+      return metaRole;
     } catch {
-      setRole(null);
-      return null;
+      const metaRole = fallbackUser?.user_metadata?.role || null;
+      setRole(metaRole);
+      return metaRole;
     }
   }
 
@@ -42,7 +43,8 @@ export function AuthProvider({ children }) {
       return nextSession?.user ?? null;
     }
 
-    function ensureRole(userId) {
+    function ensureRole(userObj) {
+      const userId = userObj?.id || userObj;
       if (!userId) {
         roleFor = null;
         rolePromise = null;
@@ -51,7 +53,7 @@ export function AuthProvider({ children }) {
       }
       if (roleFor === userId && rolePromise) return rolePromise;
       roleFor = userId;
-      rolePromise = fetchUserRole(userId);
+      rolePromise = fetchUserRole(userId, typeof userObj === 'object' ? userObj : null);
       return rolePromise;
     }
 
@@ -61,7 +63,7 @@ export function AuthProvider({ children }) {
         const { data: { session: s } } = await supabase.auth.getSession();
         if (!active) return;
         const current = applySession(s);
-        if (current) await ensureRole(current.id);
+        if (current) await ensureRole(current);
         else setRole(null);
       } catch (err) {
         console.error('Error during auth initialization', err);

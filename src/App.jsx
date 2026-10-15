@@ -194,6 +194,7 @@ export function App() {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/onboarding" element={<Navigate to="/" replace />} />
                 <Route path="/helpdesk/*" element={<HelpDeskRoutes />} />
+                <Route path="/mca/*" element={<MCARoutes />} />
                 <Route path="/*" element={
                   <ProtectedRoute>
                     <AccountGate>

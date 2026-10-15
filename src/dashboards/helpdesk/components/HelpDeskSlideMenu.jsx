@@ -7,6 +7,7 @@ const HELPDESK_ITEMS = [
   { label: 'Home', path: '/helpdesk/dashboard', icon: 'home' },
   { label: 'Documents', path: '/helpdesk/documents', icon: 'documents' },
   { label: 'Applications', path: '/helpdesk/applications', icon: 'applications' },
+  { label: 'Institutions', path: '/helpdesk/institutions', icon: 'documents' },
   { label: 'Messages', path: '/helpdesk/messages', icon: 'support' },
   { label: 'Profile', path: '/helpdesk/profile', icon: 'profile' }
 ];
