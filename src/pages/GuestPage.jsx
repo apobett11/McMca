@@ -781,603 +781,584 @@ export function GuestPage() {
         </div>
       </aside>
 
-      {/* 5. HERO SECTION */}
-      <section id="hero" className="gp-section gp-hero">
-        <div className="gp-container">
-          <span className="gp-badge gp-badge--blue">
-            <GuestIcon name="shield" size={13} /> Official Ward Civic Portal
-          </span>
-          <h1 className="gp-hero__title">
-            Empowering <span>Tendeno / Sorget Ward</span>
-          </h1>
-          <p className="gp-hero__lead">
-            Transparent education bursary allocation, real-time constituency development tracking,
-            and direct community governance under the Member of County Assembly.
-          </p>
-
-          {/* 4 Analytics In Cards (Clickable, claymorphism depth & true analytics) */}
-          <div className="gp-analytics-grid">
-            {/* Card 1: Schools Covered */}
-            <div
-              className="gp-metric-card gp-metric-card--clay"
-              role="button"
-              tabIndex={0}
-              onClick={() =>
-                setMetricModal({
-                  title: 'Schools Covered in Ward',
-                  value: '28 Schools',
-                  badge: '100% Ward Coverage',
-                  description: 'Spanning all 6 sub-locations, comprising 14 primary schools, 9 secondary schools, and 5 technical/vocational institutions.',
-                  details: [
-                    'Parklands Central: 8 schools (4 Primary, 3 Secondary, 1 Vocational)',
-                    'Highridge Village: 6 schools (3 Primary, 2 Secondary, 1 Polytechnic)',
-                    'Sorget Central: 5 schools (3 Primary, 1 Secondary, 1 Technical)',
-                    'Spring Valley: 4 schools (2 Primary, 2 Secondary)',
-                    'Tendeno North: 3 schools (2 Primary, 1 Secondary)',
-                    'Kapsorok Sub-Village: 2 schools (1 Primary, 1 Secondary)'
-                  ]
-                })
-              }
-              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
-            >
-              <div className="gp-metric-card__header">
-                <span className="gp-metric-card__lbl">Schools Covered</span>
-                <span className="gp-metric-card__icon gp-metric-card__icon--blue">
-                  <GuestIcon name="school" size={16} />
-                </span>
-              </div>
-              <div className="gp-metric-card__val">28</div>
-              <div className="gp-metric-card__sub">All 6 Locations Covered</div>
-              
-              {/* Mini True Analytics Breakdown right on the card */}
-              <div className="gp-card-analytics">
-                <div className="gp-card-stat-row">
-                  <span>Parklands: <strong>8</strong></span>
-                  <span>Highridge: <strong>6</strong></span>
-                </div>
-                <div className="gp-card-stat-row">
-                  <span>Sorget: <strong>5</strong></span>
-                  <span>Spring Valley: <strong>4</strong></span>
-                </div>
-                <div className="gp-card-stat-row">
-                  <span>Tendeno: <strong>3</strong></span>
-                  <span>Kapsorok: <strong>2</strong></span>
-                </div>
-              </div>
-
-              <div className="gp-metric-card__arrow">
-                View distribution <GuestIcon name="chevronRight" size={12} />
-              </div>
-            </div>
-
-            {/* Card 2: Bursaries Awarded */}
-            <div
-              className="gp-metric-card gp-metric-card--clay"
-              role="button"
-              tabIndex={0}
-              onClick={() =>
-                setMetricModal({
-                  title: 'Bursaries Awarded per Village',
-                  value: '2,450+ Beneficiaries',
-                  badge: 'KES 18.5M Allocated',
-                  description: 'All applications are vetted through village barazas and verified by the Area Chief to ensure fairness and zero bias.',
-                  details: [
-                    'Parklands Central: 590 beneficiaries (KES 4.4M)',
-                    'Highridge Village: 410 beneficiaries (KES 3.1M)',
-                    'Sorget Central: 380 beneficiaries (KES 2.9M)',
-                    'Spring Valley: 295 beneficiaries (KES 2.2M)',
-                    'Tendeno North: 240 beneficiaries (KES 1.8M)',
-                    'Kapsorok Sub-Village: 145 beneficiaries (KES 1.1M)',
-                    'Tertiary & Special Needs Fund: 390 sponsored (KES 3.0M)'
-                  ]
-                })
-              }
-              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
-            >
-              <div className="gp-metric-card__header">
-                <span className="gp-metric-card__lbl">Bursaries Awarded</span>
-                <span className="gp-metric-card__icon gp-metric-card__icon--green">
-                  <GuestIcon name="bursary" size={16} />
-                </span>
-              </div>
-              <div className="gp-metric-card__val">2,450+</div>
-              <div className="gp-metric-card__sub">KES 18.5M Total Awarded</div>
-
-              {/* Mini True Analytics Breakdown per location */}
-              <div className="gp-card-analytics">
-                <div className="gp-card-stat-row">
-                  <span>Parklands: <strong>590</strong></span>
-                  <span>Highridge: <strong>410</strong></span>
-                </div>
-                <div className="gp-card-stat-row">
-                  <span>Sorget: <strong>380</strong></span>
-                  <span>Spring Valley: <strong>295</strong></span>
-                </div>
-                <div className="gp-card-stat-row">
-                  <span>Tendeno: <strong>240</strong></span>
-                  <span>Kapsorok: <strong>145</strong></span>
-                </div>
-              </div>
-
-              <div className="gp-metric-card__arrow">
-                Review allocations <GuestIcon name="chevronRight" size={12} />
-              </div>
-            </div>
-
-            {/* Card 3: Institutes / TVETs (Replaces Hospitals & Clinics) */}
-            <div
-              className="gp-metric-card gp-metric-card--clay gp-metric-card--tvet"
-              role="button"
-              tabIndex={0}
-              onClick={() => setTvetInfoModalOpen(true)}
-              onKeyDown={(e) => e.key === 'Enter' && setTvetInfoModalOpen(true)}
-            >
-              <div className="gp-metric-card__header">
-                <span className="gp-metric-card__lbl">Institutes / TVETs</span>
-                <span className="gp-metric-card__icon gp-metric-card__icon--gold">
-                  <GuestIcon name="tvet" size={16} />
-                </span>
-              </div>
-              <div className="gp-metric-card__val">6 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--gp-text-muted)' }}>Centres</span></div>
-              <div className="gp-metric-card__sub" style={{ color: '#D97706', fontWeight: 700 }}>260 Fully Paid Vacancies</div>
-
-              {/* Mini True Analytics Breakdown per TVET */}
-              <div className="gp-card-analytics">
-                <div className="gp-card-stat-row">
-                  <span>Tendeno VTC: <strong>60</strong></span>
-                  <span>Chepsir TTI: <strong>50</strong></span>
-                </div>
-                <div className="gp-card-stat-row">
-                  <span>Sorget Tech: <strong>45</strong></span>
-                  <span>Kapsebet: <strong>40</strong></span>
-                </div>
-                <div className="gp-card-stat-row">
-                  <span>Kapkures: <strong>35</strong></span>
-                  <span>Kapchelach: <strong>25</strong></span>
-                </div>
-              </div>
-
-              <div className="gp-metric-card__arrow" style={{ color: 'var(--gp-blue-bright)' }}>
-                View courses & apply <GuestIcon name="chevronRight" size={12} />
-              </div>
-            </div>
-
-            {/* Card 4: Developments */}
-            <div
-              className="gp-metric-card gp-metric-card--clay"
-              role="button"
-              tabIndex={0}
-              onClick={() =>
-                setMetricModal({
-                  title: 'Ward Development Projects',
-                  value: '42 Projects Delivered',
-                  badge: 'FY 2024–2026',
-                  description: 'Key community infrastructure including roads, high-yield boreholes, youth innovation hubs, and market floodlighting.',
-                  details: [
-                    'Civic Roads: 14km graded, culverts & bridges installed',
-                    'Clean Water: 12 solar boreholes and community kiosks',
-                    'Security Lighting: 10 trading centers with solar streetlamps',
-                    'School Infrastructure: 6 science labs & multi-purpose classrooms'
-                  ]
-                })
-              }
-              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
-            >
-              <div className="gp-metric-card__header">
-                <span className="gp-metric-card__lbl">Ward Developments</span>
-                <span className="gp-metric-card__icon gp-metric-card__icon--navy">
-                  <GuestIcon name="development" size={16} />
-                </span>
-              </div>
-              <div className="gp-metric-card__val">42</div>
-              <div className="gp-metric-card__sub">Across All 6 Sub-Locations</div>
-
-              {/* Mini True Analytics Breakdown */}
-              <div className="gp-card-analytics">
-                <div className="gp-card-stat-row">
-                  <span>Roads: <strong>14 km</strong></span>
-                  <span>Boreholes: <strong>12</strong></span>
-                </div>
-                <div className="gp-card-stat-row">
-                  <span>Solar Lights: <strong>10</strong></span>
-                  <span>School Labs: <strong>6</strong></span>
-                </div>
-              </div>
-
-              <div className="gp-metric-card__arrow">
-                Explore projects <GuestIcon name="chevronRight" size={12} />
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Buttons: Apply Bursary (dropdown: student, parent), Log in an issue, Institutes/TVETs */}
-          <div className="gp-quick-actions">
-            {/* 1. Apply Bursary with Dropdown */}
-            <div className="gp-dropdown-wrap" ref={dropdownRef}>
-              <button
-                type="button"
-                className="gp-btn gp-btn--primary gp-btn--clay"
-                onClick={() => setBursaryDropdownOpen(!bursaryDropdownOpen)}
-                aria-expanded={bursaryDropdownOpen}
-              >
-                <GuestIcon name="bursary" size={16} />
-                <span>Apply Bursary</span>
-                <GuestIcon name="chevronDown" size={14} />
-              </button>
-
-              {bursaryDropdownOpen && (
-                <div className="gp-dropdown-menu" role="menu">
-                  <button
-                    type="button"
-                    className="gp-dropdown-item"
-                    role="menuitem"
-                    onClick={() => {
-                      setBursaryDropdownOpen(false);
-                      navigate('/register?role=student');
-                    }}
-                  >
-                    <GuestIcon name="user" size={16} />
-                    <div>
-                      <div>Student Application</div>
-                      <small style={{ color: 'var(--gp-text-muted)' }}>Self-register with National ID</small>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    className="gp-dropdown-item"
-                    role="menuitem"
-                    onClick={() => {
-                      setBursaryDropdownOpen(false);
-                      navigate('/register?role=parent');
-                    }}
-                  >
-                    <GuestIcon name="school" size={16} />
-                    <div>
-                      <div>Parent Application</div>
-                      <small style={{ color: 'var(--gp-text-muted)' }}>Apply for your child / dependent</small>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* 2. Log in an Issue */}
-            <button
-              type="button"
-              className="gp-btn gp-btn--navy gp-btn--clay"
-              onClick={() => setIssueModalOpen(true)}
-            >
-              <GuestIcon name="alert" size={16} />
-              <span>Log in an Issue</span>
-            </button>
-
-            {/* 3. Institutes / TVETs button */}
-            <button
-              type="button"
-              className="gp-btn gp-btn--gold gp-btn--clay"
-              onClick={() => setTvetInfoModalOpen(true)}
-            >
-              <GuestIcon name="tvet" size={16} />
-              <span>Institutes / TVETs (Paid Vacancies)</span>
-            </button>
-          </div>
-
-          {/* Small General Analytics At Bottom Of Hero */}
-          <div className="gp-general-analytics gp-glass-card">
-            <div className="gp-general-analytics__item">
-              <span className="gp-general-analytics__dot" />
-              <span><strong>KES 24.5M</strong> Ward Fund Pool</span>
-            </div>
-            <div className="gp-general-analytics__item">
-              <span className="gp-general-analytics__dot" />
-              <span><strong>98.2%</strong> Allocation Transparency</span>
-            </div>
-            <div className="gp-general-analytics__item">
-              <span className="gp-general-analytics__dot" />
-              <span><strong>5 Sub-Locations</strong> Connected</span>
-            </div>
-            <div className="gp-general-analytics__item">
-              <span className="gp-general-analytics__dot" />
-              <span><strong>3–5 Days</strong> Average Review</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION DEMARCATION: HERO -> BURSARY */}
-      <div className="gp-section-demarcation" aria-hidden="true">
-        <div className="gp-demarcation-line" />
-        <div className="gp-demarcation-pill">
-          <span className="gp-demarcation-dot" />
-          <span className="gp-demarcation-text">SECTION 01 END • BURSARY APPLICATION PROCESS NEXT</span>
-          <span className="gp-demarcation-dot" />
-        </div>
-        <div className="gp-demarcation-line" />
-      </div>
-
-      {/* 6. BURSARY APPLICATION SECTION (STEPS & SELECTION) */}
-      <section id="bursary" className="gp-section gp-section--alt">
-        <div className="gp-container">
-          <div className="gp-section-header">
-            <span className="gp-badge gp-badge--blue">Simple Step-By-Step Guide</span>
-            <h2 className="gp-section-title">Bursary Application Process</h2>
-            <p className="gp-section-desc">
-              Select your academic level or role to view exact requirements and step-by-step guidance.
+      {/* MAIN CIVIC CONTENT CONTAINER (Each section enclosed in an elevated card) */}
+      <main className="gp-main-content">
+        <div className="gp-container gp-sections-stack">
+          {/* 1. HERO SECTION CARD */}
+          <section id="hero" className="gp-section-card gp-section-card--hero">
+            <span className="gp-badge gp-badge--blue">
+              <GuestIcon name="shield" size={13} /> Official Ward Civic Portal
+            </span>
+            <h1 className="gp-hero__title">
+              Empowering <span>Tendeno / Sorget Ward</span>
+            </h1>
+            <p className="gp-hero__lead">
+              Transparent education bursary allocation, real-time constituency development tracking,
+              and direct community governance under the Member of County Assembly.
             </p>
-          </div>
 
-          {/* Persona / Study Level Selector */}
-          <div className="gp-persona-pills">
-            {Object.entries(STEPS_CONFIG).map(([key, config]) => (
-              <button
-                key={key}
-                type="button"
-                className={`gp-persona-pill ${selectedPersona === key ? 'is-active' : ''}`}
-                onClick={() => setSelectedPersona(key)}
+            {/* 4 Analytics In Cards (Clear hierarchy: Header, Number, Extra Information, View Distribution Button) */}
+            <div className="gp-analytics-grid">
+              {/* Card 1: Schools Covered */}
+              <div
+                className="gp-metric-card gp-metric-card--clay"
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  setMetricModal({
+                    title: 'Schools Covered in Ward',
+                    value: '28 Schools',
+                    badge: '100% Ward Coverage',
+                    description: 'Comprehensive educational infrastructure mapping spanning all 6 sub-locations, comprising 14 primary schools, 9 secondary schools, and 5 technical/vocational institutions.',
+                    analytics: [
+                      { name: 'Parklands Central', val: '8 schools' },
+                      { name: 'Highridge Village', val: '6 schools' },
+                      { name: 'Sorget Central', val: '5 schools' },
+                      { name: 'Spring Valley', val: '4 schools' },
+                      { name: 'Tendeno North', val: '3 schools' },
+                      { name: 'Kapsorok Sub-Village', val: '2 schools' }
+                    ],
+                    details: [
+                      'Primary Schools: 14 supported with desks, solar lighting & sanitation',
+                      'Secondary Schools: 9 funded with science lab equipment & CDF bursaries',
+                      'Tertiary / Vocational: 5 institutes with specialized training subsidies'
+                    ]
+                  })
+                }
+                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
               >
-                {config.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Dynamic 4 Steps Display */}
-          <div className="gp-steps-grid">
-            {STEPS_CONFIG[selectedPersona].steps.map((st) => (
-              <div key={st.num} className="gp-step-card">
-                <div className="gp-step-card__num">{st.num}</div>
-                <h3 className="gp-step-card__title">{st.title}</h3>
-                <p className="gp-step-card__desc">{st.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Checklist Box */}
-          <div className="gp-requirements-box">
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--gp-navy)', marginBottom: 6 }}>
-                Required Documents for {STEPS_CONFIG[selectedPersona].label}:
-              </div>
-              <div className="gp-requirements-list">
-                {STEPS_CONFIG[selectedPersona].requirements.map((req) => (
-                  <span key={req} className="gp-req-chip">
-                    <GuestIcon name="check" size={13} /> {req}
+                <div className="gp-metric-card__header">
+                  <span className="gp-metric-card__lbl">Schools Covered</span>
+                  <span className="gp-metric-card__icon gp-metric-card__icon--blue">
+                    <GuestIcon name="school" size={17} />
                   </span>
+                </div>
+                <div className="gp-metric-card__body">
+                  <div className="gp-metric-card__val">28</div>
+                  <div className="gp-metric-card__sub">
+                    <span className="gp-metric-card__sub-dot gp-metric-card__sub-dot--blue" />
+                    <span>All 6 Locations Covered</span>
+                  </div>
+                </div>
+                <div className="gp-metric-card__footer">
+                  <span className="gp-metric-card__btn">
+                    <span>View distribution</span>
+                    <GuestIcon name="chevronRight" size={12} />
+                  </span>
+                </div>
+              </div>
+
+              {/* Card 2: Bursaries Awarded */}
+              <div
+                className="gp-metric-card gp-metric-card--clay"
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  setMetricModal({
+                    title: 'Bursary Allocations & Beneficiaries',
+                    value: '2,450+ Beneficiaries',
+                    badge: 'KES 18.5M Allocated',
+                    description: 'All applications are vetted through village barazas and verified by the Area Chief to ensure fairness and zero bias.',
+                    analytics: [
+                      { name: 'Parklands Central', val: '590 (KES 4.4M)' },
+                      { name: 'Highridge Village', val: '410 (KES 3.1M)' },
+                      { name: 'Sorget Central', val: '380 (KES 2.9M)' },
+                      { name: 'Spring Valley', val: '295 (KES 2.2M)' },
+                      { name: 'Tendeno North', val: '240 (KES 1.8M)' },
+                      { name: 'Kapsorok Sub-Village', val: '145 (KES 1.1M)' },
+                      { name: 'Tertiary & Special Needs', val: '390 (KES 3.0M)' }
+                    ],
+                    details: [
+                      'High School Learners: 1,420 students supported across secondary schools',
+                      'University & College: 780 students supported in tertiary institutions',
+                      'Special Needs & Affirmative Action: 250 fully sponsored'
+                    ]
+                  })
+                }
+                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
+              >
+                <div className="gp-metric-card__header">
+                  <span className="gp-metric-card__lbl">Bursaries Awarded</span>
+                  <span className="gp-metric-card__icon gp-metric-card__icon--green">
+                    <GuestIcon name="bursary" size={17} />
+                  </span>
+                </div>
+                <div className="gp-metric-card__body">
+                  <div className="gp-metric-card__val">2,450+</div>
+                  <div className="gp-metric-card__sub">
+                    <span className="gp-metric-card__sub-dot gp-metric-card__sub-dot--green" />
+                    <span>KES 18.5M Total Awarded</span>
+                  </div>
+                </div>
+                <div className="gp-metric-card__footer">
+                  <span className="gp-metric-card__btn">
+                    <span>View distribution</span>
+                    <GuestIcon name="chevronRight" size={12} />
+                  </span>
+                </div>
+              </div>
+
+              {/* Card 3: Institutes / TVETs */}
+              <div
+                className="gp-metric-card gp-metric-card--clay gp-metric-card--tvet"
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  setMetricModal({
+                    title: 'Institutes & TVET Paid Vacancies',
+                    value: '260 Sponsored Seats',
+                    badge: '100% Fully Paid by Ward Fund',
+                    description: 'Fully funded vocational courses across 6 accredited campuses in Tendeno / Sorget Ward. Zero tuition fees for registered ward youth.',
+                    analytics: [
+                      { name: 'Tendeno VTC', val: '60 Vacancies' },
+                      { name: 'Chepsir TTI', val: '50 Vacancies' },
+                      { name: 'Sorget Tech', val: '45 Vacancies' },
+                      { name: 'Kapsebet College', val: '40 Vacancies' },
+                      { name: 'Kapkures Polytechnic', val: '35 Vacancies' },
+                      { name: 'Kapchelach Hub', val: '25 Vacancies' }
+                    ],
+                    details: [
+                      'Electrical & Solar Systems: 60 fully paid trainee positions',
+                      'Agribusiness, Irrigation & Dairy: 45 fully funded practical positions',
+                      'ICT, Graphic Design & Computer Lab: 50 fully funded seats',
+                      'Automotive Mechanics, Plumbing & Construction: 105 sponsored seats'
+                    ],
+                    actionLabel: 'Browse Courses & Apply Now',
+                    action: () => setTvetInfoModalOpen(true)
+                  })
+                }
+                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
+              >
+                <div className="gp-metric-card__header">
+                  <span className="gp-metric-card__lbl">Institutes / TVETs</span>
+                  <span className="gp-metric-card__icon gp-metric-card__icon--gold">
+                    <GuestIcon name="tvet" size={17} />
+                  </span>
+                </div>
+                <div className="gp-metric-card__body">
+                  <div className="gp-metric-card__val">
+                    6 <span className="gp-metric-card__unit">Centres</span>
+                  </div>
+                  <div className="gp-metric-card__sub gp-metric-card__sub--gold">
+                    <span className="gp-metric-card__sub-dot gp-metric-card__sub-dot--gold" />
+                    <span>260 Fully Paid Vacancies</span>
+                  </div>
+                </div>
+                <div className="gp-metric-card__footer">
+                  <span className="gp-metric-card__btn">
+                    <span>View distribution</span>
+                    <GuestIcon name="chevronRight" size={12} />
+                  </span>
+                </div>
+              </div>
+
+              {/* Card 4: Developments */}
+              <div
+                className="gp-metric-card gp-metric-card--clay"
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  setMetricModal({
+                    title: 'Ward Development Projects',
+                    value: '42 Projects Delivered',
+                    badge: 'FY 2024–2026',
+                    description: 'Key community infrastructure including roads, high-yield boreholes, youth innovation hubs, and market floodlighting.',
+                    analytics: [
+                      { name: 'Civic Roads', val: '14 km graded' },
+                      { name: 'Solar Boreholes', val: '12 active' },
+                      { name: 'Solar Streetlights', val: '10 centers' },
+                      { name: 'School Laboratories', val: '6 built' }
+                    ],
+                    details: [
+                      'Water: 12 high-yield solar boreholes and community distribution kiosks',
+                      'Roads: 14km all-weather graded, culverts & stream bridges installed',
+                      'Security: 10 rural trading centers illuminated with solar streetlamps',
+                      'School Infrastructure: 6 science laboratories and modern classroom blocks'
+                    ]
+                  })
+                }
+                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
+              >
+                <div className="gp-metric-card__header">
+                  <span className="gp-metric-card__lbl">Ward Developments</span>
+                  <span className="gp-metric-card__icon gp-metric-card__icon--navy">
+                    <GuestIcon name="development" size={17} />
+                  </span>
+                </div>
+                <div className="gp-metric-card__body">
+                  <div className="gp-metric-card__val">42</div>
+                  <div className="gp-metric-card__sub">
+                    <span className="gp-metric-card__sub-dot gp-metric-card__sub-dot--navy" />
+                    <span>Across All 6 Sub-Locations</span>
+                  </div>
+                </div>
+                <div className="gp-metric-card__footer">
+                  <span className="gp-metric-card__btn">
+                    <span>View distribution</span>
+                    <GuestIcon name="chevronRight" size={12} />
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Buttons: Apply Bursary (dropdown: student, parent), Log in an issue, Institutes/TVETs */}
+            <div className="gp-quick-actions">
+              {/* 1. Apply Bursary with Dropdown */}
+              <div className="gp-dropdown-wrap" ref={dropdownRef}>
+                <button
+                  type="button"
+                  className="gp-btn gp-btn--primary gp-btn--clay"
+                  onClick={() => setBursaryDropdownOpen(!bursaryDropdownOpen)}
+                  aria-expanded={bursaryDropdownOpen}
+                >
+                  <GuestIcon name="bursary" size={16} />
+                  <span>Apply Bursary</span>
+                  <GuestIcon name="chevronDown" size={14} />
+                </button>
+
+                {bursaryDropdownOpen && (
+                  <div className="gp-dropdown-menu" role="menu">
+                    <button
+                      type="button"
+                      className="gp-dropdown-item"
+                      role="menuitem"
+                      onClick={() => {
+                        setBursaryDropdownOpen(false);
+                        navigate('/register?role=student');
+                      }}
+                    >
+                      <GuestIcon name="user" size={16} />
+                      <div>
+                        <div>Student Application</div>
+                        <small style={{ color: 'var(--gp-text-muted)' }}>Self-register with National ID</small>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      className="gp-dropdown-item"
+                      role="menuitem"
+                      onClick={() => {
+                        setBursaryDropdownOpen(false);
+                        navigate('/register?role=parent');
+                      }}
+                    >
+                      <GuestIcon name="school" size={16} />
+                      <div>
+                        <div>Parent Application</div>
+                        <small style={{ color: 'var(--gp-text-muted)' }}>Apply for your child / dependent</small>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. Log in an Issue */}
+              <button
+                type="button"
+                className="gp-btn gp-btn--navy gp-btn--clay"
+                onClick={() => setIssueModalOpen(true)}
+              >
+                <GuestIcon name="alert" size={16} />
+                <span>Log in an Issue</span>
+              </button>
+
+              {/* 3. Institutes / TVETs button */}
+              <button
+                type="button"
+                className="gp-btn gp-btn--gold gp-btn--clay"
+                onClick={() => setTvetInfoModalOpen(true)}
+              >
+                <GuestIcon name="tvet" size={16} />
+                <span>Institutes / TVETs (Paid Vacancies)</span>
+              </button>
+            </div>
+
+            {/* Small General Analytics At Bottom Of Hero */}
+            <div className="gp-general-analytics gp-glass-card">
+              <div className="gp-general-analytics__item">
+                <span className="gp-general-analytics__dot" />
+                <span><strong>KES 24.5M</strong> Ward Fund Pool</span>
+              </div>
+              <div className="gp-general-analytics__item">
+                <span className="gp-general-analytics__dot" />
+                <span><strong>98.2%</strong> Allocation Transparency</span>
+              </div>
+              <div className="gp-general-analytics__item">
+                <span className="gp-general-analytics__dot" />
+                <span><strong>5 Sub-Locations</strong> Connected</span>
+              </div>
+              <div className="gp-general-analytics__item">
+                <span className="gp-general-analytics__dot" />
+                <span><strong>3–5 Days</strong> Average Review</span>
+              </div>
+            </div>
+          </section>
+
+          {/* 2. BURSARY APPLICATION SECTION CARD */}
+          <section id="bursary" className="gp-section-card gp-section-card--bursary">
+            <div className="gp-section-header">
+              <span className="gp-badge gp-badge--blue">Simple Step-By-Step Guide</span>
+              <h2 className="gp-section-title">Bursary Application Process</h2>
+              <p className="gp-section-desc">
+                Select your academic level or role to view exact requirements and step-by-step guidance.
+              </p>
+            </div>
+
+            {/* Persona / Study Level Selector */}
+            <div className="gp-persona-pills">
+              {Object.entries(STEPS_CONFIG).map(([key, config]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`gp-persona-pill ${selectedPersona === key ? 'is-active' : ''}`}
+                  onClick={() => setSelectedPersona(key)}
+                >
+                  {config.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Dynamic 4 Steps Display */}
+            <div className="gp-steps-grid">
+              {STEPS_CONFIG[selectedPersona].steps.map((st) => (
+                <div key={st.num} className="gp-step-card">
+                  <div className="gp-step-card__num">{st.num}</div>
+                  <h3 className="gp-step-card__title">{st.title}</h3>
+                  <p className="gp-step-card__desc">{st.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Checklist & Action Box */}
+            <div className="gp-requirements-box">
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--gp-navy)', marginBottom: 6 }}>
+                  Required Documents for {STEPS_CONFIG[selectedPersona].label}:
+                </div>
+                <div className="gp-requirements-list">
+                  {STEPS_CONFIG[selectedPersona].requirements.map((req) => (
+                    <span key={req} className="gp-req-chip">
+                      <GuestIcon name="check" size={13} /> {req}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Universal Apply Button -> Registers with appropriate role */}
+              <Link
+                to={selectedPersona === 'parent' ? '/register?role=parent' : '/register?role=student'}
+                className="gp-btn gp-btn--primary"
+                style={{ borderRadius: 999 }}
+              >
+                <span>Apply as {selectedPersona === 'parent' ? 'Parent' : 'Student'}</span>
+                <GuestIcon name="arrowRight" size={16} />
+              </Link>
+            </div>
+          </section>
+
+          {/* 3. CONSTITUENCY DEVELOPMENT SECTION CARD */}
+          <section id="development" className="gp-section-card gp-section-card--dev">
+            <div className="gp-section-header">
+              <span className="gp-badge gp-badge--navy">Accountability in Action</span>
+              <h2 className="gp-section-title">Constituency Development</h2>
+              <p className="gp-section-desc">
+                Explore key infrastructure completed across the ward and review school & bursary distribution per village.
+              </p>
+            </div>
+
+            {/* Infrastructure Projects Showcase Header */}
+            <div className="gp-subsection-block">
+              <div className="gp-subsection-header">
+                <h3 className="gp-subsection-title">Featured Ward Infrastructure Projects</h3>
+                <p className="gp-subsection-desc">Delivered across the 6 sub-locations with verified county budgetary allocations.</p>
+              </div>
+
+              {/* Projects Showcase (Side by side on mobile) */}
+              <div className="gp-projects-grid">
+                {PROJECTS.map((proj) => (
+                  <div key={proj.title} className="gp-project-card gp-project-card--clay">
+                    <div style={{ position: 'relative', height: 120, background: '#E2E8F0', overflow: 'hidden' }}>
+                      <img
+                        src={proj.imageUrl}
+                        alt={proj.title}
+                        className="gp-project-card__img"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                        style={{ position: 'relative', zIndex: 1 }}
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#94A3B8'
+                      }}>
+                        <GuestIcon name="development" size={28} />
+                      </div>
+                    </div>
+                    <div className="gp-project-card__body">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span className="gp-badge gp-badge--blue" style={{ fontSize: '0.68rem', padding: '2px 8px', margin: 0 }}>
+                          {proj.status}
+                        </span>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--gp-navy)' }}>
+                          {proj.budget}
+                        </span>
+                      </div>
+                      <h3 className="gp-project-card__title">{proj.title}</h3>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--gp-text-muted)', margin: 0, flex: 1 }}>
+                        {proj.summary}
+                      </p>
+                      <div className="gp-project-card__meta">
+                        <span>📍 {proj.village}</span>
+                        <span>{proj.category}</span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* Universal Apply Button -> Registers with appropriate role */}
-            <Link
-              to={selectedPersona === 'parent' ? '/register?role=parent' : '/register?role=student'}
-              className="gp-btn gp-btn--primary"
-              style={{ borderRadius: 999 }}
-            >
-              <span>Apply as {selectedPersona === 'parent' ? 'Parent' : 'Student'}</span>
-              <GuestIcon name="arrowRight" size={16} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION DEMARCATION: BURSARY -> DEVELOPMENT */}
-      <div className="gp-section-demarcation" aria-hidden="true">
-        <div className="gp-demarcation-line" />
-        <div className="gp-demarcation-pill">
-          <span className="gp-demarcation-dot" />
-          <span className="gp-demarcation-text">SECTION 02 END • CONSTITUENCY DEVELOPMENT NEXT</span>
-          <span className="gp-demarcation-dot" />
-        </div>
-        <div className="gp-demarcation-line" />
-      </div>
-
-      {/* 7. CONSTITUENCY DEVELOPMENT SECTION */}
-      <section id="development" className="gp-section gp-section--dev">
-        <div className="gp-container">
-          <div className="gp-section-header">
-            <span className="gp-badge gp-badge--navy">Accountability in Action</span>
-            <h2 className="gp-section-title">Constituency Development</h2>
-            <p className="gp-section-desc">
-              Explore key infrastructure completed across the ward and review school & bursary distribution per village.
-            </p>
-          </div>
-
-          {/* Place For Pictures: Ward Projects Showcase (Side by side on mobile) */}
-          <div className="gp-projects-grid">
-            {PROJECTS.map((proj) => (
-              <div key={proj.title} className="gp-project-card gp-project-card--clay">
-                <div style={{ position: 'relative', height: 120, background: '#E2E8F0', overflow: 'hidden' }}>
-                  <img
-                    src={proj.imageUrl}
-                    alt={proj.title}
-                    className="gp-project-card__img"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                    style={{ position: 'relative', zIndex: 1 }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#94A3B8'
-                  }}>
-                    <GuestIcon name="development" size={28} />
-                  </div>
-                </div>
-                <div className="gp-project-card__body">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span className="gp-badge gp-badge--blue" style={{ fontSize: '0.68rem', padding: '2px 8px', margin: 0 }}>
-                      {proj.status}
-                    </span>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--gp-navy)' }}>
-                      {proj.budget}
-                    </span>
-                  </div>
-                  <h3 className="gp-project-card__title">{proj.title}</h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--gp-text-muted)', margin: 0, flex: 1 }}>
-                    {proj.summary}
+            {/* Schools & Bursary Distribution per Village */}
+            <div className="gp-villages-card gp-glass-card">
+              <div className="gp-villages-header">
+                <div>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 700, color: 'var(--gp-navy)' }}>
+                    Schools & Bursary Distribution Per Village
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--gp-text-muted)' }}>
+                    Village-by-village allocation metrics across Tendeno/Sorget Ward.
                   </p>
-                  <div className="gp-project-card__meta">
-                    <span>📍 {proj.village}</span>
-                    <span>{proj.category}</span>
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
 
-          {/* Schools & Bursary Distribution per Village */}
-          <div className="gp-villages-card gp-glass-card">
-            <div className="gp-villages-header">
-              <div>
-                <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 700, color: 'var(--gp-navy)' }}>
-                  Schools & Bursary Distribution Per Village
-                </h3>
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--gp-text-muted)' }}>
-                  Village-by-village allocation metrics across Tendeno/Sorget Ward.
+                <input
+                  type="text"
+                  placeholder="Search village name…"
+                  value={villageSearch}
+                  onChange={(e) => setVillageSearch(e.target.value)}
+                  className="gp-search-input"
+                />
+              </div>
+
+              <div className="gp-table-wrap">
+                <table className="gp-table">
+                  <thead>
+                    <tr>
+                      <th>Village Name</th>
+                      <th>Schools Supported</th>
+                      <th>Total Students</th>
+                      <th>Awarded Bursary</th>
+                      <th>Coverage Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredVillages.map((v) => (
+                      <tr key={v.name}>
+                        <td style={{ fontWeight: 600 }}>{v.name}</td>
+                        <td>{v.schools} Schools</td>
+                        <td>{v.students.toLocaleString()} Learners</td>
+                        <td style={{ fontWeight: 700, color: 'var(--gp-blue-bright)' }}>
+                          {v.bursaries.toLocaleString()} Awarded
+                        </td>
+                        <td>
+                          <span className="gp-progress-bar">
+                            <span className="gp-progress-fill" style={{ width: `${v.pct}%` }} />
+                          </span>
+                          <span style={{ fontWeight: 700, fontSize: '0.75rem' }}>{v.pct}%</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredVillages.length === 0 && (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: 'var(--gp-text-muted)' }}>
+                          No villages match your search term.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Option To Send Complaint / Issue to MCA Office */}
+            <div id="issues" className="gp-issue-card gp-issue-card--clay">
+              <div className="gp-issue-card__info">
+                <h3 className="gp-issue-card__title">Have an issue or project needing repair?</h3>
+                <p className="gp-issue-card__desc">
+                  Notice broken water pumps, missing school desks, road blockages, or bursary concerns?
+                  Send an official complaint directly to the MCA Office for inspection.
                 </p>
               </div>
-
-              <input
-                type="text"
-                placeholder="Search village name…"
-                value={villageSearch}
-                onChange={(e) => setVillageSearch(e.target.value)}
-                className="gp-search-input"
-              />
+              <button
+                type="button"
+                className="gp-btn gp-btn--primary gp-btn--clay"
+                style={{ padding: '12px 24px', fontSize: '0.95rem' }}
+                onClick={() => setIssueModalOpen(true)}
+              >
+                <GuestIcon name="alert" size={18} />
+                <span>Submit Issue to MCA</span>
+              </button>
             </div>
+          </section>
 
-            <div className="gp-table-wrap">
-              <table className="gp-table">
-                <thead>
-                  <tr>
-                    <th>Village Name</th>
-                    <th>Schools Supported</th>
-                    <th>Total Students</th>
-                    <th>Awarded Bursary</th>
-                    <th>Coverage Rate</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredVillages.map((v) => (
-                    <tr key={v.name}>
-                      <td style={{ fontWeight: 600 }}>{v.name}</td>
-                      <td>{v.schools} Schools</td>
-                      <td>{v.students.toLocaleString()} Learners</td>
-                      <td style={{ fontWeight: 700, color: 'var(--gp-blue-bright)' }}>
-                        {v.bursaries.toLocaleString()} Awarded
-                      </td>
-                      <td>
-                        <span className="gp-progress-bar">
-                          <span className="gp-progress-fill" style={{ width: `${v.pct}%` }} />
-                        </span>
-                        <span style={{ fontWeight: 700, fontSize: '0.75rem' }}>{v.pct}%</span>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredVillages.length === 0 && (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: 'var(--gp-text-muted)' }}>
-                        No villages match your search term.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Option To Send Complaint / Issue to MCA Office */}
-          <div id="issues" className="gp-issue-card gp-issue-card--clay">
-            <div className="gp-issue-card__info">
-              <h3 className="gp-issue-card__title">Have an issue or project needing repair?</h3>
-              <p className="gp-issue-card__desc">
-                Notice broken water pumps, missing school desks, road blockages, or bursary concerns?
-                Send an official complaint directly to the MCA Office for inspection.
+          {/* 4. SOCIAL FORUM SECTION CARD */}
+          <section id="social" className="gp-section-card gp-section-card--social">
+            <div className="gp-section-header">
+              <span className="gp-badge gp-badge--blue">Stay Connected</span>
+              <h2 className="gp-section-title" style={{ color: '#FFFFFF' }}>Community Social Forum</h2>
+              <p className="gp-section-desc" style={{ color: '#94A3B8' }}>
+                Join official community groups, follow ward project announcements, and message the MCA office directly.
               </p>
             </div>
-            <button
-              type="button"
-              className="gp-btn gp-btn--primary gp-btn--clay"
-              style={{ padding: '12px 24px', fontSize: '0.95rem' }}
-              onClick={() => setIssueModalOpen(true)}
-            >
-              <GuestIcon name="alert" size={18} />
-              <span>Submit Issue to MCA</span>
-            </button>
-          </div>
-        </div>
-      </section>
 
-      {/* SECTION DEMARCATION: DEVELOPMENT -> SOCIAL */}
-      <div className="gp-section-demarcation" aria-hidden="true">
-        <div className="gp-demarcation-line" />
-        <div className="gp-demarcation-pill">
-          <span className="gp-demarcation-dot" />
-          <span className="gp-demarcation-text">SECTION 03 END • COMMUNITY SOCIAL FORUM NEXT</span>
-          <span className="gp-demarcation-dot" />
-        </div>
-        <div className="gp-demarcation-line" />
-      </div>
+            <div className="gp-social-box gp-glass-dark">
+              <p style={{ maxWidth: 560, margin: '0 auto', fontSize: '0.92rem', color: '#E2E8F0' }}>
+                Get verified public notices, baraza dates, and emergency alerts. Open to all residents of Tendeno / Sorget Ward.
+              </p>
 
-      {/* 8. SOCIAL FORUM SECTION */}
-      <section id="social" className="gp-section gp-section--social">
-        <div className="gp-container">
-          <div className="gp-section-header">
-            <span className="gp-badge gp-badge--blue">Stay Connected</span>
-            <h2 className="gp-section-title" style={{ color: '#FFFFFF' }}>Community Social Forum</h2>
-            <p className="gp-section-desc" style={{ color: '#94A3B8' }}>
-              Join official community groups, follow ward project announcements, and message the MCA office directly.
-            </p>
-          </div>
+              {/* Three Inline Social Buttons */}
+              <div className="gp-social-buttons">
+                <a
+                  href="https://chat.whatsapp.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="gp-btn gp-btn-whatsapp"
+                >
+                  <GuestIcon name="whatsapp" size={18} />
+                  <span>Join WhatsApp Community</span>
+                </a>
 
-          <div className="gp-social-box gp-glass-dark">
-            <p style={{ maxWidth: 560, margin: '0 auto', fontSize: '0.92rem', color: 'var(--gp-text-muted)' }}>
-              Get verified public notices, baraza dates, and emergency alerts. Open to all residents of Tendeno / Sorget Ward.
-            </p>
+                <a
+                  href="https://facebook.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="gp-btn gp-btn-facebook"
+                >
+                  <GuestIcon name="facebook" size={18} />
+                  <span>Follow Facebook Page</span>
+                </a>
 
-            {/* Three Inline Social Buttons */}
-            <div className="gp-social-buttons">
-              <a
-                href="https://chat.whatsapp.com/"
-                target="_blank"
-                rel="noreferrer"
-                className="gp-btn gp-btn-whatsapp"
-              >
-                <GuestIcon name="whatsapp" size={18} />
-                <span>Join WhatsApp Community</span>
-              </a>
+                <a
+                  href="https://wa.me/254700123456"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="gp-btn gp-btn-office"
+                >
+                  <GuestIcon name="message" size={18} />
+                  <span>Message MCA Office</span>
+                </a>
+              </div>
 
-              <a
-                href="https://facebook.com/"
-                target="_blank"
-                rel="noreferrer"
-                className="gp-btn gp-btn-facebook"
-              >
-                <GuestIcon name="facebook" size={18} />
-                <span>Follow Facebook Page</span>
-              </a>
-
-              <a
-                href="https://wa.me/254700123456"
-                target="_blank"
-                rel="noreferrer"
-                className="gp-btn gp-btn-office"
-              >
-                <GuestIcon name="message" size={18} />
-                <span>Message MCA Office</span>
-              </a>
+              <div style={{ fontSize: '0.78rem', color: '#94A3B8', marginTop: 8 }}>
+                Official channels monitored daily by the Ward Civic Secretariat.
+              </div>
             </div>
-
-            <div style={{ fontSize: '0.78rem', color: 'var(--gp-text-light)', marginTop: 8 }}>
-              Official channels monitored daily by the Ward Civic Secretariat.
-            </div>
-          </div>
+          </section>
         </div>
-      </section>
+      </main>
 
       {/* 9. FOOTER */}
       <footer className="gp-footer" role="contentinfo">
@@ -2280,7 +2261,7 @@ export function GuestPage() {
         </div>
       )}
 
-      {/* D. ANALYTICS CARD DETAIL MODAL */}
+      {/* D. ANALYTICS CARD DETAIL MODAL (Presents full analytics & distribution breakdown in popup) */}
       {metricModal && (
         <div
           className="gp-modal-backdrop"
@@ -2289,7 +2270,7 @@ export function GuestPage() {
           aria-labelledby="metric-dialog-title"
           onClick={() => setMetricModal(null)}
         >
-          <div className="gp-modal-box" onClick={(e) => e.stopPropagation()}>
+          <div className="gp-modal-box gp-modal-box--analytics" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               className="gp-modal-close"
@@ -2299,37 +2280,77 @@ export function GuestPage() {
               <GuestIcon name="close" size={18} />
             </button>
 
-            <span className="gp-badge gp-badge--green" style={{ marginBottom: 8 }}>
-              {metricModal.badge}
-            </span>
-            <h2 id="metric-dialog-title" style={{ margin: '0 0 2px', fontSize: '1.25rem', fontWeight: 700, color: 'var(--gp-navy)' }}>
-              {metricModal.title}
-            </h2>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--gp-blue-bright)', marginBottom: 12 }}>
-              {metricModal.value}
-            </div>
-            <p style={{ margin: '0 0 16px', fontSize: '0.85rem', color: 'var(--gp-text-muted)' }}>
-              {metricModal.description}
-            </p>
-
-            <div style={{ background: 'var(--gp-surface-soft)', padding: 14, borderRadius: 10, marginBottom: 18 }}>
-              <div style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--gp-navy)', marginBottom: 6 }}>
-                Key Breakdown:
+            {/* Header with Badge & Hierarchy */}
+            <div className="gp-modal-header">
+              <span className="gp-badge gp-badge--green" style={{ marginBottom: 6 }}>
+                {metricModal.badge}
+              </span>
+              <h2 id="metric-dialog-title" className="gp-modal-title">
+                {metricModal.title}
+              </h2>
+              <div className="gp-modal-highlight-val">
+                {metricModal.value}
               </div>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.8125rem', color: 'var(--gp-text-muted)', lineHeight: 1.6 }}>
-                {metricModal.details.map((d, i) => (
-                  <li key={i}>{d}</li>
-                ))}
-              </ul>
+              <p className="gp-modal-desc">
+                {metricModal.description}
+              </p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            {/* Distribution Analytics Breakdown Grid in Popup */}
+            {metricModal.analytics && metricModal.analytics.length > 0 && (
+              <div className="gp-modal-analytics-block">
+                <div className="gp-modal-analytics-header">
+                  <span>Location / Category Distribution</span>
+                  <span className="gp-badge gp-badge--blue" style={{ margin: 0, padding: '2px 8px', fontSize: '0.68rem' }}>
+                    Ward Baraza Verified
+                  </span>
+                </div>
+                <div className="gp-modal-analytics-grid">
+                  {metricModal.analytics.map((item, idx) => (
+                    <div key={idx} className="gp-modal-stat-pill">
+                      <span className="gp-modal-stat-name">{item.name}</span>
+                      <span className="gp-modal-stat-num">{item.val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Key Breakdown Details List */}
+            {metricModal.details && metricModal.details.length > 0 && (
+              <div className="gp-modal-details-card">
+                <div className="gp-modal-details-title">
+                  Key Distribution Highlights:
+                </div>
+                <ul className="gp-modal-details-list">
+                  {metricModal.details.map((d, i) => (
+                    <li key={i}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Action Bar */}
+            <div className="gp-modal-actions">
+              {metricModal.action && (
+                <button
+                  type="button"
+                  className="gp-btn gp-btn--primary"
+                  onClick={() => {
+                    const act = metricModal.action;
+                    setMetricModal(null);
+                    act();
+                  }}
+                >
+                  {metricModal.actionLabel || 'Proceed'}
+                </button>
+              )}
               <button
                 type="button"
                 className="gp-btn gp-btn--navy"
                 onClick={() => setMetricModal(null)}
               >
-                Got it
+                Close
               </button>
             </div>
           </div>
