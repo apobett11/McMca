@@ -29,19 +29,31 @@ export function StudentRoutes() {
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes>
-        <Route path="/" element={<Navigate to="/student/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="dashboard" replace />} />
+        <Route path="" element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<StudentDashboardPage />} />
+        <Route path="forms" element={<StudentFormsPage />} />
+        <Route path="applications" element={<StudentApplicationsPage />} />
+        <Route path="documents" element={<StudentFormsPage />} />
+        <Route path="new-application" element={<Navigate to="forms" replace />} />
+        <Route path="notifications" element={<StudentNotificationsPage />} />
+        <Route path="appeals" element={<StudentAppealsPage />} />
+        <Route path="support" element={<StudentSupportPage />} />
+        <Route path="profile" element={<StudentProfilePage />} />
+        <Route path="messages" element={<StudentMessagesPage />} />
+        <Route path="link-parents" element={<StudentLinkParentsPage />} />
         <Route path="/student/dashboard" element={<StudentDashboardPage />} />
         <Route path="/student/forms" element={<StudentFormsPage />} />
         <Route path="/student/applications" element={<StudentApplicationsPage />} />
         <Route path="/student/documents" element={<StudentFormsPage />} />
-        <Route path="/student/new-application" element={<Navigate to="/student/forms" replace />} />
+        <Route path="/student/new-application" element={<Navigate to="forms" replace />} />
         <Route path="/student/notifications" element={<StudentNotificationsPage />} />
         <Route path="/student/appeals" element={<StudentAppealsPage />} />
         <Route path="/student/support" element={<StudentSupportPage />} />
         <Route path="/student/profile" element={<StudentProfilePage />} />
         <Route path="/student/messages" element={<StudentMessagesPage />} />
         <Route path="/student/link-parents" element={<StudentLinkParentsPage />} />
-        <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Routes>
     </Suspense>
   );

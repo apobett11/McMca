@@ -2,39 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext.jsx';
-import { getMCAIssues, getMCAMessages } from '../utils/mcaData.js';
+import { getMCAMessages } from '../utils/mcaData.js';
 
 const MCA_ITEMS = [
   { label: 'Home', path: '/mca/dashboard', icon: 'home', key: 'home' },
   { label: 'Applications', path: '/mca/applications', icon: 'applications', key: 'applications' },
-  { label: 'Institutes', path: '/mca/institutes', icon: 'documents', key: 'institutes' },
-  { label: 'Issues & Developments', path: '/mca/issues', icon: 'calendar', key: 'issues' },
-  { label: 'Messages', path: '/mca/messages', icon: 'bell', key: 'messages' },
+  { label: 'Help Desk Messages', path: '/mca/messages', icon: 'bell', key: 'messages' },
   { label: 'Profile', path: '/mca/profile', icon: 'profile', key: 'profile' }
 ];
 
 export function MCADesktopSidebar({ mcaName }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const [waitingIssuesCount, setWaitingIssuesCount] = useState(0);
   const [unreadMsgCount, setUnreadMsgCount] = useState(0);
 
   useEffect(() => {
     function refreshCounts() {
-      const issues = getMCAIssues();
-      const waiting = issues.filter(i => i.status === 'waiting').length;
-      setWaitingIssuesCount(waiting);
-
       const msgs = getMCAMessages();
       const pending = msgs.filter(m => m.status === 'Pending MCA Action').length;
       setUnreadMsgCount(pending);
     }
     refreshCounts();
 
-    window.addEventListener('mcmca_mca_issues_updated', refreshCounts);
     window.addEventListener('mcmca_mca_messages_updated', refreshCounts);
     return () => {
-      window.removeEventListener('mcmca_mca_issues_updated', refreshCounts);
       window.removeEventListener('mcmca_mca_messages_updated', refreshCounts);
     };
   }, []);
@@ -65,7 +56,6 @@ export function MCADesktopSidebar({ mcaName }) {
       <nav className="mca-sidebar-nav">
         {MCA_ITEMS.map((item) => {
           let count = null;
-          if (item.key === 'issues' && waitingIssuesCount > 0) count = waitingIssuesCount;
           if (item.key === 'messages' && unreadMsgCount > 0) count = unreadMsgCount;
 
           return (

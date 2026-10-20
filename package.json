@@ -11,7 +11,8 @@
     "dev:helpdesk": "vite --port 5176 --strictPort --open http://localhost:5176/#/helpdesk/dashboard",
     "dev:mca": "vite --port 5177 --strictPort --open http://localhost:5177/#/mca/dashboard",
     "build": "npx vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:full-year": "node tests/runFullYearSimulation.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
+    "playwright": "^1.64.1",
     "vite": "^5.4.21"
   }
 }

@@ -5,7 +5,6 @@ import { Icon } from '../../../components/Icon.jsx';
 const MCA_TABS = [
   { label: 'Home', path: '/mca/dashboard', icon: 'home' },
   { label: 'Applications', path: '/mca/applications', icon: 'applications' },
-  { label: 'Issues', path: '/mca/issues', icon: 'calendar' },
   { label: 'Messages', path: '/mca/messages', icon: 'bell' },
   { label: 'Profile', path: '/mca/profile', icon: 'profile' }
 ];

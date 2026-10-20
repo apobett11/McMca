@@ -303,6 +303,24 @@ export function MCAApplicationsPage() {
                 </button>
               ))}
             </div>
+            <button
+              type="button"
+              className="mca-btn mca-btn--schedule"
+              onClick={() => {
+                const headers = ['Serial', 'Name', 'School', 'Level', 'Location', 'Polling Station', 'Bursary Amount', 'Status'];
+                const rows = cycleApps.map(a => [a.serial, a.fullName, a.school, a.educationLevel, a.location, a.pollingStation, a.bursaryAmount, a.status]);
+                const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+                const link = document.createElement('a');
+                link.setAttribute('href', encodeURI(csvContent));
+                link.setAttribute('download', `mcmca_bursary_export_${selectedCycle.replace('/', '_')}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              style={{ padding: '6px 14px', fontSize: '0.82rem', marginLeft: 'auto' }}
+            >
+              Export CSV / Report
+            </button>
           </div>
         </div>
       </section>

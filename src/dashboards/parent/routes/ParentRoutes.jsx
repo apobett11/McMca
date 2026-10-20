@@ -28,7 +28,16 @@ export function ParentRoutes() {
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes>
-        <Route path="/" element={<Navigate to="/parent/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="dashboard" replace />} />
+        <Route path="" element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<ParentDashboardPage />} />
+        <Route path="applications" element={<ParentApplicationsPage />} />
+        <Route path="documents" element={<ParentDocumentsPage />} />
+        <Route path="notifications" element={<ParentNotificationsPage />} />
+        <Route path="messages" element={<ParentMessagesPage />} />
+        <Route path="profile" element={<ParentProfilePage />} />
+        <Route path="children/new" element={<ParentAddChildPage />} />
+        <Route path="children/:childId" element={<ParentChildWizardPage />} />
         <Route path="/parent/dashboard" element={<ParentDashboardPage />} />
         <Route path="/parent/applications" element={<ParentApplicationsPage />} />
         <Route path="/parent/documents" element={<ParentDocumentsPage />} />
@@ -37,7 +46,7 @@ export function ParentRoutes() {
         <Route path="/parent/profile" element={<ParentProfilePage />} />
         <Route path="/parent/children/new" element={<ParentAddChildPage />} />
         <Route path="/parent/children/:childId" element={<ParentChildWizardPage />} />
-        <Route path="*" element={<Navigate to="/parent/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="dashboard" replace />} />
       </Routes>
     </Suspense>
   );

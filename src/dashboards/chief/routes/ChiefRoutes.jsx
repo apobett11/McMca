@@ -11,7 +11,15 @@ import { ChiefMessagesPage } from '../pages/ChiefMessagesPage.jsx';
 export function ChiefRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/chief/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="dashboard" replace />} />
+      <Route path="" element={<Navigate to="dashboard" replace />} />
+      <Route path="dashboard" element={<ChiefDashboardPage />} />
+      <Route path="applications" element={<ChiefApplicationsPage />} />
+      <Route path="application-review" element={<ChiefApplicationReviewPage />} />
+      <Route path="messages" element={<ChiefMessagesPage />} />
+      <Route path="appeals" element={<ChiefAppealsPage />} />
+      <Route path="appeal-review" element={<ChiefAppealReviewPage />} />
+      <Route path="profile" element={<ChiefProfilePage />} />
       <Route path="/chief/dashboard" element={<ChiefDashboardPage />} />
       <Route path="/chief/applications" element={<ChiefApplicationsPage />} />
       <Route path="/chief/application-review" element={<ChiefApplicationReviewPage />} />
@@ -19,7 +27,7 @@ export function ChiefRoutes() {
       <Route path="/chief/appeals" element={<ChiefAppealsPage />} />
       <Route path="/chief/appeal-review" element={<ChiefAppealReviewPage />} />
       <Route path="/chief/profile" element={<ChiefProfilePage />} />
-      <Route path="*" element={<Navigate to="/chief/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );
 }

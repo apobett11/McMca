@@ -6,8 +6,6 @@ import { useAuth } from '../../../context/AuthContext.jsx';
 const MCA_ITEMS = [
   { label: 'Home', path: '/mca/dashboard', icon: 'home' },
   { label: 'Applications', path: '/mca/applications', icon: 'applications' },
-  { label: 'Institutes', path: '/mca/institutes', icon: 'documents' },
-  { label: 'Issues & Developments', path: '/mca/issues', icon: 'calendar' },
   { label: 'Help Desk Messages', path: '/mca/messages', icon: 'bell' },
   { label: 'Profile', path: '/mca/profile', icon: 'profile' }
 ];
