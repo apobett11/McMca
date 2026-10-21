@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MCALayout } from '../components/MCALayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import {
   getMCAApplications,
   getMCACycleSettings,
   saveMCACycleSettings,
+  syncMCAApplicationsFromDB,
   MCA_CYCLES,
   WARD_VILLAGES,
   POLLING_STATIONS,
@@ -30,15 +32,27 @@ export function MCAApplicationsPage() {
   const [cycleClosing, setCycleClosing] = useState(cycleSettings.closingDateTime || '2026-04-30T17:00');
   const [cycleState, setCycleState] = useState(cycleSettings.state || 'allocated');
   const [cycleSavedFeedback, setCycleSavedFeedback] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Applications dataset
   const [allApps, setAllApps] = useState(() => getMCAApplications());
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await syncMCAApplicationsFromDB();
+    setAllApps(getMCAApplications());
+    setCycleSettings(getMCACycleSettings());
+    setRefreshing(false);
+  }
 
   useEffect(() => {
     function refresh() {
       setAllApps(getMCAApplications());
       setCycleSettings(getMCACycleSettings());
     }
+
+    syncMCAApplicationsFromDB().catch(() => {});
+
     window.addEventListener('mcmca_mca_apps_updated', refresh);
     window.addEventListener('mcmca_mca_cycle_settings_updated', refresh);
     return () => {
@@ -303,24 +317,27 @@ export function MCAApplicationsPage() {
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              className="mca-btn mca-btn--schedule"
-              onClick={() => {
-                const headers = ['Serial', 'Name', 'School', 'Level', 'Location', 'Polling Station', 'Bursary Amount', 'Status'];
-                const rows = cycleApps.map(a => [a.serial, a.fullName, a.school, a.educationLevel, a.location, a.pollingStation, a.bursaryAmount, a.status]);
-                const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-                const link = document.createElement('a');
-                link.setAttribute('href', encodeURI(csvContent));
-                link.setAttribute('download', `mcmca_bursary_export_${selectedCycle.replace('/', '_')}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }}
-              style={{ padding: '6px 14px', fontSize: '0.82rem', marginLeft: 'auto' }}
-            >
-              Export CSV / Report
-            </button>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <RefreshButton busy={refreshing} onClick={handleRefresh} />
+              <button
+                type="button"
+                className="mca-btn mca-btn--schedule"
+                onClick={() => {
+                  const headers = ['Serial', 'Name', 'School', 'Level', 'Location', 'Polling Station', 'Bursary Amount', 'Status'];
+                  const rows = cycleApps.map(a => [a.serial, a.fullName, a.school, a.educationLevel, a.location, a.pollingStation, a.bursaryAmount, a.status]);
+                  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+                  const link = document.createElement('a');
+                  link.setAttribute('href', encodeURI(csvContent));
+                  link.setAttribute('download', `mcmca_bursary_export_${selectedCycle.replace('/', '_')}.csv`);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                style={{ padding: '6px 14px', fontSize: '0.82rem' }}
+              >
+                Export CSV / Report
+              </button>
+            </div>
           </div>
         </div>
       </section>

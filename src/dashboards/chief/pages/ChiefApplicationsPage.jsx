@@ -2,9 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import {
   getChiefProfile,
   getChiefApplications,
+  syncChiefApplicationsFromDB,
   updateChiefApplicationDecision,
   bulkApproveCleanApplications,
   isChiefProfileComplete
@@ -21,16 +23,27 @@ export function ChiefApplicationsPage() {
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState('submittedDate');
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
+  const [refreshing, setRefreshing] = useState(false);
 
   // Review modal state
   const [reviewApp, setReviewApp] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [actionFeedback, setActionFeedback] = useState('');
 
+  async function handleRefresh() {
+    setRefreshing(true);
+    const updated = await syncChiefApplicationsFromDB();
+    setApplications(updated || getChiefApplications());
+    setRefreshing(false);
+  }
+
   useEffect(() => {
     function onAppsUpdated(e) {
       setApplications(e.detail);
     }
+
+    syncChiefApplicationsFromDB().catch(() => {});
+
     window.addEventListener('mcmca_chief_apps_updated', onAppsUpdated);
     return () => window.removeEventListener('mcmca_chief_apps_updated', onAppsUpdated);
   }, []);
@@ -235,28 +248,31 @@ export function ChiefApplicationsPage() {
                 </div>
               </div>
 
-              {/* Accept All Valid (Good Applications) Button */}
-              <button
-                type="button"
-                className="btn btn--primary"
-                onClick={handleAcceptAllClean}
-                disabled={cleanPendingCount === 0}
-                style={{
-                  borderRadius: 8,
-                  padding: '7px 16px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  opacity: cleanPendingCount === 0 ? 0.5 : 1,
-                  cursor: cleanPendingCount === 0 ? 'not-allowed' : 'pointer'
-                }}
-                title={cleanPendingCount > 0 ? `Accept all ${cleanPendingCount} valid applications` : 'All valid applications are already approved'}
-              >
-                <Icon name="check" size={16} />
-                <span>Accept All Valid ({cleanPendingCount})</span>
-              </button>
+              {/* Accept All Valid (Good Applications) Button & Refresh */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <RefreshButton busy={refreshing} onClick={handleRefresh} />
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  onClick={handleAcceptAllClean}
+                  disabled={cleanPendingCount === 0}
+                  style={{
+                    borderRadius: 8,
+                    padding: '7px 16px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    opacity: cleanPendingCount === 0 ? 0.5 : 1,
+                    cursor: cleanPendingCount === 0 ? 'not-allowed' : 'pointer'
+                  }}
+                  title={cleanPendingCount > 0 ? `Accept all ${cleanPendingCount} valid applications` : 'All valid applications are already approved'}
+                >
+                  <Icon name="check" size={16} />
+                  <span>Accept All Valid ({cleanPendingCount})</span>
+                </button>
+              </div>
             </section>
 
             {/* NOTICE: Suspicious applications cannot be bulk approved */}

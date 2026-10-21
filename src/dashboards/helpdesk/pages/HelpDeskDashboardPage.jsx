@@ -6,7 +6,8 @@ import { getTimeGreeting } from '../../../utils/greeting.js';
 import { SessionHoursModal } from '../components/SessionHoursModal.jsx';
 import {
   getHelpDeskProfile,
-  calculateHelpDeskMetrics
+  calculateHelpDeskMetrics,
+  syncHelpDeskApplicationsFromDB
 } from '../utils/helpDeskData.js';
 
 export function HelpDeskDashboardPage() {
@@ -29,14 +30,13 @@ export function HelpDeskDashboardPage() {
     }, duration);
   }
 
-  function reloadData() {
+  async function reloadData() {
     setRefreshing(true);
+    await syncHelpDeskApplicationsFromDB();
     setProfile(getHelpDeskProfile());
     setMetrics(calculateHelpDeskMetrics());
-    setTimeout(() => {
-      setRefreshing(false);
-      triggerToast('Help Desk analytics refreshed successfully.');
-    }, 250);
+    setRefreshing(false);
+    triggerToast('Help Desk analytics refreshed with database registry.');
   }
 
   useEffect(() => {

@@ -1,8 +1,5 @@
-/**
- * Help Desk Data & State Management
- * Pure transparent client-side and localStorage data store for Help Desk operations.
- * NO REALTIME subscriptions - transparent, explicit state management.
- */
+import { supabase } from '../../../lib/supabase.js';
+
 
 export const PREDETERMINED_LOCATIONS = [
   'Tendeno',
@@ -681,7 +678,81 @@ export function saveHelpDeskProfile(profile) {
 }
 
 export function getHelpDeskApplications() {
-  return getStored(APPS_KEY, INITIAL_APPLICATIONS);
+  const stored = getStored(APPS_KEY, INITIAL_APPLICATIONS);
+  let submitted = [];
+  try {
+    submitted = JSON.parse(localStorage.getItem('mcmca_submitted_applications') || '[]');
+  } catch {}
+  let session = [];
+  try {
+    session = JSON.parse(sessionStorage.getItem('mcmca_session_applications') || '[]');
+  } catch {}
+
+  const normalizedSubmitted = [...submitted, ...session].map((a) => ({
+    id: a.id || a.serial,
+    serial: a.serial || `BUR-2026-${String(a.id || '').replace(/\D/g, '').slice(-4).padStart(4, '0')}`,
+    fullName: a.fullName || a.studentName || 'Student Applicant',
+    nationalId: a.nationalId || a.idNumber || '—',
+    school: a.school || a.institution_name || 'Institution on file',
+    educationLevel: a.educationLevel || a.institution_level || 'Tertiary',
+    grade: a.grade || 'Enrolled',
+    location: a.location || 'Tendeno',
+    subLocation: a.subLocation || a.village || 'Tendeno Central',
+    submittedDate: a.submittedDate || a.submitted_at || a.created_at || new Date().toISOString(),
+    applicationStatus: a.applicationStatus || (a.status === 'allocated' || a.status === 'Allocated' ? 'Approved' : 'Under Review'),
+    amountRequested: a.amountRequested || (a.requested_amount ? `KES ${Number(a.requested_amount).toLocaleString()}` : 'KES 15,000'),
+    parentName: a.parentName || 'Guardian on file',
+    parentPhone: a.parentPhone || a.phone || '',
+    chiefReasonForFail: a.chiefReasonForFail || '',
+    riskFlag: a.riskFlag || 'Clean'
+  }));
+
+  const all = [...normalizedSubmitted, ...stored];
+  const unique = Array.from(new Map(all.map((a) => [a.id || a.serial, a])).values());
+  return unique;
+}
+
+export async function syncHelpDeskApplicationsFromDB() {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('student_applications')
+        .select('*, student_profiles(*), application_details(*)');
+      if (!error && data && data.length > 0) {
+        const fromDb = data.map((app) => {
+          const profile = app.student_profiles || {};
+          const details = app.application_details?.[0] || {};
+          const fullName = [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ') || 'Student Applicant';
+          const serial = `BUR-${new Date(app.created_at || Date.now()).getFullYear()}-${String(profile.national_id || app.id).replace(/\D/g, '').slice(-4).padStart(4, '0')}`;
+          return {
+            id: app.id,
+            serial,
+            fullName,
+            nationalId: profile.national_id || '—',
+            school: app.institution_name || profile.school_name || 'Institution on file',
+            educationLevel: app.institution_level || profile.school_level || 'Tertiary',
+            grade: 'Enrolled',
+            location: profile.location_name || profile.county || 'Tendeno',
+            subLocation: profile.ward || 'Tendeno Central',
+            submittedDate: app.submitted_at || app.created_at || new Date().toISOString(),
+            applicationStatus: app.application_status === 'approved' ? 'Approved' : app.application_status === 'rejected' ? 'Rejected' : 'Under Review',
+            amountRequested: app.requested_amount ? `KES ${Number(app.requested_amount).toLocaleString()}` : 'KES 15,000',
+            parentName: details.guardian_name || 'Guardian on file',
+            parentPhone: details.guardian_phone || '',
+            chiefReasonForFail: '',
+            riskFlag: 'Clean'
+          };
+        });
+        const current = getHelpDeskApplications();
+        const merged = Array.from(new Map([...fromDb, ...current].map((a) => [a.id || a.serial, a])).values());
+        saveHelpDeskApplications(merged);
+        return merged;
+      }
+    } catch (err) {
+      console.warn('HelpDesk DB sync fallback:', err);
+    }
+  }
+  return getHelpDeskApplications();
 }
 
 export function saveHelpDeskApplications(apps) {
@@ -766,6 +837,62 @@ export function proceedApplicationToMca(appId, overrideNotes, officerName = 'Hel
     }
   } catch (e) {
     console.warn('Chief applications sync skipped:', e);
+  }
+
+  // Cross-dashboard propagation to submitted registry
+  try {
+    const rawSub = localStorage.getItem('mcmca_submitted_applications');
+    if (rawSub) {
+      const subList = JSON.parse(rawSub);
+      const updatedSub = subList.map((a) => {
+        if (a.id === appId || a.serial === proceededApp?.serial) {
+          return {
+            ...a,
+            status: 'Proceeded to MCA Direct',
+            application_status: 'mca_review',
+            helpdesk_proceeded: true,
+            proceedNotes: overrideNotes
+          };
+        }
+        return a;
+      });
+      localStorage.setItem('mcmca_submitted_applications', JSON.stringify(updatedSub));
+      window.dispatchEvent(new CustomEvent('mcmca_apps_updated', { detail: updatedSub }));
+    }
+  } catch (e) {
+    console.warn('Submitted applications sync skipped:', e);
+  }
+
+  // Cross-dashboard propagation to MCA registry
+  try {
+    const rawMca = localStorage.getItem('mcmca_mca_applications_v3');
+    if (rawMca) {
+      const mcaList = JSON.parse(rawMca);
+      const updatedMca = mcaList.map((ma) => {
+        if (ma.id === appId || ma.serial === proceededApp?.serial) {
+          return {
+            ...ma,
+            status: 'Pending',
+            applicationStatus: 'Proceeded to MCA Direct',
+            proceedNotes: overrideNotes
+          };
+        }
+        return ma;
+      });
+      localStorage.setItem('mcmca_mca_applications_v3', JSON.stringify(updatedMca));
+      window.dispatchEvent(new CustomEvent('mcmca_mca_apps_updated', { detail: updatedMca }));
+    }
+  } catch (e) {
+    console.warn('MCA applications sync skipped:', e);
+  }
+
+  // Persist to Supabase if valid UUID
+  if (supabase && proceededApp && typeof appId === 'string' && appId.length > 20) {
+    supabase.from('student_applications').update({
+      application_status: 'mca_review',
+      helpdesk_notes: overrideNotes,
+      updated_at: now
+    }).eq('id', appId).then(() => {}).catch(() => {});
   }
 
   return { success: true, application: proceededApp };

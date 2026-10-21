@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MCALayout } from '../components/MCALayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import {
   getMCAApplications,
   getMCAMessages,
   getMCAProfile,
   getMCACycleSettings,
+  syncMCAApplicationsFromDB,
   WARD_VILLAGES
 } from '../utils/mcaData.js';
 
@@ -16,6 +18,17 @@ export function MCADashboardPage() {
   const [applications, setApplications] = useState(() => getMCAApplications());
   const [messages, setMessages] = useState(() => getMCAMessages());
   const [cycleSettings, setCycleSettings] = useState(() => getMCACycleSettings());
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await syncMCAApplicationsFromDB();
+    setProfile(getMCAProfile());
+    setApplications(getMCAApplications());
+    setMessages(getMCAMessages());
+    setCycleSettings(getMCACycleSettings());
+    setRefreshing(false);
+  }
 
   useEffect(() => {
     function refreshData() {
@@ -24,6 +37,8 @@ export function MCADashboardPage() {
       setMessages(getMCAMessages());
       setCycleSettings(getMCACycleSettings());
     }
+
+    syncMCAApplicationsFromDB().catch(() => {});
 
     window.addEventListener('mcmca_mca_apps_updated', refreshData);
     window.addEventListener('mcmca_mca_messages_updated', refreshData);
@@ -72,7 +87,7 @@ export function MCADashboardPage() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <Link
               to="/mca/applications"
               className="mca-btn mca-btn--done"
@@ -89,6 +104,7 @@ export function MCADashboardPage() {
               <Icon name="support" size={18} />
               Help Desk Petitions ({pendingMessagesCount})
             </Link>
+            <RefreshButton busy={refreshing} onClick={handleRefresh} />
           </div>
         </div>
       </section>

@@ -1,7 +1,4 @@
-/**
- * MCA Dashboard State & Data Service
- * Provides full offline persistence with localStorage and reactive CustomEvent dispatching.
- */
+import { supabase } from '../../../lib/supabase.js';
 
 const MCA_APPS_KEY = 'mcmca_mca_applications_v3';
 const MCA_ISSUES_KEY = 'mcmca_mca_issues_v3';
@@ -724,14 +721,99 @@ export function saveMCACycleSettings(settings) {
 }
 
 export function getMCAApplications() {
+  let stored = [];
   try {
     const raw = localStorage.getItem(MCA_APPS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) stored = JSON.parse(raw);
+    else stored = INITIAL_APPLICATIONS;
   } catch (e) {
-    console.error('Failed to parse MCA applications', e);
+    stored = INITIAL_APPLICATIONS;
   }
-  localStorage.setItem(MCA_APPS_KEY, JSON.stringify(INITIAL_APPLICATIONS));
-  return INITIAL_APPLICATIONS;
+
+  let submitted = [];
+  try {
+    submitted = JSON.parse(localStorage.getItem('mcmca_submitted_applications') || '[]');
+  } catch {}
+  let session = [];
+  try {
+    session = JSON.parse(sessionStorage.getItem('mcmca_session_applications') || '[]');
+  } catch {}
+
+  const normalizedSubmitted = [...submitted, ...session].map((a) => ({
+    id: a.id || a.serial,
+    year: a.year || '2026/2027',
+    serial: a.serial || `BUR-2026-${String(a.id || '').replace(/\D/g, '').slice(-4).padStart(4, '0')}`,
+    fullName: a.fullName || a.studentName || 'Student Applicant',
+    age: a.age || 18,
+    ageBracket: a.ageBracket || '15 - 18',
+    educationLevel: a.educationLevel || a.institution_level || 'Tertiary',
+    school: a.school || a.institution_name || 'Institution on file',
+    pollingStation: a.pollingStation || 'Tendeno Primary Polling Station',
+    location: a.location || 'Tendeno',
+    village: a.village || 'Tendeno Central',
+    bursaryAmount: Number(a.allocatedAmount || a.bursaryAmount || a.requested_amount || 15000),
+    allocatedAmount: a.allocatedAmount !== undefined ? a.allocatedAmount : (a.status === 'Allocated' || a.status === 'Disbursed' ? 15000 : null),
+    month: 'Oct',
+    week: 'Week 3',
+    status: a.status || (a.applicationStatus === 'Approved' ? 'Allocated' : 'Pending'),
+    applicationStatus: a.applicationStatus || 'Under Review',
+    submittedDate: a.submittedDate || a.submitted_at || a.created_at || new Date().toISOString(),
+    parentName: a.parentName || 'Guardian on file',
+    phone: a.phone || a.parentPhone || '+254 700 000 000',
+    needScore: 'Verified Need'
+  }));
+
+  const all = [...normalizedSubmitted, ...stored];
+  const unique = Array.from(new Map(all.map((a) => [a.id || a.serial, a])).values());
+  return unique;
+}
+
+export async function syncMCAApplicationsFromDB() {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('student_applications')
+        .select('*, student_profiles(*), application_details(*)');
+      if (!error && data && data.length > 0) {
+        const fromDb = data.map((app) => {
+          const profile = app.student_profiles || {};
+          const details = app.application_details?.[0] || {};
+          const fullName = [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ') || 'Student Applicant';
+          const serial = `BUR-${new Date(app.created_at || Date.now()).getFullYear()}-${String(profile.national_id || app.id).replace(/\D/g, '').slice(-4).padStart(4, '0')}`;
+          return {
+            id: app.id,
+            year: '2026/2027',
+            serial,
+            fullName,
+            age: 18,
+            ageBracket: '15 - 18',
+            educationLevel: app.institution_level || profile.school_level || 'Tertiary',
+            school: app.institution_name || profile.school_name || 'Institution on file',
+            pollingStation: profile.location_name || 'Tendeno Primary Polling Station',
+            location: profile.county || 'Tendeno',
+            village: profile.ward || 'Tendeno Central',
+            bursaryAmount: Number(app.allocated_amount || app.requested_amount || 15000),
+            allocatedAmount: app.allocated_amount,
+            month: 'Oct',
+            week: 'Week 3',
+            status: app.mca_approval_status === 'approved' ? 'Allocated' : app.application_status === 'approved' ? 'Allocated' : 'Pending',
+            applicationStatus: app.application_status === 'approved' ? 'Approved' : 'Under Review',
+            submittedDate: app.submitted_at || app.created_at || new Date().toISOString(),
+            parentName: details.guardian_name || 'Guardian on file',
+            phone: details.guardian_phone || profile.phone_number || '+254 700 000 000',
+            needScore: 'Verified Need'
+          };
+        });
+        const current = getMCAApplications();
+        const merged = Array.from(new Map([...fromDb, ...current].map((a) => [a.id || a.serial, a])).values());
+        saveMCAApplications(merged);
+        return merged;
+      }
+    } catch (err) {
+      console.warn('MCA DB sync fallback:', err);
+    }
+  }
+  return getMCAApplications();
 }
 
 export function saveMCAApplications(apps) {

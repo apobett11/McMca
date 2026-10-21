@@ -7,6 +7,7 @@ import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import {
   PREDETERMINED_LOCATIONS,
   getHelpDeskApplications,
+  syncHelpDeskApplicationsFromDB,
   proceedApplicationToMca,
   contactApplicantRecord
 } from '../utils/helpDeskData.js';
@@ -61,12 +62,12 @@ export function HelpDeskApplicationsPage() {
     setSearchParams({});
   }
 
-  function reloadData() {
+  async function reloadData() {
     setRefreshing(true);
+    await syncHelpDeskApplicationsFromDB();
     setApplications(getHelpDeskApplications());
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 200);
+    setRefreshing(false);
+    triggerFeedback('Applications re-synchronized with live database registry.');
   }
 
   useEffect(() => {

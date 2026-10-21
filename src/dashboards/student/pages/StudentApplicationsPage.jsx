@@ -37,6 +37,15 @@ export function StudentApplicationsPage() {
     () => loadStudentRecord(user.id),
     { enabled: Boolean(user?.id) }
   );
+
+  React.useEffect(() => {
+    function onAppsUpdated() {
+      refresh();
+    }
+    window.addEventListener('mcmca_apps_updated', onAppsUpdated);
+    return () => window.removeEventListener('mcmca_apps_updated', onAppsUpdated);
+  }, [refresh]);
+
   const sessionApps = (() => {
     try {
       return JSON.parse(sessionStorage.getItem('mcmca_session_applications') || '[]');
@@ -44,8 +53,26 @@ export function StudentApplicationsPage() {
       return [];
     }
   })();
+  const localApps = (() => {
+    try {
+      const list = JSON.parse(localStorage.getItem('mcmca_submitted_applications') || '[]');
+      return list.map(a => ({
+        ...a,
+        id: a.id || a.serial,
+        institution_name: a.school || a.institution_name,
+        institution_level: a.educationLevel || a.institution_level,
+        application_status: a.application_status || (a.status === 'allocated' || a.status === 'Allocated' ? 'approved' : a.chief_recommended ? 'chief_approved' : 'submitted'),
+        allocated_amount: a.allocatedAmount || a.allocated_amount,
+        requested_amount: a.amountRequested || a.requested_amount,
+        fee_balance: a.feeBalance || a.fee_balance,
+        created_at: a.submittedDate || a.submitted_at || a.created_at
+      }));
+    } catch {
+      return [];
+    }
+  })();
   const dbRows = data?.applications || [];
-  const mergedRows = [...sessionApps, ...dbRows];
+  const mergedRows = [...sessionApps, ...localApps, ...dbRows];
   const rows = Array.from(new Map(mergedRows.map((item) => [item.id, item])).values());
   const windows = data?.windows || [];
   const showSkeleton = loading && !data;
@@ -115,24 +142,25 @@ export function StudentApplicationsPage() {
               </thead>
               <tbody>
                 {rows.map((app) => {
-                  const status = getStatusConfig(app.application_status);
+                  const rawStatus = app.application_status || app.status || 'submitted';
+                  const status = getStatusConfig(rawStatus);
                   return (
                     <tr key={app.id}>
                       <td data-label="Cycle">{cycleTitle(app, windows, app.created_at)}</td>
                       <td data-label="Serial number" style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>{applicationSerial(app)}</td>
-                      <td data-label="Institution" style={{ fontWeight: 600 }}>{app.institution_name || '—'}</td>
-                      <td data-label="Level">{levelLabel(app.institution_level)}</td>
+                      <td data-label="Institution" style={{ fontWeight: 600 }}>{app.institution_name || app.school || '—'}</td>
+                      <td data-label="Level">{levelLabel(app.institution_level || app.educationLevel)}</td>
                       <td data-label="Status">
-                        <span className={`stitch-status-badge ${statusClass(app.application_status)}`}>
+                        <span className={`stitch-status-badge ${statusClass(rawStatus)}`}>
                           {status.label}
                         </span>
                       </td>
-                      <td data-label="Allocated">{formatMoney(app.allocated_amount)}</td>
-                      <td data-label="Requested">{formatMoney(app.requested_amount)}</td>
-                      <td data-label="Fee balance">{formatMoney(app.fee_balance)}</td>
+                      <td data-label="Allocated">{formatMoney(app.allocated_amount ?? app.allocatedAmount)}</td>
+                      <td data-label="Requested">{formatMoney(app.requested_amount ?? app.amountRequested)}</td>
+                      <td data-label="Fee balance">{formatMoney(app.fee_balance ?? app.feeBalance)}</td>
                       <td data-label="Submitted">
-                        {app.submitted_at || app.created_at
-                          ? new Date(app.submitted_at || app.created_at).toLocaleDateString()
+                        {app.submitted_at || app.created_at || app.submittedDate
+                          ? new Date(app.submitted_at || app.created_at || app.submittedDate).toLocaleDateString()
                           : '—'}
                       </td>
                     </tr>

@@ -58,9 +58,16 @@ export function StudentDashboardPage() {
         setExtraCompleted(e.detail.completedKeys);
       }
     }
+    function onAppsUpdated() {
+      refresh();
+    }
     window.addEventListener('mcmca_registration_step_completed', onStepCompleted);
-    return () => window.removeEventListener('mcmca_registration_step_completed', onStepCompleted);
-  }, []);
+    window.addEventListener('mcmca_apps_updated', onAppsUpdated);
+    return () => {
+      window.removeEventListener('mcmca_registration_step_completed', onStepCompleted);
+      window.removeEventListener('mcmca_apps_updated', onAppsUpdated);
+    };
+  }, [refresh]);
 
   // Merge session profile with DB profile
   const sessionProfile = (() => {
@@ -83,7 +90,7 @@ export function StudentDashboardPage() {
   const dbCompleted = data?.registration?.completedKeys || [];
   const completedKeys = Array.from(new Set([...dbCompleted, ...sessionCompleted, ...extraCompleted, 'personal_information']));
 
-  // Merge session applications with DB applications
+  // Merge submitted applications (from storage) with session and DB applications
   const sessionApps = (() => {
     try {
       return JSON.parse(sessionStorage.getItem('mcmca_session_applications') || '[]');
@@ -91,11 +98,29 @@ export function StudentDashboardPage() {
       return [];
     }
   })();
+  const localApps = (() => {
+    try {
+      const list = JSON.parse(localStorage.getItem('mcmca_submitted_applications') || '[]');
+      return list.map(a => ({
+        ...a,
+        id: a.id || a.serial,
+        institution_name: a.school || a.institution_name,
+        institution_level: a.educationLevel || a.institution_level,
+        application_status: a.application_status || (a.status === 'allocated' || a.status === 'Allocated' ? 'approved' : a.chief_recommended ? 'chief_approved' : 'submitted'),
+        allocated_amount: a.allocatedAmount || a.allocated_amount,
+        requested_amount: a.amountRequested || a.requested_amount,
+        fee_balance: a.feeBalance || a.fee_balance,
+        created_at: a.submittedDate || a.submitted_at || a.created_at
+      }));
+    } catch {
+      return [];
+    }
+  })();
   const dbApps = data?.applications || [];
-  const mergedApps = [...sessionApps, ...dbApps];
+  const mergedApps = [...sessionApps, ...localApps, ...dbApps];
   const apps = Array.from(new Map(mergedApps.map((item) => [item.id, item])).values());
   const sortedApps = [...apps].sort(
-    (a, b) => new Date(b.submitted_at || b.created_at || 0) - new Date(a.submitted_at || a.created_at || 0)
+    (a, b) => new Date(b.submitted_at || b.created_at || b.submittedDate || 0) - new Date(a.submitted_at || a.created_at || a.submittedDate || 0)
   );
 
   const windows = data?.windows || [];
@@ -117,9 +142,17 @@ export function StudentDashboardPage() {
 
   const appStripPct = hasAppliedThisCycle || apps.length > 0 ? 100 : 0;
 
+  useEffect(() => {
+    function onAppUpdated() {
+      refresh();
+    }
+    window.addEventListener('mcmca_apps_updated', onAppUpdated);
+    return () => window.removeEventListener('mcmca_apps_updated', onAppUpdated);
+  }, [refresh]);
+
   return (
     <StudentLayout pageTitle="Overview" layout="dashboard" studentName={profile ? studentName : ''}>
-      <ContinueRegistrationPrompt formsPath="/student/documents" />
+      {!complete && <ContinueRegistrationPrompt formsPath="/student/documents" />}
       <div className="stitch-dashboard">
         {/* Student identity hero */}
         <section className="student-hero">
@@ -156,14 +189,33 @@ export function StudentDashboardPage() {
             </div>
             <div className="btn-row">
               <RefreshButton onClick={refresh} busy={refreshing} />
-              <Link
-                className="btn btn--primary"
-                to="/student/documents"
-                state={{ continueRegistration: !complete }}
-              >
-                <Icon name={complete ? 'applications' : 'chevronRight'} size={18} />
-                {complete ? 'Review forms' : 'Finish remaining steps'}
-              </Link>
+              {complete && !hasAppliedThisCycle ? (
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  onClick={() => navigate('/student/forms?apply=1')}
+                >
+                  <Icon name="applications" size={18} />
+                  Apply for Bursary
+                </button>
+              ) : hasAppliedThisCycle ? (
+                <Link
+                  className="btn btn--primary"
+                  to="/student/applications"
+                >
+                  <Icon name="applications" size={18} />
+                  View Application
+                </Link>
+              ) : (
+                <Link
+                  className="btn btn--primary"
+                  to="/student/documents"
+                  state={{ continueRegistration: true }}
+                >
+                  <Icon name="chevronRight" size={18} />
+                  Finish remaining steps ({steps.length - doneCount} left)
+                </Link>
+              )}
             </div>
           </div>
 
@@ -293,14 +345,37 @@ export function StudentDashboardPage() {
               <div className="skeleton skeleton--hero" />
             </div>
           ) : sortedApps.length === 0 ? (
-            <div className="dash-apps-empty">
-              <p className="dash-apps-empty__msg">
-                You have made no application. Complete the form registration.
-              </p>
-              <Link className="btn btn--primary" to="/student/documents" style={{ borderRadius: 999, display: 'inline-flex', width: 'auto' }}>
-                Complete form registration
-              </Link>
-            </div>
+            complete ? (
+              <div className="dash-apps-empty" style={{ padding: '28px 16px', textAlign: 'center' }}>
+                <div style={{ display: 'inline-flex', padding: 12, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', marginBottom: 12 }}>
+                  <Icon name="approved" size={32} />
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '1.08rem', color: 'var(--text-primary, #F8FAFC)' }}>
+                  All 5 Steps & Documents Verified
+                </h4>
+                <p className="dash-apps-empty__msg" style={{ margin: '0 auto 16px', maxWidth: 440, color: 'var(--text-secondary, #94A3B8)' }}>
+                  Your details and documents are on file. You are eligible to apply for {activeCycle ? cycleName : 'the open bursary cycle'}.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  onClick={() => navigate('/student/forms?apply=1')}
+                  style={{ borderRadius: 999, display: 'inline-flex', width: 'auto', padding: '10px 28px', margin: '0 auto' }}
+                >
+                  <Icon name="applications" size={18} />
+                  Apply for Bursary Now
+                </button>
+              </div>
+            ) : (
+              <div className="dash-apps-empty">
+                <p className="dash-apps-empty__msg">
+                  You have made no application. Please finish the {steps.length - doneCount} remaining steps to unlock bursary application.
+                </p>
+                <Link className="btn btn--primary" to="/student/documents" style={{ borderRadius: 999, display: 'inline-flex', width: 'auto' }}>
+                  Continue form registration
+                </Link>
+              </div>
+            )
           ) : (
             <div>
               <div className="stitch-apps-table" style={{ border: 'none', borderRadius: 0 }}>
@@ -320,7 +395,8 @@ export function StudentDashboardPage() {
                   </thead>
                   <tbody>
                     {sortedApps.slice(0, 5).map((app) => {
-                      const status = getStatusConfig(app.application_status);
+                      const rawStatus = app.application_status || app.status || 'submitted';
+                      const status = getStatusConfig(rawStatus);
                       return (
                         <tr key={app.id}>
                           <td data-label="Cycle">{cycleTitle(app, windows, app.created_at)}</td>
@@ -328,20 +404,20 @@ export function StudentDashboardPage() {
                             {applicationSerial(app)}
                           </td>
                           <td data-label="Institution" style={{ fontWeight: 600 }}>
-                            {app.institution_name || '—'}
+                            {app.institution_name || app.school || '—'}
                           </td>
-                          <td data-label="Level">{levelLabel(app.institution_level)}</td>
+                          <td data-label="Level">{levelLabel(app.institution_level || app.educationLevel)}</td>
                           <td data-label="Status">
-                            <span className={`stitch-status-badge ${statusClass(app.application_status)}`}>
+                            <span className={`stitch-status-badge ${statusClass(rawStatus)}`}>
                               {status.label}
                             </span>
                           </td>
-                          <td data-label="Allocated">{formatMoney(app.allocated_amount)}</td>
-                          <td data-label="Requested">{formatMoney(app.requested_amount)}</td>
-                          <td data-label="Fee balance">{formatMoney(app.fee_balance)}</td>
+                          <td data-label="Allocated">{formatMoney(app.allocated_amount ?? app.allocatedAmount)}</td>
+                          <td data-label="Requested">{formatMoney(app.requested_amount ?? app.amountRequested)}</td>
+                          <td data-label="Fee balance">{formatMoney(app.fee_balance ?? app.feeBalance)}</td>
                           <td data-label="Submitted">
-                            {app.submitted_at || app.created_at
-                              ? new Date(app.submitted_at || app.created_at).toLocaleDateString()
+                            {app.submitted_at || app.created_at || app.submittedDate
+                              ? new Date(app.submitted_at || app.created_at || app.submittedDate).toLocaleDateString()
                               : '—'}
                           </td>
                         </tr>

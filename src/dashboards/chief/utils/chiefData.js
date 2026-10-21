@@ -2,6 +2,7 @@
  * Storage and management for Chief profile, applications, and messages.
  */
 
+import { supabase } from '../../../lib/supabase.js';
 import { CHIEF_APPEALS } from '../../../data/chiefMock.js';
 
 const PROFILE_KEY = 'mcmca_chief_profile';
@@ -269,31 +270,153 @@ const INITIAL_APPLICATIONS = [
 ];
 
 export function getChiefApplications() {
+  let stored = INITIAL_APPLICATIONS;
   try {
     const raw = localStorage.getItem(APPS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) stored = JSON.parse(raw);
+    else localStorage.setItem(APPS_KEY, JSON.stringify(INITIAL_APPLICATIONS));
   } catch (e) {
     console.error('Failed to parse chief applications', e);
   }
-  localStorage.setItem(APPS_KEY, JSON.stringify(INITIAL_APPLICATIONS));
-  return INITIAL_APPLICATIONS;
+
+  let submitted = [];
+  try {
+    submitted = JSON.parse(localStorage.getItem('mcmca_submitted_applications') || '[]');
+  } catch {}
+  let session = [];
+  try {
+    session = JSON.parse(sessionStorage.getItem('mcmca_session_applications') || '[]');
+  } catch {}
+
+  const normalized = [...submitted, ...session].map(a => ({
+    id: a.id || a.serial,
+    serial: a.serial || `BUR-2026-${String(a.id || '').replace(/\D/g, '').slice(-4).padStart(4, '0')}`,
+    fullName: a.fullName || a.studentName || 'Student Applicant',
+    dateOfBirth: a.dateOfBirth || '2008-01-01',
+    school: a.school || a.institution_name || 'Institution on file',
+    educationLevel: a.educationLevel || a.institution_level || 'Secondary',
+    grade: a.grade || 'Form 1',
+    village: a.village || 'Tendeno Central Village',
+    location: a.location || 'Tendeno',
+    subLocation: a.subLocation || a.village || 'Tendeno Central',
+    idLocation: a.idLocation || a.location || 'Tendeno',
+    isSuspicious: Boolean(a.isSuspicious),
+    suspicionReason: a.suspicionReason || '',
+    submittedDate: a.submittedDate || a.submitted_at || a.created_at || new Date().toISOString(),
+    applicationStatus: a.chief_recommended ? 'Approved' : (a.applicationStatus || 'Under Review'),
+    amountRequested: a.amountRequested || (a.requested_amount ? `KES ${Number(a.requested_amount).toLocaleString()}` : 'KES 45,000'),
+    parentName: a.parentName || 'Guardian on file',
+    parentPhone: a.parentPhone || a.phone || '',
+    parentNationalId: a.parentNationalId || '',
+    nationalId: a.nationalId || a.idNumber || '',
+    idNumber: a.nationalId || a.idNumber || ''
+  }));
+
+  const all = [...normalized, ...stored];
+  return Array.from(new Map(all.map(a => [a.id || a.serial, a])).values());
+}
+
+export async function syncChiefApplicationsFromDB() {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('student_applications')
+        .select('*, student_profiles(*), application_details(*)');
+      if (!error && data && data.length > 0) {
+        const fromDb = data.map((app) => {
+          const profile = app.student_profiles || {};
+          const details = app.application_details?.[0] || {};
+          const fullName = [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' ') || 'Student Applicant';
+          const serial = `BUR-${new Date(app.created_at || Date.now()).getFullYear()}-${String(profile.national_id || app.id).replace(/\D/g, '').slice(-4).padStart(4, '0')}`;
+          return {
+            id: app.id,
+            serial,
+            fullName,
+            dateOfBirth: profile.date_of_birth || '2008-01-01',
+            school: app.institution_name || profile.school_name || 'Institution on file',
+            educationLevel: app.institution_level || profile.school_level || 'Secondary',
+            grade: 'Form 1',
+            village: profile.ward ? `${profile.ward} Village` : 'Tendeno Central Village',
+            location: profile.county || 'Tendeno',
+            subLocation: profile.ward || 'Tendeno Central',
+            idLocation: profile.county || 'Tendeno',
+            isSuspicious: false,
+            suspicionReason: '',
+            submittedDate: app.submitted_at || app.created_at || new Date().toISOString(),
+            applicationStatus: app.chief_recommended ? 'Approved' : (app.application_status === 'approved' ? 'Approved' : app.application_status === 'rejected' ? 'Rejected' : 'Under Review'),
+            amountRequested: app.requested_amount ? `KES ${Number(app.requested_amount).toLocaleString()}` : 'KES 45,000',
+            parentName: details.guardian_name || 'Guardian on file',
+            parentPhone: details.guardian_phone || profile.phone_number || '',
+            parentNationalId: '',
+            nationalId: profile.national_id || '',
+            idNumber: profile.national_id || ''
+          };
+        });
+        const current = getChiefApplications();
+        const merged = Array.from(new Map([...fromDb, ...current].map(a => [a.id || a.serial, a])).values());
+        localStorage.setItem(APPS_KEY, JSON.stringify(merged));
+        window.dispatchEvent(new CustomEvent('mcmca_chief_apps_updated', { detail: merged }));
+        return merged;
+      }
+    } catch (err) {
+      console.warn('Chief DB sync fallback:', err);
+    }
+  }
+  return getChiefApplications();
 }
 
 export function updateChiefApplicationDecision(appId, decision, reviewNotes = '') {
   const current = getChiefApplications();
+  const now = new Date().toISOString();
+  let updatedTarget = null;
   const updated = current.map((app) => {
     if (app.id === appId) {
-      return {
+      updatedTarget = {
         ...app,
         applicationStatus: decision === 'approve' ? 'Approved' : 'Rejected',
         reviewNotes: reviewNotes || (decision === 'approve' ? 'Approved by Chief after review.' : 'Rejected by Chief due to verification failure.'),
-        reviewedAt: new Date().toISOString()
+        reviewedAt: now
       };
+      return updatedTarget;
     }
     return app;
   });
   localStorage.setItem(APPS_KEY, JSON.stringify(updated));
   window.dispatchEvent(new CustomEvent('mcmca_chief_apps_updated', { detail: updated }));
+
+  // Cross-dashboard propagation to submitted registry
+  try {
+    const rawSub = localStorage.getItem('mcmca_submitted_applications');
+    if (rawSub) {
+      const subList = JSON.parse(rawSub);
+      const updatedSub = subList.map((a) => {
+        if (a.id === appId || a.serial === updatedTarget?.serial) {
+          return {
+            ...a,
+            status: decision === 'approve' ? 'Recommended by Chief' : 'Rejected by Chief',
+            application_status: decision === 'approve' ? 'chief_approved' : 'rejected',
+            chief_recommended: decision === 'approve',
+            chief_notes: reviewNotes
+          };
+        }
+        return a;
+      });
+      localStorage.setItem('mcmca_submitted_applications', JSON.stringify(updatedSub));
+      window.dispatchEvent(new CustomEvent('mcmca_apps_updated', { detail: updatedSub }));
+    }
+  } catch (err) {
+    console.warn('Cross sync submitted apps failed:', err);
+  }
+
+  // Persist to Supabase DB if possible
+  if (supabase && updatedTarget && typeof appId === 'string' && appId.length > 20) {
+    supabase.from('student_applications').update({
+      chief_recommended: decision === 'approve',
+      application_status: decision === 'approve' ? 'chief_approved' : 'rejected',
+      updated_at: now
+    }).eq('id', appId).then(() => {}).catch(() => {});
+  }
+
   return updated;
 }
 
@@ -499,15 +622,19 @@ export function getChiefUpdateCounts() {
 export function bulkApproveCleanApplications() {
   const current = getChiefApplications();
   let count = 0;
+  const approvedIds = new Set();
+  const now = new Date().toISOString();
   const updated = current.map((app) => {
     // Only accept non-suspicious applications that are not already approved
     if (!app.isSuspicious && app.applicationStatus !== 'Approved') {
       count++;
+      approvedIds.add(app.id);
+      approvedIds.add(app.serial);
       return {
         ...app,
         applicationStatus: 'Approved',
         reviewNotes: 'Bulk-approved by Chief: verified resident with consistent records.',
-        reviewedAt: new Date().toISOString()
+        reviewedAt: now
       };
     }
     return app;
@@ -515,6 +642,29 @@ export function bulkApproveCleanApplications() {
   if (count > 0) {
     localStorage.setItem(APPS_KEY, JSON.stringify(updated));
     window.dispatchEvent(new CustomEvent('mcmca_chief_apps_updated', { detail: updated }));
+
+    try {
+      const rawSub = localStorage.getItem('mcmca_submitted_applications');
+      if (rawSub) {
+        const subList = JSON.parse(rawSub);
+        const updatedSub = subList.map((a) => {
+          if (approvedIds.has(a.id) || approvedIds.has(a.serial)) {
+            return {
+              ...a,
+              status: 'Recommended by Chief',
+              application_status: 'chief_approved',
+              chief_recommended: true,
+              chief_notes: 'Bulk-approved by Chief: verified resident with consistent records.'
+            };
+          }
+          return a;
+        });
+        localStorage.setItem('mcmca_submitted_applications', JSON.stringify(updatedSub));
+        window.dispatchEvent(new CustomEvent('mcmca_apps_updated', { detail: updatedSub }));
+      }
+    } catch (err) {
+      console.warn('Cross sync bulk approve failed:', err);
+    }
   }
   return { updated, count };
 }

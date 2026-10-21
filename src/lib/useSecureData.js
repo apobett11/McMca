@@ -19,29 +19,7 @@ export function useSecureData(fetchFn, deps = [], cacheName) {
   );
 }
 
-export function useRealtimeSubscription(table, filterColumn, filterValue, onInsert) {
-  const { isAuthenticated } = useAuth();
-  const subscriptionRef = useRef(null);
-
-  useEffect(() => {
-    if (!isAuthenticated || !table) return;
-    let query = supabase.channel(`${table}_changes`).on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table,
-        filter: filterColumn && filterValue ? `${filterColumn}=eq.${filterValue}` : undefined
-      },
-      (payload) => {
-        if (onInsert) onInsert(payload.new);
-      }
-    );
-    subscriptionRef.current = query.subscribe();
-    return () => {
-      if (subscriptionRef.current) {
-        supabase.removeChannel(subscriptionRef.current);
-      }
-    };
-  }, [table, filterColumn, filterValue, isAuthenticated]);
+export function useRealtimeSubscription() {
+  // Realtime subscriptions disabled: system operates via standard DB queries and user-initiated refreshes.
 }
+

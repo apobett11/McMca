@@ -2,12 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { getTimeGreeting } from '../../../utils/greeting.js';
 import {
   getChiefProfile,
   saveChiefProfile,
   isChiefProfileComplete,
   getChiefApplications,
+  syncChiefApplicationsFromDB,
   getChiefMessages,
   getChiefAppeals,
   CHIEF_ADMIN_AREAS,
@@ -37,6 +39,16 @@ export function ChiefDashboardPage() {
   const [applications, setApplications] = useState(() => getChiefApplications());
   const [messages, setMessages] = useState(() => getChiefMessages());
   const [appeals, setAppeals] = useState(() => getChiefAppeals());
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    const updated = await syncChiefApplicationsFromDB();
+    setApplications(updated || getChiefApplications());
+    setMessages(getChiefMessages());
+    setAppeals(getChiefAppeals());
+    setRefreshing(false);
+  }
 
   useEffect(() => {
     function onProfileUpdated(e) {
@@ -51,6 +63,9 @@ export function ChiefDashboardPage() {
     function onAppealsUpdated(e) {
       setAppeals(e.detail);
     }
+
+    syncChiefApplicationsFromDB().catch(() => {});
+
     window.addEventListener('mcmca_chief_profile_updated', onProfileUpdated);
     window.addEventListener('mcmca_chief_apps_updated', onAppsUpdated);
     window.addEventListener('mcmca_chief_messages_updated', onMsgsUpdated);
@@ -250,6 +265,7 @@ export function ChiefDashboardPage() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <RefreshButton busy={refreshing} onClick={handleRefresh} />
               {profileComplete ? (
                 <>
                   <span className="badge badge--success" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
