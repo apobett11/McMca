@@ -14,28 +14,19 @@ import { CompleteRegistrationWizard } from '../../../components/account/Complete
 import { HomeFields } from '../../../components/account/HomeFields.jsx';
 import { FamilyFields } from '../../../components/account/FamilyFields.jsx';
 import { AddChildModal } from '../../../components/account/AddChildModal.jsx';
+import { EDUCATION_LEVEL_LABEL } from '../../../lib/accountAllocation/constants.js';
 
 function childName(child) {
   return joinFullName({
     firstName: child.first_name,
     middleName: child.middle_name,
     lastName: child.last_name
-  });
+  }) || 'Student';
 }
 
-function Flag({ done, label, onClick, locked }) {
-  return (
-    <button
-      type="button"
-      className={`form-flag${locked ? ' form-flag--locked' : ''}`}
-      onClick={locked ? undefined : onClick}
-      disabled={locked}
-    >
-      <span className={`stitch-status-badge ${done ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
-        {label}
-      </span>
-    </button>
-  );
+function levelLabel(value) {
+  if (!value) return '—';
+  return EDUCATION_LEVEL_LABEL[value] || value;
 }
 
 export function ParentDocumentsPage() {
@@ -47,16 +38,19 @@ export function ParentDocumentsPage() {
   const [draft, setDraft] = useState({});
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+
   const { data, loading, refreshing, error, refresh, update } = useCachedQuery(
     user?.id ? `${user.id}:parent-applications` : null,
     () => loadParentApplications(user.id),
     { enabled: Boolean(user?.id) }
   );
+
   const registrationIncomplete = Boolean(data?.registrationIncomplete);
   const parent = data?.parent || null;
   const children = data?.children || [];
   const household = data?.household || emptyHousehold();
   const showSkeleton = loading && !data;
+
   const homeReady = homeComplete(household);
   const familyReady = familyComplete(household);
   const parentReady = Boolean(parent?.first_name && parent?.last_name && parent?.national_id);
@@ -87,10 +81,9 @@ export function ParentDocumentsPage() {
     if (!parent || !user?.id || !editor) return;
     const schema = editor === 'home'
       ? {
-        constituency: { label: 'Constituency' },
         ward: { label: 'Ward' },
-        county: { label: 'County' },
-        subCounty: { label: 'Sub-county' },
+        location: { label: 'Location' },
+        subLocation: { label: 'Sub-location' },
         pollingStation: { label: 'Polling station' }
       }
       : {
@@ -100,6 +93,7 @@ export function ParentDocumentsPage() {
         disability: { label: 'Disability in the family' },
         otherBursary: { label: 'Other bursary' }
       };
+
     const check = validateForm(draft, schema);
     if (!check.ok) {
       setFormError(Object.values(check.errors)[0]);
@@ -124,20 +118,25 @@ export function ParentDocumentsPage() {
   }
 
   return (
-    <ParentLayout pageTitle="Documents" layout="dashboard">
+    <ParentLayout pageTitle="Documents & Household" layout="dashboard">
       <div className="stitch-apps-header">
-        <h1 className="stitch-apps-header__title">Forms</h1>
+        <h1 className="stitch-apps-header__title">Documents & Household Details</h1>
         <p className="stitch-apps-header__sub">
-          Home and family are filled once for your account. Every child you add uses those details.
+          General household information is completed once and automatically applies to all linked children.
         </p>
       </div>
 
       {registrationIncomplete ? (
         <div className="notice continue-reg-banner">
-          <strong>Finish your details first</strong>
-          <p>Save your details, home, and family before a child is added. Those details are copied onto each student.</p>
-          <button type="button" className="btn btn--primary" style={{ borderRadius: 999, width: 'auto', marginTop: 12 }} onClick={() => setWizardOpen(true)}>
-            Continue
+          <strong>Finish your household details first</strong>
+          <p>Complete your personal, home location, and family details before adding students. Those details will be pre-filled on every child.</p>
+          <button
+            type="button"
+            className="btn btn--primary"
+            style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}
+            onClick={() => setWizardOpen(true)}
+          >
+            Complete household registration
           </button>
         </div>
       ) : null}
@@ -149,9 +148,75 @@ export function ParentDocumentsPage() {
         </div>
       ) : null}
 
+      {/* Shared Household Overview Card (Pre-filled for all children) */}
+      <section style={{
+        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%)',
+        border: '1px solid rgba(148, 163, 184, 0.2)',
+        borderRadius: 16,
+        padding: '20px 24px',
+        marginBottom: 24,
+        boxShadow: '0 8px 20px -4px rgba(0, 0, 0, 0.3)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className={`stitch-status-badge ${sharedReady ? 'stitch-status-badge--admitted' : 'stitch-status-badge--review'}`}>
+              {sharedReady ? 'Household Details Complete' : 'Household Details Incomplete'}
+            </span>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Shared across all children</span>
+          </div>
+          <div className="btn-row">
+            <button
+              type="button"
+              className="btn btn--secondary btn--compact"
+              onClick={() => openShared('home')}
+            >
+              <Icon name="review" size={14} />
+              Edit Location
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary btn--compact"
+              onClick={() => openShared('family')}
+            >
+              <Icon name="review" size={14} />
+              Edit Family
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.5px' }}>Ward & Location</span>
+            <p style={{ margin: '4px 0 0', fontWeight: 600, color: '#f8fafc', fontSize: '0.92rem' }}>
+              {household.ward || 'Tendeno/Sorget Ward'}
+              {household.location ? ` · ${household.location}` : ''}
+              {household.subLocation ? ` · ${household.subLocation}` : ''}
+            </p>
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.5px' }}>Polling Station</span>
+            <p style={{ margin: '4px 0 0', fontWeight: 600, color: '#f8fafc', fontSize: '0.92rem' }}>
+              {household.pollingStation || (homeReady ? 'Assigned Polling Station' : 'Not specified yet')}
+            </p>
+          </div>
+          <div>
+            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.5px' }}>Family Status</span>
+            <p style={{ margin: '4px 0 0', fontWeight: 600, color: '#f8fafc', fontSize: '0.92rem' }}>
+              {household.childrenInFamily ? `${household.childrenInFamily} children in household` : 'Family size on file'}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Linked Children Documents Single Row Table */}
       <section className="stitch-apps-history">
-        <div className="dash-suite__head">
-          <h2 className="stitch-section-title">Students</h2>
+        <div className="stitch-apps-history__head">
+          <div>
+            <h2 className="stitch-section-title" style={{ margin: 0 }}>Linked Children & Documents</h2>
+            <p className="field__help" style={{ margin: '4px 0 0' }}>
+              Single row per student showing only student-specific documents and registration status.
+            </p>
+          </div>
           <div className="btn-row">
             <RefreshButton onClick={refresh} busy={refreshing} />
             <button
@@ -159,7 +224,13 @@ export function ParentDocumentsPage() {
               className="btn btn--primary"
               onClick={() => setChildModal({ mode: 'add' })}
               disabled={!canAddChild}
-              title={!sharedReady ? 'Household details needed first' : hasIncompleteChild ? 'Finish current child before adding another' : 'Add a child'}
+              title={
+                !sharedReady
+                  ? 'Complete household registration first'
+                  : hasIncompleteChild
+                    ? 'Finish current child before adding another'
+                    : 'Add a child'
+              }
             >
               <Icon name="plus" size={18} />
               Add a child
@@ -173,53 +244,73 @@ export function ParentDocumentsPage() {
           </div>
         ) : children.length === 0 ? (
           <div className="notice">
-            <strong>Household first</strong>
-            <p>Save home and family details here, then add a child. The new student inherits them.</p>
-            <div className="form-flag-row">
-              <Flag done={parentReady} label={parentReady ? 'Parent on file' : 'Parent details'} onClick={() => setWizardOpen(true)} />
-              <Flag done={homeReady} label={homeReady ? 'Home on file' : 'Home details'} onClick={() => openShared('home')} />
-              <Flag done={familyReady} label={familyReady ? 'Family on file' : 'Family details'} onClick={() => openShared('family')} />
-            </div>
+            <strong>No children linked yet</strong>
+            <p>Your general household information is saved. Add your child to fill their 3 student-specific steps (Personal, Institution, Documents).</p>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => setChildModal({ mode: 'add' })}
+              disabled={!canAddChild}
+              style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}
+            >
+              <Icon name="plus" size={18} />
+              Add a child
+            </button>
           </div>
         ) : (
           <div className="stitch-apps-table">
             <table>
               <thead>
                 <tr>
-                  <th>Full name</th>
-                  <th>Personal</th>
-                  <th>Parent</th>
-                  <th>Institution</th>
-                  <th>Home</th>
-                  <th>Family</th>
-                  <th>Documents</th>
+                  <th>Student name</th>
+                  <th>School / Institution</th>
+                  <th>Level</th>
+                  <th>Birth Certificate / ID</th>
+                  <th>Fee / Academic Docs</th>
+                  <th>Household Info</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {children.map((child) => {
-                  const personal = Boolean(child.first_name && child.last_name && child.date_of_birth && child.gender);
-                  const institution = Boolean(child.school_name && child.school_level && child.admission_number);
+                  const hasBirthCert = Boolean(child.birth_certificate_number);
+                  const hasSchool = Boolean(child.school_name && child.admission_number);
+
                   return (
                     <tr key={child.id}>
-                      <td data-label="Full name" style={{ fontWeight: 600 }}>{childName(child)}</td>
-                      <td data-label="Personal">
-                        <Flag done={personal} label={personal ? 'Done' : 'Needed'} onClick={() => setChildModal({ mode: 'edit', child })} />
+                      <td data-label="Student name" style={{ fontWeight: 600 }}>
+                        {childName(child)}
                       </td>
-                      <td data-label="Parent">
-                        <Flag done={parentReady} label={parentReady ? 'On file' : 'Needed'} locked={parentReady} onClick={() => setWizardOpen(true)} />
+                      <td data-label="School / Institution">
+                        {child.school_name || 'School not added yet'}
                       </td>
-                      <td data-label="Institution">
-                        <Flag done={institution} label={institution ? 'Done' : 'Needed'} onClick={() => setChildModal({ mode: 'edit', child })} />
+                      <td data-label="Level">
+                        {levelLabel(child.school_level)}
                       </td>
-                      <td data-label="Home">
-                        <Flag done={homeReady} label={homeReady ? 'On file' : 'Needed'} onClick={() => openShared('home')} />
+                      <td data-label="Birth Certificate / ID">
+                        <span className={`stitch-status-badge ${hasBirthCert ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
+                          {hasBirthCert ? 'On file' : 'Needed'}
+                        </span>
                       </td>
-                      <td data-label="Family">
-                        <Flag done={familyReady} label={familyReady ? 'On file' : 'Needed'} onClick={() => openShared('family')} />
+                      <td data-label="Fee / Academic Docs">
+                        <span className={`stitch-status-badge ${hasSchool ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
+                          {hasSchool ? 'On file' : 'Needed'}
+                        </span>
                       </td>
-                      <td data-label="Documents">
-                        <button type="button" className="btn btn--secondary btn--compact" onClick={() => setChildModal({ mode: 'edit', child })}>
-                          Update
+                      <td data-label="Household Info">
+                        <span className="stitch-status-badge stitch-status-badge--admitted" title="Home and family details pre-filled from parent account">
+                          Pre-filled from Parent
+                        </span>
+                      </td>
+                      <td data-label="Actions">
+                        <button
+                          type="button"
+                          className="btn btn--secondary btn--compact"
+                          onClick={() => setChildModal({ mode: 'edit', child })}
+                          style={{ borderRadius: 999 }}
+                        >
+                          <Icon name="review" size={14} />
+                          Update child
                         </button>
                       </td>
                     </tr>
@@ -230,21 +321,30 @@ export function ParentDocumentsPage() {
           </div>
         )}
 
+        {/* Inline General Information Editor Modal / Panel */}
         {editor ? (
-          <div className="wizard-panel" style={{ marginTop: 16 }}>
-            <h2>{editor === 'home' ? 'Home details' : 'Family details'}</h2>
-            <p className="field__help">Saved once. Every child uses this household.</p>
+          <div className="wizard-panel" style={{ marginTop: 20 }}>
+            <h2>{editor === 'home' ? 'General Location Details' : 'Family Details'}</h2>
+            <p className="field__help">Saved once for your parent account. Automatically applies to every child.</p>
             {editor === 'home' ? (
-              <HomeFields values={draft} onChange={(key, value) => setDraft((prev) => ({ ...prev, [key]: value }))} idPrefix="parent-home-" />
+              <HomeFields
+                values={draft}
+                onChange={(key, value) => setDraft((prev) => ({ ...prev, [key]: value }))}
+                idPrefix="parent-home-"
+              />
             ) : (
-              <FamilyFields values={draft} onChange={(key, value) => setDraft((prev) => ({ ...prev, [key]: value }))} idPrefix="parent-fam-" />
+              <FamilyFields
+                values={draft}
+                onChange={(key, value) => setDraft((prev) => ({ ...prev, [key]: value }))}
+                idPrefix="parent-fam-"
+              />
             )}
-            {formError ? <p className="field__help">{formError}</p> : null}
-            <div className="form-flag-row">
-              <button type="button" className="btn btn--primary" onClick={saveShared} disabled={saving}>
-                {saving ? 'Saving…' : 'Save'}
+            {formError ? <p className="field__help" style={{ color: '#ef4444' }}>{formError}</p> : null}
+            <div className="form-flag-row" style={{ marginTop: 14 }}>
+              <button type="button" className="btn btn--primary" onClick={saveShared} disabled={saving} style={{ borderRadius: 999, width: 'auto' }}>
+                {saving ? 'Saving…' : 'Save General Details'}
               </button>
-              <button type="button" className="btn btn--secondary" onClick={() => setEditor(null)} disabled={saving}>
+              <button type="button" className="btn btn--secondary" onClick={() => setEditor(null)} disabled={saving} style={{ borderRadius: 999, width: 'auto' }}>
                 Cancel
               </button>
             </div>

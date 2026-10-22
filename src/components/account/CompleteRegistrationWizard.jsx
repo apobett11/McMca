@@ -61,9 +61,12 @@ function studentSeed(profile, pending) {
     parentPhone: pending?.parent_phone || '',
     parentNationalId: pending?.parent_national_id || '',
     constituency: household.constituency || '',
-    ward: household.ward || profile.ward || '',
+    ward: household.ward || profile.ward || 'Tendeno/Sorget Ward',
     county: household.county || profile.county || '',
     subCounty: household.subCounty || '',
+    location: household.location || '',
+    subLocation: household.subLocation || '',
+    village: household.village || '',
     pollingStation: household.pollingStation || profile.location_name || '',
     childrenInFamily: household.childrenInFamily || '',
     childrenInSchool: household.childrenInSchool || '',
@@ -92,9 +95,12 @@ function parentSeed(profile) {
     phone: profile.phone_number || '',
     nationalId: profile.national_id || '',
     constituency: household.constituency || '',
-    ward: household.ward || '',
+    ward: household.ward || 'Tendeno/Sorget Ward',
     county: household.county || '',
     subCounty: household.subCounty || '',
+    location: household.location || '',
+    subLocation: household.subLocation || '',
+    village: household.village || '',
     pollingStation: household.pollingStation || '',
     childrenInFamily: household.childrenInFamily || '',
     childrenInSchool: household.childrenInSchool || '',
@@ -390,10 +396,9 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
 
       if (key === 'home_details') {
         const check = validateForm(wizard.values, {
-          constituency: { label: 'Constituency' },
           ward: { label: 'Ward' },
-          county: { label: 'County' },
-          subCounty: { label: 'Sub-county' },
+          location: { label: 'Location' },
+          subLocation: { label: 'Sub-location' },
           pollingStation: { label: 'Polling station' }
         });
         if (!check.ok) {
@@ -410,11 +415,14 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
         wizard.setError('');
 
         stepPayload = {
-          constituency: wizard.values.constituency,
           ward: wizard.values.ward,
-          county: wizard.values.county,
-          subCounty: wizard.values.subCounty,
-          pollingStation: wizard.values.pollingStation
+          location: wizard.values.location,
+          subLocation: wizard.values.subLocation,
+          village: wizard.values.village || '',
+          pollingStation: wizard.values.pollingStation,
+          constituency: wizard.values.constituency || '',
+          county: wizard.values.county || '',
+          subCounty: wizard.values.subCounty || ''
         };
 
         try {
@@ -423,7 +431,7 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
             await supabase.from('student_profiles').update({
               county: wizard.values.county,
               ward: wizard.values.ward,
-              location_name: wizard.values.pollingStation || wizard.values.constituency
+              location_name: wizard.values.pollingStation || wizard.values.location || wizard.values.constituency
             }).eq('id', profile.id);
           } else {
             await saveParentHousehold(profile.id, stepPayload);

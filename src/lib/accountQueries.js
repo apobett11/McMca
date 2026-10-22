@@ -594,6 +594,7 @@ export async function updateChildFormDetails({ studentId, authUserId, personal, 
     last_name: String(personal.lastName || '').trim(),
     gender: personal.gender,
     date_of_birth: personal.dateOfBirth,
+    birth_certificate_number: personal.birthCertificateNumber?.trim() || null,
     school_name: String(institution.schoolName || '').trim(),
     school_level: institution.schoolLevel,
     admission_number: String(institution.admissionNumber || '').trim()

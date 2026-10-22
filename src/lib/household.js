@@ -1,11 +1,14 @@
 /** Household details asked once, then used as the default for each child. */
 
 export const HOME_FIELDS = [
-  { key: 'constituency', label: 'Constituency' },
   { key: 'ward', label: 'Ward' },
+  { key: 'location', label: 'Location' },
+  { key: 'subLocation', label: 'Sub-location' },
+  { key: 'village', label: 'Village' },
+  { key: 'pollingStation', label: 'Polling station' },
+  { key: 'constituency', label: 'Constituency' },
   { key: 'county', label: 'County' },
-  { key: 'subCounty', label: 'Sub-county' },
-  { key: 'pollingStation', label: 'Polling station' }
+  { key: 'subCounty', label: 'Sub-county' }
 ];
 
 export const PARENT_STATUS_OPTIONS = [
@@ -26,11 +29,14 @@ export const INCOME_OPTIONS = [
 
 export function emptyHousehold() {
   return {
+    ward: 'Tendeno/Sorget Ward',
+    location: '',
+    subLocation: '',
+    village: '',
+    pollingStation: '',
     constituency: '',
-    ward: '',
     county: '',
     subCounty: '',
-    pollingStation: '',
     childrenInFamily: '',
     childrenInSchool: '',
     childrenPrimary: '',
@@ -53,7 +59,12 @@ export function readHousehold(profile) {
 }
 
 export function homeComplete(household) {
-  return HOME_FIELDS.every((field) => String(household?.[field.key] || '').trim());
+  if (!household) return false;
+  const hasWard = Boolean(String(household.ward || '').trim());
+  const hasLocation = Boolean(String(household.location || '').trim());
+  const hasSubLocation = Boolean(String(household.subLocation || '').trim());
+  const hasPolling = Boolean(String(household.pollingStation || '').trim());
+  return hasWard && hasLocation && hasSubLocation && hasPolling;
 }
 
 export function familyComplete(household) {
@@ -121,12 +132,18 @@ export function groupApplicationsByCycle(children, applications, windows) {
     appsByStudent.set(app.student_profile_id, list);
   });
 
+  const activeCycle = latestCycleFromWindows(windows);
+
   (children || []).forEach((child) => {
     const apps = appsByStudent.get(child.id) || [];
-    apps.forEach((application) => {
-      const cycle = cycleTitle(application, windows, application.created_at);
-      bucket(cycle).push({ child, application, cycle });
-    });
+    if (apps.length === 0) {
+      bucket(activeCycle).push({ child, application: null, cycle: activeCycle });
+    } else {
+      apps.forEach((application) => {
+        const cycle = cycleTitle(application, windows, application.created_at);
+        bucket(cycle).push({ child, application, cycle });
+      });
+    }
   });
 
   return [...groups.entries()]
