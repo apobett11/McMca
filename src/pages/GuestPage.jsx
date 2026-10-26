@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useId } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { assertPortalLoginAllowed } from '../lib/accountQueries';
+import BursaryProcessGuide from '../components/BursaryProcessGuide';
 import './GuestPage.css';
 
 // SVG Icon Helper
@@ -89,54 +90,6 @@ const VILLAGE_DATA = [
   { name: 'Kapsorok Sub-Village', schools: 2, students: 190, bursaries: 145, pct: 76 }
 ];
 
-// Bursary Steps Configuration by Persona
-const STEPS_CONFIG = {
-  university: {
-    label: 'University / College',
-    description: 'For undergraduate, diploma, and certificate students in recognized tertiary institutions.',
-    steps: [
-      { num: '01', title: 'National ID & Profile', desc: 'Create your account using your National ID and institutional admission details.' },
-      { num: '02', title: 'Upload Fee Statement', desc: 'Attach official current semester fee structure and student verification card.' },
-      { num: '03', title: 'Ward Committee Review', desc: 'Vetting by the Ward Bursary Committee and verification by the Area Chief.' },
-      { num: '04', title: 'Direct Disbursement', desc: 'Approved funds paid straight to your university/college bank account.' }
-    ],
-    requirements: ['National ID Card', 'College Admission Letter', 'Current Fee Statement', 'Student Portal Login / ID']
-  },
-  highschool: {
-    label: 'High School',
-    description: 'For secondary school students (Form 1 to Form 4) enrolled in public day and boarding schools.',
-    steps: [
-      { num: '01', title: 'Registration / NEMIS', desc: 'Register with student NEMIS / UPI number or through a parent account.' },
-      { num: '02', title: 'School Principal Sign-off', desc: 'Submit terminal report card and the principal fee balance invoice.' },
-      { num: '03', title: 'Location Vetting', desc: 'Verification of family residency by local village elders and Area Chief.' },
-      { num: '04', title: 'CDF Cheque Delivery', desc: 'Bursary cheques sent directly to your secondary school administration.' }
-    ],
-    requirements: ['NEMIS / Assessment Number', 'School Fee Structure', 'Birth Certificate / ID', 'Chief Endorsement Form']
-  },
-  primary: {
-    label: 'Primary School',
-    description: 'Special support, vulnerable pupil assistance, and transition aid for primary learners.',
-    steps: [
-      { num: '01', title: 'Parent Account Setup', desc: 'Parent or guardian signs up with their National ID to manage the child application.' },
-      { num: '02', title: 'Headteacher Endorsement', desc: 'Obtain assessment confirmation from the primary school headteacher.' },
-      { num: '03', title: 'Village Elder Review', desc: 'Community validation to ensure affirmative action reaches the most needy.' },
-      { num: '04', title: 'Disbursement & Kit', desc: 'Direct school supply grant and essential fee relief distributed.' }
-    ],
-    requirements: ['Parent National ID', 'Pupil Birth Certificate', 'Headteacher Letter', 'Village Residency Proof']
-  },
-  parent: {
-    label: 'I am a Parent / Guardian',
-    description: 'Manage bursary applications for all your children from one consolidated family account.',
-    steps: [
-      { num: '01', title: 'Parent Registration', desc: 'Register your parent account once using your National ID card.' },
-      { num: '02', title: 'Add Dependents', desc: 'Link your children (Primary, High School, or College) under your dashboard.' },
-      { num: '03', title: 'Submit Documents', desc: 'Upload each child fee structures and your family income / situation status.' },
-      { num: '04', title: 'Track Allocations', desc: 'Receive SMS updates and live dashboard status as bursaries are awarded.' }
-    ],
-    requirements: ['Parent National ID', 'Children Birth Certificates', 'School Fee Structures', 'Proof of Vulnerability (if any)']
-  }
-};
-
 // Frequently Asked Questions
 const FAQS = [
   {
@@ -174,9 +127,6 @@ export function GuestPage() {
 
   // Hero Dropdown
   const [bursaryDropdownOpen, setBursaryDropdownOpen] = useState(false);
-
-  // Bursary Steps Persona
-  const [selectedPersona, setSelectedPersona] = useState('university');
 
   // Village Filter
   const [villageSearch, setVillageSearch] = useState('');
@@ -827,66 +777,7 @@ export function GuestPage() {
           </section>
 
           {/* 2. BURSARY APPLICATION SECTION CARD */}
-          <section id="bursary" className="gp-section-card gp-section-card--bursary">
-            <div className="gp-section-header">
-              <span className="gp-badge gp-badge--blue">Simple Step-By-Step Guide</span>
-              <h2 className="gp-section-title">Bursary Application Process</h2>
-              <p className="gp-section-desc">
-                Select your academic level or role to view exact requirements and step-by-step guidance.
-              </p>
-            </div>
-
-            {/* Persona / Study Level Selector */}
-            <div className="gp-persona-pills">
-              {Object.entries(STEPS_CONFIG).map(([key, config]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`gp-persona-pill ${selectedPersona === key ? 'is-active' : ''}`}
-                  onClick={() => setSelectedPersona(key)}
-                >
-                  {config.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Dynamic 4 Steps Display */}
-            <div className="gp-steps-grid">
-              {STEPS_CONFIG[selectedPersona].steps.map((st) => (
-                <div key={st.num} className="gp-step-card">
-                  <div className="gp-step-card__num">{st.num}</div>
-                  <h3 className="gp-step-card__title">{st.title}</h3>
-                  <p className="gp-step-card__desc">{st.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Checklist & Action Box */}
-            <div className="gp-requirements-box">
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--gp-navy)', marginBottom: 6 }}>
-                  Required Documents for {STEPS_CONFIG[selectedPersona].label}:
-                </div>
-                <div className="gp-requirements-list">
-                  {STEPS_CONFIG[selectedPersona].requirements.map((req) => (
-                    <span key={req} className="gp-req-chip">
-                      <GuestIcon name="check" size={13} /> {req}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Universal Apply Button -> Registers with appropriate role */}
-              <Link
-                to={selectedPersona === 'parent' ? '/register?role=parent' : '/register?role=student'}
-                className="gp-btn gp-btn--primary"
-                style={{ borderRadius: 999 }}
-              >
-                <span>Apply as {selectedPersona === 'parent' ? 'Parent' : 'Student'}</span>
-                <GuestIcon name="arrowRight" size={16} />
-              </Link>
-            </div>
-          </section>
+          <BursaryProcessGuide />
 
           {/* 3. WARD BURSARY DISTRIBUTION SECTION CARD */}
           <section id="distribution" className="gp-section-card gp-section-card--dev">

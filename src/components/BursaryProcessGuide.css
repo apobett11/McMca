@@ -1,0 +1,965 @@
+/* ========================================================
+   BURSARY PROCESS GUIDE — APPLE HIG + CLAY + GLASS DESIGN
+   ======================================================== */
+
+.bpg-section {
+  position: relative;
+  width: 100%;
+}
+
+/* 1. Header */
+.bpg-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.bpg-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #D97706; /* Warm amber */
+  background: rgba(254, 243, 199, 0.75);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  padding: 5px 14px;
+  border-radius: 9999px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(8px);
+}
+
+.bpg-sparkle-icon {
+  color: #D97706;
+}
+
+.bpg-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0F172A;
+  margin: 0 0 10px;
+  line-height: 1.2;
+}
+
+.bpg-subtitle {
+  font-size: 0.95rem;
+  color: #64748B;
+  max-width: 620px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* 2. Top-Level Role Segmented Control */
+.bpg-role-selector-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.bpg-role-segment {
+  display: inline-flex;
+  gap: 8px;
+  background: rgba(241, 245, 249, 0.85);
+  padding: 6px;
+  border-radius: 20px;
+  border: 1px solid rgba(203, 213, 225, 0.6);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.03);
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.bpg-role-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  user-select: none;
+}
+
+.bpg-role-btn:hover {
+  color: #0F172A;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.bpg-role-btn-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  transition: all 0.22s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  flex-shrink: 0;
+}
+
+.bpg-role-btn-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.bpg-role-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.bpg-role-hint {
+  font-size: 0.73rem;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+/* Role Active State: Claymorphic Apple Highlight */
+.bpg-role-btn.is-active {
+  background: #FFFFFF;
+  color: #0F172A;
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 8px 20px -3px rgba(15, 23, 42, 0.08),
+    0 2px 6px -1px rgba(15, 23, 42, 0.04),
+    inset 0 1px 1px #FFFFFF,
+    inset 0 -1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.bpg-role-btn.is-active .bpg-role-btn-icon {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  color: #FFFFFF;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.2);
+}
+
+.bpg-role-btn.is-active .bpg-role-hint {
+  color: #2563EB;
+  font-weight: 500;
+}
+
+/* 3. Empty / Prompt State Card */
+.bpg-glass-clay {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 24px;
+  box-shadow: 
+    0 16px 36px -8px rgba(15, 23, 42, 0.07),
+    0 4px 12px -2px rgba(15, 23, 42, 0.03),
+    inset 0 2px 3px rgba(255, 255, 255, 0.95),
+    inset 0 -2px 3px rgba(15, 23, 42, 0.02);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bpg-prompt-card {
+  text-align: center;
+  padding: 44px 32px;
+  margin-top: 8px;
+}
+
+.bpg-prompt-glow {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 340px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.12) 0%, rgba(37, 99, 235, 0.08) 50%, transparent 70%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.bpg-prompt-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.05);
+  color: #475569;
+  margin-bottom: 14px;
+}
+
+.bpg-prompt-heading {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 10px;
+  letter-spacing: -0.02em;
+}
+
+.bpg-prompt-text {
+  font-size: 0.92rem;
+  color: #64748B;
+  max-width: 580px;
+  margin: 0 auto 30px;
+  line-height: 1.55;
+}
+
+.bpg-prompt-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.bpg-prompt-tile {
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 18px;
+  padding: 24px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 
+    0 6px 16px -3px rgba(15, 23, 42, 0.05),
+    inset 0 1px 1px rgba(255, 255, 255, 1);
+  position: relative;
+}
+
+.bpg-prompt-tile:hover,
+.bpg-prompt-tile:focus-visible {
+  outline: none;
+  border-color: #93C5FD;
+  transform: translateY(-3px);
+  box-shadow: 
+    0 14px 28px -5px rgba(37, 99, 235, 0.12),
+    0 4px 10px -2px rgba(15, 23, 42, 0.04),
+    inset 0 1.5px 2px rgba(255, 255, 255, 1);
+}
+
+.bpg-prompt-tile-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.bpg-prompt-tile-icon.student-glow {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.bpg-prompt-tile-icon.parent-glow {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.bpg-prompt-tile-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.bpg-prompt-tile-desc {
+  font-size: 0.82rem;
+  color: #64748B;
+  line-height: 1.5;
+  margin-bottom: 18px;
+  flex-grow: 1;
+}
+
+.bpg-prompt-tile-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2563EB;
+  transition: gap 0.15s ease;
+}
+
+.bpg-prompt-tile:hover .bpg-prompt-tile-cta {
+  gap: 10px;
+}
+
+/* 4. Student Sub-Tabs Selector */
+.bpg-subtabs-wrap {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.bpg-subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  color: #475569;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  backdrop-filter: blur(8px);
+}
+
+.bpg-subtab-btn:hover {
+  background: #FFFFFF;
+  color: #0F172A;
+  border-color: #94A3B8;
+}
+
+.bpg-subtab-btn.is-active {
+  background: #0F172A;
+  color: #FFFFFF;
+  border-color: #0F172A;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+/* 5. Content Card Layout */
+.bpg-flow-container {
+  animation: bpgFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bpgFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bpg-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.bpg-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: 8px;
+}
+
+.bpg-pill--emerald {
+  background: rgba(236, 253, 245, 0.9);
+  color: #047857;
+  border: 1px solid rgba(167, 243, 208, 0.7);
+}
+
+.bpg-pill--amber {
+  background: rgba(254, 243, 199, 0.9);
+  color: #B45309;
+  border: 1px solid rgba(253, 230, 138, 0.7);
+}
+
+.bpg-pill--blue {
+  background: rgba(239, 246, 255, 0.9);
+  color: #1D4ED8;
+  border: 1px solid rgba(191, 219, 254, 0.7);
+}
+
+.bpg-card-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.bpg-card-desc {
+  font-size: 0.88rem;
+  color: #64748B;
+  margin: 0;
+  max-width: 650px;
+  line-height: 1.45;
+}
+
+/* ID Helper Box in Header */
+.bpg-id-helper-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.bpg-id-helper-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  background: rgba(241, 245, 249, 0.8);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(203, 213, 225, 0.6);
+}
+
+.bpg-no-id-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #2563EB;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 2px 4px;
+  transition: color 0.15s ease;
+}
+
+.bpg-no-id-link:hover {
+  color: #1D4ED8;
+}
+
+.bpg-subtle-hint {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+/* Online Application / No Principal Write-off Notice */
+.bpg-online-notice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.9) 0%, rgba(240, 253, 250, 0.85) 100%);
+  border: 1px solid rgba(186, 230, 253, 0.8);
+  border-radius: 16px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  box-shadow: inset 0 1px 1px #FFFFFF, 0 2px 6px rgba(37, 99, 235, 0.04);
+}
+
+.bpg-online-notice-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #0284C7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+}
+
+.bpg-online-notice-content {
+  flex-grow: 1;
+}
+
+.bpg-online-notice-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0369A1;
+  margin-bottom: 3px;
+}
+
+.bpg-online-notice-text {
+  font-size: 0.8125rem;
+  color: #334155;
+  line-height: 1.45;
+}
+
+/* Warning Glass Banner (For Minor / Custody Notice) */
+.bpg-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.85) 0%, rgba(255, 237, 213, 0.8) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.7);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  box-shadow: inset 0 1px 1px #FFFFFF, 0 4px 12px rgba(217, 119, 6, 0.08);
+}
+
+.bpg-warning-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  color: #D97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+}
+
+.bpg-warning-body {
+  flex-grow: 1;
+}
+
+.bpg-warning-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #92400E;
+  margin-bottom: 4px;
+}
+
+.bpg-warning-text {
+  font-size: 0.8125rem;
+  color: #78350F;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* 6. Steps Grid */
+.bpg-steps-grid {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.bpg-steps-grid--5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.bpg-steps-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.bpg-step-item {
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 16px;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 
+    0 4px 10px -2px rgba(15, 23, 42, 0.04),
+    inset 0 1px 1px #FFFFFF;
+}
+
+.bpg-step-item:hover {
+  transform: translateY(-2px);
+  border-color: #CBD5E1;
+  box-shadow: 
+    0 10px 20px -4px rgba(15, 23, 42, 0.08),
+    inset 0 1px 1px #FFFFFF;
+}
+
+.bpg-step-number {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #2563EB;
+  background: #EFF6FF;
+  border: 1px solid rgba(191, 219, 254, 0.8);
+  border-radius: 9999px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: inset 0 1px 1px #FFFFFF;
+}
+
+.bpg-step-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+
+.bpg-step-desc {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.45;
+  flex-grow: 1;
+}
+
+/* 7. Action Footer & Checklist */
+.bpg-action-footer {
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 18px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.bpg-checklist-wrap {
+  flex-grow: 1;
+  min-width: 260px;
+}
+
+.bpg-checklist-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.bpg-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bpg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+  background: #FFFFFF;
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  padding: 4px 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.bpg-chip svg {
+  color: #059669;
+}
+
+/* Primary CTA Button (Claymorphic Apple Style) */
+.bpg-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bpg-cta-btn--primary {
+  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  color: #FFFFFF;
+  box-shadow: 
+    0 6px 16px -2px rgba(15, 23, 42, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.3);
+}
+
+.bpg-cta-btn--primary:hover {
+  background: linear-gradient(180deg, #2563EB 0%, #1D4ED8 100%);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 24px -4px rgba(37, 99, 235, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.2);
+}
+
+.bpg-cta-btn--primary:active {
+  transform: translateY(0);
+}
+
+/* 8. "I Don't Have an ID" Modal */
+.bpg-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: bpgModalBackdropFade 0.2s ease-out;
+}
+
+@keyframes bpgModalBackdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.bpg-modal-container {
+  max-width: 580px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 30px;
+  animation: bpgModalPop 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bpgModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.bpg-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.bpg-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #2563EB;
+  background: #EFF6FF;
+  border: 1px solid rgba(191, 219, 254, 0.8);
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+.bpg-modal-close-btn {
+  background: rgba(241, 245, 249, 0.8);
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bpg-modal-close-btn:hover {
+  background: #0F172A;
+  color: #FFFFFF;
+}
+
+.bpg-modal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 14px;
+  letter-spacing: -0.02em;
+}
+
+.bpg-modal-intro {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.bpg-modal-solution-box {
+  background: #FFFFFF;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.bpg-modal-solution-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.bpg-modal-solution-title svg {
+  color: #D97706;
+}
+
+.bpg-modal-solution-text {
+  font-size: 0.8125rem;
+  color: #64748B;
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.bpg-modal-steps-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.bpg-modal-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #475569;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 22px;
+  line-height: 1.45;
+}
+
+.bpg-modal-tip svg {
+  color: #2563EB;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.bpg-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bpg-modal-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.18s ease;
+}
+
+.bpg-modal-action-btn--primary {
+  background: #2563EB;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.bpg-modal-action-btn--primary:hover {
+  background: #1D4ED8;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+.bpg-modal-action-btn--secondary {
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+}
+
+.bpg-modal-action-btn--secondary:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+/* ========================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ======================================================== */
+@media (max-width: 1024px) {
+  .bpg-steps-grid--5 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .bpg-steps-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .bpg-prompt-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bpg-steps-grid--5,
+  .bpg-steps-grid--4 {
+    grid-template-columns: 1fr;
+  }
+
+  .bpg-title {
+    font-size: 1.6rem;
+  }
+
+  .bpg-role-segment {
+    width: 100%;
+  }
+
+  .bpg-role-btn {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .bpg-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bpg-id-helper-box {
+    align-items: flex-start;
+  }
+
+  .bpg-action-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bpg-cta-btn {
+    width: 100%;
+  }
+
+  .bpg-modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bpg-modal-action-btn {
+    width: 100%;
+  }
+}
