@@ -751,7 +751,7 @@ export function GuestPage() {
                 onClick={() => setLoginModalOpen(true)}
               >
                 <GuestIcon name="lock" size={16} />
-                <span>Track Application / Sign In</span>
+                <span>Register / Sign In</span>
               </button>
             </div>
 

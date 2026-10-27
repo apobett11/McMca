@@ -31,6 +31,9 @@ function BpgIcon({ name, size = 18, className = '' }) {
     ),
     help: (
       <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01" />
+    ),
+    external: (
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3" />
     )
   };
 
@@ -53,43 +56,42 @@ function BpgIcon({ name, size = 18, className = '' }) {
   );
 }
 
-// Bursary Flows Configuration
+// Bursary Flows Configuration with 2-sentence humanized explanations
 const BURSARY_FLOWS = {
   general: {
     key: 'general',
     label: 'All Applicants',
     badge: 'Simple Step-By-Step Guide',
     title: 'Bursary Application Process',
-    description: 'Follow our simple online application pipeline. No manual principal write-off required—everything is submitted and verified digitally.',
+    description: 'Follow our simple 3-step online application pipeline. No manual principal write-off required—everything is submitted and verified digitally.',
     ctaText: 'Apply for Bursary',
     ctaRoute: '/register',
     steps: [
       {
         num: '01',
-        title: 'Register Online',
-        desc: 'Create your account using your National ID card and active mobile phone number.'
+        title: 'Register online',
+        titleLink: '/register',
+        sentence1: 'Create your secure portal account using your National ID card and active mobile phone number.',
+        sentence2: 'You will receive an instant one-time SMS verification code to establish your password and unlock your application dashboard.'
       },
       {
         num: '02',
-        title: 'Verify Documents',
-        desc: 'Attach your identification and official fee statement online. No physical principal write-off required.'
+        title: 'Setup and finish registration',
+        sentence1: 'Provide your basic contact details, Ward residence information, and official school enrollment records.',
+        sentence2: 'Attach your current certified fee structure so our vetting committee can accurately assess your family financial need.'
       },
       {
         num: '03',
-        title: 'Apply for Bursary',
-        desc: 'Complete the financial assistance wizard with family socio-economic and school details.'
-      },
-      {
-        num: '04',
-        title: 'Vetting & Disbursement',
-        desc: 'Ward Area Chief verifies residency, the committee clears allocation, and funds are disbursed to the school.'
+        title: 'Apply',
+        sentence1: 'Double-check your information and submit your completed bursary application with a single tap.',
+        sentence2: 'Track your dossier in real time as the Area Chief conducts local verification and the committee clears funds directly to your school.'
       }
     ],
     requirements: [
       'National ID / Parent ID',
       'Certified Fee Structure / Invoice',
       'School Admission Letter or Report Form',
-      'Area Chief Letter / Recommendation'
+      'Area Chief Recommendation'
     ]
   },
   student: {
@@ -97,36 +99,36 @@ const BURSARY_FLOWS = {
     label: 'Student Applicant',
     badge: 'Student Self-Service (18+)',
     title: 'Student Bursary Application Process',
-    description: 'For university, college, and TVET students applying independently. Minors or students without an ID apply through their parent.',
+    description: 'For tertiary and independent students applying with their own National ID. Minors or students without an ID apply through their parent.',
     ctaText: 'Register as Student',
     ctaRoute: '/register?role=student',
     steps: [
       {
         num: '01',
-        title: 'Register with National ID',
-        desc: 'Sign up with your personal National ID, active mobile number, and student email. (Must be 18+).'
+        title: 'Register online',
+        titleLink: '/register?role=student',
+        sentence1: 'Self-register your independent student profile using your personal National ID and student email address.',
+        sentence2: 'This creates your permanent student account so you can manage your bursary applications and submit appeals directly.'
       },
       {
         num: '02',
-        title: 'Verify Documents Online',
-        desc: 'Upload your National ID (front & back), official Admission Letter, and certified Fee Statement. No principal sign-off needed.'
+        title: 'Setup the documents',
+        sentence1: 'Upload clear photos of your National ID card (both front and back) alongside your official certified institution fee statement.',
+        sentence2: 'Ensure your admission number and current balance are clearly legible to ensure your verification clears without delays.',
+        hasNoIdLink: true
       },
       {
         num: '03',
-        title: 'Personal & School Details',
-        desc: 'Enter your personal biodata, university/college details, student registration number, and institution bank details.'
-      },
-      {
-        num: '04',
-        title: 'Apply & Track Review',
-        desc: 'Submit for Ward Area Chief verification and committee review, with electronic funds disbursed directly to your institution.'
+        title: 'Apply',
+        sentence1: 'Complete your household background questions and verify your college or university bank payment details.',
+        sentence2: 'Once approved by the MCA bursary committee, your allocated funds are disbursed electronically straight to your institution.'
       }
     ],
     requirements: [
       'Valid National ID Card (18+)',
       'College / School Admission Letter',
       'Current Certified Fee Statement (No principal write-off needed)',
-      'Area Chief Letter / Recommendation'
+      'Area Chief Recommendation'
     ]
   },
   parent: {
@@ -140,28 +142,34 @@ const BURSARY_FLOWS = {
     steps: [
       {
         num: '01',
-        title: 'Parent Registration',
-        desc: 'Register your parent account once using your National ID card, which acts as the household master key.'
+        title: 'Register online',
+        titleLink: '/register?role=parent',
+        sentence1: 'Sign up using your personal National ID card, which serves as the master key for your entire household profile.',
+        sentence2: 'Confirm your mobile phone number to activate full access to manage all your family bursary applications in one unified space.'
       },
       {
         num: '02',
-        title: 'Verify Account',
-        desc: 'Complete initial identity and Ward residency verification to activate your family dashboard.'
+        title: "Setup parent's documents",
+        sentence1: 'Upload front and back photos of your National ID to verify your identity and bona fide Ward residency.',
+        sentence2: 'This one-time verification establishes your verified parental profile and safeguards your children’s applications.'
       },
       {
         num: '03',
-        title: 'Add Child to Household',
-        desc: 'Add each dependent from your dashboard (Custody for Primary/Secondary minors, Delegated for College youths).'
+        title: 'Register children below 18 years',
+        sentence1: 'Click "Add Child" from your dashboard and enter each dependent learner’s Birth Certificate or NEMIS/UPI details.',
+        sentence2: 'Choose Custody (CUS) for primary or secondary students so you retain complete control over their submissions.'
       },
       {
         num: '04',
-        title: 'Verify Child Documents',
-        desc: 'Upload each child’s Birth Certificate (or Student ID if available) and certified school fee statements online.'
+        title: 'Upload documents for each child',
+        sentence1: 'Attach each child’s Birth Certificate (or Student ID if available) and their official certified school fee statement.',
+        sentence2: 'Remember that no physical headteacher write-off form is needed—simply upload their official school documents digitally.'
       },
       {
         num: '05',
-        title: 'Apply for Each Child',
-        desc: 'Fill out the bursary application for each child individually and track approval tranches directly on your dashboard.'
+        title: 'Apply for the child',
+        sentence1: 'Submit an individualized bursary application for each child with their specific school fee balance and family situation.',
+        sentence2: 'Monitor approval tranches in real time from your family feed until direct payment is made to the school account.'
       }
     ],
     requirements: [
@@ -210,7 +218,7 @@ export default function BursaryProcessGuide() {
         </p>
       </div>
 
-      {/* 2. Buttons below header (Placement matches previous design) */}
+      {/* 2. Buttons below header (Placement matches previous design; strictly inline in mobile) */}
       <div className="bpg-pills-row" role="tablist" aria-label="Application Role Options">
         <button
           type="button"
@@ -229,7 +237,7 @@ export default function BursaryProcessGuide() {
           onClick={() => setActiveTab(activeTab === 'student' ? 'general' : 'student')}
           className={`bpg-pill ${activeTab === 'student' ? 'is-active' : ''}`}
         >
-          <BpgIcon name="user" size={15} />
+          <BpgIcon name="user" size={14} />
           <span>I am a Student</span>
         </button>
 
@@ -240,12 +248,12 @@ export default function BursaryProcessGuide() {
           onClick={() => setActiveTab(activeTab === 'parent' ? 'general' : 'parent')}
           className={`bpg-pill ${activeTab === 'parent' ? 'is-active' : ''}`}
         >
-          <BpgIcon name="users" size={15} />
+          <BpgIcon name="users" size={14} />
           <span>I am a Parent / Guardian</span>
         </button>
       </div>
 
-      {/* 3. Online Application Notice + Student ID Helper */}
+      {/* 3. Online Application Notice Bar */}
       <div className="bpg-notice-bar">
         <div className="bpg-notice-text">
           <BpgIcon name="fileCheck" size={16} className="bpg-notice-icon" />
@@ -253,29 +261,43 @@ export default function BursaryProcessGuide() {
             <strong>100% Online Application:</strong> No physical Headteacher or Principal write-off form needed. Attach official certified fee statements directly online.
           </span>
         </div>
-
-        {activeTab === 'student' && (
-          <div className="bpg-id-helper">
-            <span className="bpg-id-status">Requires National ID (18+)</span>
-            <button
-              type="button"
-              onClick={() => setShowNoIdModal(true)}
-              className="bpg-no-id-link"
-            >
-              I don't have an ID
-              <BpgIcon name="help" size={12} />
-            </button>
-          </div>
-        )}
       </div>
 
-      {/* 4. Steps Grid (Placement matches previous design, not crowded) */}
+      {/* 4. Steps Grid (3 steps for General & Student, 5 steps for Parent; each step has 2-sentence explanation) */}
       <div className={`bpg-steps-grid bpg-steps-grid--${current.steps.length}`}>
         {current.steps.map((st) => (
           <div key={st.num} className="bpg-step-card">
             <div className="bpg-step-num">{st.num}</div>
-            <h3 className="bpg-step-title">{st.title}</h3>
-            <p className="bpg-step-desc">{st.desc}</p>
+            
+            <h3 className="bpg-step-title">
+              {st.titleLink ? (
+                <Link to={st.titleLink} className="bpg-step-link" title={`Click to ${st.title.toLowerCase()}`}>
+                  <span>{st.title}</span>
+                  <BpgIcon name="external" size={12} className="bpg-step-link-icon" />
+                </Link>
+              ) : (
+                <span>{st.title}</span>
+              )}
+            </h3>
+
+            <div className="bpg-step-sentences">
+              <p className="bpg-step-sentence">{st.sentence1}</p>
+              <p className="bpg-step-sentence">{st.sentence2}</p>
+            </div>
+
+            {/* Special "I don't have an ID" link in Student Step 2 */}
+            {st.hasNoIdLink && (
+              <div className="bpg-step-link-box">
+                <button
+                  type="button"
+                  onClick={() => setShowNoIdModal(true)}
+                  className="bpg-no-id-link"
+                >
+                  <BpgIcon name="help" size={12} />
+                  <span>I don't have an ID</span>
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
