@@ -34,6 +34,15 @@ function BpgIcon({ name, size = 18, className = '' }) {
     ),
     external: (
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3" />
+    ),
+    globe: (
+      <>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20 M2 12h20" />
+      </>
+    ),
+    chevronDown: (
+      <path d="m6 9 6 6 6-6" />
     )
   };
 
@@ -84,14 +93,13 @@ const BURSARY_FLOWS = {
         num: '03',
         title: 'Apply',
         sentence1: 'Double-check your information and submit your completed bursary application with a single tap.',
-        sentence2: 'Track your dossier in real time as the Area Chief conducts local verification and the committee clears funds directly to your school.'
+        sentence2: 'Track your dossier in real time as the vetting committee clears and disburses approved funds directly to your school.'
       }
     ],
     requirements: [
-      'National ID / Parent ID',
+      'Valid National ID (Applicant or Parent)',
       'Certified Fee Structure / Invoice',
-      'School Admission Letter or Report Form',
-      'Area Chief Recommendation'
+      'Birth Certificate (For learners under 18)'
     ]
   },
   student: {
@@ -126,9 +134,7 @@ const BURSARY_FLOWS = {
     ],
     requirements: [
       'Valid National ID Card (18+)',
-      'College / School Admission Letter',
-      'Current Certified Fee Statement (No principal write-off needed)',
-      'Area Chief Recommendation'
+      'Current Certified Fee Statement / Invoice'
     ]
   },
   parent: {
@@ -173,21 +179,88 @@ const BURSARY_FLOWS = {
       }
     ],
     requirements: [
-      'Parent / Guardian National ID (Master Key)',
-      'Children’s Birth Certificates (or Student ID if available)',
-      'Official Fee Statements for Each Respective School',
-      'Chief’s Family Verification / Vulnerability Letter'
+      'Parent / Guardian National ID (Both sides)',
+      'Child\'s Birth Certificate (or Student ID for Under 18)',
+      'Certified School Fee Statement / Invoice'
     ]
   }
+};
+
+// Kiswahili translation for the Parent / Guardian process section
+const PARENT_FLOW_SW = {
+  key: 'parent',
+  label: 'Mzazi / Mlezi',
+  badge: 'Mfumo wa Kusimamia Kaya',
+  title: 'Mwongozo wa Maombi kwa Wazazi na Walezi',
+  description: 'Simamia maombi ya ufadhili wa masomo (bursary) kwa watoto wako wote katika Shule za Msingi, Upili, au Vyuo Vikuu kupitia akaunti moja ya familia.',
+  ctaText: 'Jisajili kama Mzazi',
+  ctaRoute: '/register?role=parent',
+  steps: [
+    {
+      num: '01',
+      title: 'Jisajili mtandaoni',
+      titleLink: '/register?role=parent',
+      sentence1: 'Fungua akaunti ya mfumo kwa kutumia Kitambulisho chako cha Kitaifa (National ID) na nambari yako ya simu inayotumika.',
+      sentence2: 'Utapokea nambari maalum ya siri (OTP) kupitia SMS ili kuweka nenosiri lako na kuanza usimamizi wa maombi ya familia yako.'
+    },
+    {
+      num: '02',
+      title: 'Weka stakabadhi za mzazi',
+      sentence1: 'Pakia picha ya Kitambulisho chako cha Kitaifa (upande wa mbele na nyuma) ili kuthibitisha utambulisho na ukaazi wako Wodini.',
+      sentence2: 'Uthibitisho huu wa mara moja unakupa idhini kamili ya mzazi na kuwezesha usalama wa maombi ya watoto wako.'
+    },
+    {
+      num: '03',
+      title: 'Sajili watoto walio chini ya miaka 18',
+      sentence1: 'Bofya "Ongeza Mtoto" (Add Child) kwenye dashibodi yako na uweke maelezo ya Cheti cha Kuzaliwa au nambari ya NEMIS/UPI ya kila mtoto.',
+      sentence2: 'Chagua Haki ya Malezi (Custody) kwa wanafunzi wa msingi au sekondari ili kubaki na udhibiti kamili wa maombi yao.'
+    },
+    {
+      num: '04',
+      title: 'Pakia stakabadhi za kila mtoto',
+      sentence1: 'Ambatanisha Cheti cha Kuzaliwa cha kila mtoto (au Kitambulisho cha Mwanafunzi kikiwepo) pamoja na ankara halisi ya karo ya shule husika.',
+      sentence2: 'Kumbuka kwamba hakuna haja ya fomu iliyotiwa saini na mwalimu mkuu—pakia tu stakabadhi halisi mtandaoni moja kwa moja.'
+    },
+    {
+      num: '05',
+      title: 'Wasilisha ombi la mtoto',
+      sentence1: 'Tuma ombi la ufadhili wa karo kwa kila mtoto kivyake ukizingatia kiwango cha ada na hali ya kifamilia.',
+      sentence2: 'Fuatilia hatua za uidhinishaji kwa wakati halisi kutoka kwa akaunti yako hadi fedha zitakapotumwa moja kwa moja kwenye akaunti ya shule.'
+    }
+  ],
+  requirements: [
+    'Kitambulisho cha Mzazi / Mlezi (Mbele na Nyuma)',
+    'Cheti cha Kuzaliwa cha Mtoto (au ID ya Shule)',
+    'Muundo Halisi wa Karo ya Shule / Ankara'
+  ]
 };
 
 export default function BursaryProcessGuide() {
   // Default is 'general' as requested
   const [activeTab, setActiveTab] = useState('general');
+  // Language toggle for parent section ('en' | 'sw')
+  const [parentLang, setParentLang] = useState('en');
+  // Collapsible steps state on mobile (accordion)
+  const [expandedSteps, setExpandedSteps] = useState({ '01': true });
   // Modal for "I don't have an ID"
   const [showNoIdModal, setShowNoIdModal] = useState(false);
 
-  const current = BURSARY_FLOWS[activeTab] || BURSARY_FLOWS.general;
+  // Keep step '01' open when switching tabs or language
+  useEffect(() => {
+    setExpandedSteps({ '01': true });
+  }, [activeTab, parentLang]);
+
+  const toggleStep = (num) => {
+    setExpandedSteps((prev) => ({
+      ...prev,
+      [num]: !prev[num]
+    }));
+  };
+
+  const current =
+    activeTab === 'parent' && parentLang === 'sw'
+      ? PARENT_FLOW_SW
+      : BURSARY_FLOWS[activeTab] || BURSARY_FLOWS.general;
 
   // Close modal on Escape key
   useEffect(() => {
@@ -249,64 +322,145 @@ export default function BursaryProcessGuide() {
           className={`bpg-pill ${activeTab === 'parent' ? 'is-active' : ''}`}
         >
           <BpgIcon name="users" size={14} />
-          <span>I am a Parent / Guardian</span>
+          <span>{parentLang === 'sw' && activeTab === 'parent' ? 'Mimi ni Mzazi / Mlezi' : 'I am a Parent / Guardian'}</span>
         </button>
       </div>
+
+      {/* 2b. Language Toggle for Parent Flow (English / Kiswahili) */}
+      {activeTab === 'parent' && (
+        <div className="bpg-lang-toggle-bar" role="region" aria-label="Language Switcher">
+          <div className="bpg-lang-intro">
+            <BpgIcon name="globe" size={15} className="bpg-lang-icon" />
+            <span className="bpg-lang-text">
+              {parentLang === 'sw' ? 'Lugha ya Mwongozo:' : 'Guide Language:'}
+            </span>
+          </div>
+          <div className="bpg-lang-segmented" role="radiogroup" aria-label="Language Selection">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={parentLang === 'en'}
+              onClick={() => setParentLang('en')}
+              className={`bpg-lang-pill ${parentLang === 'en' ? 'is-active' : ''}`}
+            >
+              English
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={parentLang === 'sw'}
+              onClick={() => setParentLang('sw')}
+              className={`bpg-lang-pill ${parentLang === 'sw' ? 'is-active' : ''}`}
+            >
+              Kiswahili
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 3. Online Application Notice Bar */}
       <div className="bpg-notice-bar">
         <div className="bpg-notice-text">
           <BpgIcon name="fileCheck" size={16} className="bpg-notice-icon" />
           <span>
-            <strong>100% Online Application:</strong> No physical Headteacher or Principal write-off form needed. Attach official certified fee statements directly online.
+            {activeTab === 'parent' && parentLang === 'sw' ? (
+              <>
+                <strong>Maombi 100% Mtandaoni:</strong> Hakuna haja ya fomu ya mwalimu mkuu iliyotiwa saini. Ambatanisha ankara halisi ya karo moja kwa moja mtandaoni.
+              </>
+            ) : (
+              <>
+                <strong>100% Online Application:</strong> No physical Headteacher or Principal write-off form needed. Attach official certified fee statements directly online.
+              </>
+            )}
           </span>
         </div>
       </div>
 
-      {/* 4. Steps Grid (3 steps for General & Student, 5 steps for Parent; each step has 2-sentence explanation) */}
+      {/* 4. Steps Grid (Collapsible on mobile with bold titles, grid on desktop) */}
       <div className={`bpg-steps-grid bpg-steps-grid--${current.steps.length}`}>
-        {current.steps.map((st) => (
-          <div key={st.num} className="bpg-step-card">
-            <div className="bpg-step-num">{st.num}</div>
-            
-            <h3 className="bpg-step-title">
-              {st.titleLink ? (
-                <Link to={st.titleLink} className="bpg-step-link" title={`Click to ${st.title.toLowerCase()}`}>
-                  <span>{st.title}</span>
-                  <BpgIcon name="external" size={12} className="bpg-step-link-icon" />
-                </Link>
-              ) : (
-                <span>{st.title}</span>
-              )}
-            </h3>
-
-            <div className="bpg-step-sentences">
-              <p className="bpg-step-sentence">{st.sentence1}</p>
-              <p className="bpg-step-sentence">{st.sentence2}</p>
-            </div>
-
-            {/* Special "I don't have an ID" link in Student Step 2 */}
-            {st.hasNoIdLink && (
-              <div className="bpg-step-link-box">
-                <button
-                  type="button"
-                  onClick={() => setShowNoIdModal(true)}
-                  className="bpg-no-id-link"
-                >
-                  <BpgIcon name="help" size={12} />
-                  <span>I don't have an ID</span>
-                </button>
+        {current.steps.map((st) => {
+          const isExpanded = !!expandedSteps[st.num];
+          return (
+            <div
+              key={st.num}
+              className={`bpg-step-card ${isExpanded ? 'is-expanded' : 'is-collapsed'}`}
+            >
+              {/* Header trigger for accordion on mobile, standard layout on desktop */}
+              <div
+                className="bpg-step-header"
+                onClick={() => toggleStep(st.num)}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                aria-controls={`bpg-step-body-${st.num}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleStep(st.num);
+                  }
+                }}
+              >
+                <div className="bpg-step-header-left">
+                  <div className="bpg-step-num">{st.num}</div>
+                  <strong className="bpg-step-title-bold">{st.title}</strong>
+                </div>
+                <span className="bpg-step-chevron" aria-hidden="true">
+                  <BpgIcon name="chevronDown" size={15} />
+                </span>
               </div>
-            )}
-          </div>
-        ))}
+
+              {/* Step content: descriptions and actions */}
+              <div
+                id={`bpg-step-body-${st.num}`}
+                className="bpg-step-content"
+              >
+                {st.titleLink && (
+                  <div className="bpg-step-action-row">
+                    <Link
+                      to={st.titleLink}
+                      className="bpg-step-link"
+                      title={parentLang === 'sw' && activeTab === 'parent' ? `Bofya kufungua` : `Click to ${st.title.toLowerCase()}`}
+                    >
+                      <span>{parentLang === 'sw' && activeTab === 'parent' ? `Fungua: ${st.title}` : `Open: ${st.title}`}</span>
+                      <BpgIcon name="external" size={12} className="bpg-step-link-icon" />
+                    </Link>
+                  </div>
+                )}
+
+                <div className="bpg-step-sentences">
+                  <p className="bpg-step-sentence">{st.sentence1}</p>
+                  <p className="bpg-step-sentence">{st.sentence2}</p>
+                </div>
+
+                {/* Special "I don't have an ID" link in Student Step 2 */}
+                {st.hasNoIdLink && (
+                  <div className="bpg-step-link-box">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowNoIdModal(true);
+                      }}
+                      className="bpg-no-id-link"
+                    >
+                      <BpgIcon name="help" size={12} />
+                      <span>I don't have an ID</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* 5. Requirements & Action Box (Placement matches previous design) */}
       <div className="bpg-requirements-box">
         <div className="bpg-requirements-left">
           <div className="bpg-requirements-heading">
-            Required Documents for {current.label}:
+            {activeTab === 'parent' && parentLang === 'sw'
+              ? 'Stakabadhi Zinazohitajika kwa Mzazi / Mlezi:'
+              : `Required Documents for ${current.label}:`}
           </div>
           <div className="bpg-requirements-chips">
             {current.requirements.map((req) => (

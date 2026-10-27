@@ -96,7 +96,7 @@ const FAQS = [
   },
   {
     question: 'What mandatory documents must I attach to my bursary application?',
-    answer: 'Applicants must provide: (1) Copy of National ID Card (or Birth Certificate for minors), (2) Official Admission Letter from the educational institution, (3) Current Semester/Term Fee Structure or Fee Balance statement stamped by the school principal/bursar, and (4) Area Chief or Sub-Chief residency verification form.'
+    answer: 'Applicants must provide: (1) Copy of National ID Card (or Birth Certificate for learners under 18), and (2) Official Certified School Fee Statement or Invoice from your educational institution. No physical chief recommendation or headteacher write-off form is needed.'
   },
   {
     question: 'Can a parent apply on behalf of multiple school-going children?',
