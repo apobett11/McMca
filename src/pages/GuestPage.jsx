@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef, useId } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { assertPortalLoginAllowed } from '../lib/accountQueries';
 import BursaryProcessGuide from '../components/BursaryProcessGuide';
 import './GuestPage.css';
 
@@ -123,7 +121,7 @@ export function GuestPage() {
 
   // Navigation & Sidebar
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('hero');
+  const [activeSection, setActiveSection] = useState('bursary');
 
   // Hero Dropdown
   const [bursaryDropdownOpen, setBursaryDropdownOpen] = useState(false);
@@ -132,22 +130,11 @@ export function GuestPage() {
   const [villageSearch, setVillageSearch] = useState('');
 
   // Modals
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [metricModal, setMetricModal] = useState(null);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
 
   // FAQ Accordion State
   const [expandedFaq, setExpandedFaq] = useState(0); // 0 is opened by default
-
-  // Inline Login State
-  const [loginIdentifier, setLoginIdentifier] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [loginError, setLoginError] = useState('');
-
-  // IDs for accessibility
-  const loginIdInputId = useId();
-  const loginPassInputId = useId();
 
   // Set Light Theme for Guest Page
   useEffect(() => {
@@ -185,86 +172,6 @@ export function GuestPage() {
     }
   };
 
-  // Direct login handler
-  async function handleDirectLogin(e) {
-    e.preventDefault();
-    setLoginLoading(true);
-    setLoginError('');
-
-    try {
-      if (!supabase) {
-        throw new Error('This site is not connected to the database yet.');
-      }
-      let loginEmail = loginIdentifier.trim();
-      const isEmail = loginEmail.includes('@');
-      if (!isEmail) {
-        const cleanId = loginEmail.replace(/\D/g, '');
-        try {
-          const map = JSON.parse(localStorage.getItem('mcmca_id_map') || '{}');
-          if (map[cleanId]) loginEmail = map[cleanId];
-        } catch {}
-
-        if (!loginEmail.includes('@')) {
-          try {
-            const { data: student } = await supabase
-              .from('student_profiles')
-              .select('email')
-              .eq('national_id', cleanId)
-              .maybeSingle();
-            if (student?.email) loginEmail = student.email;
-            else {
-              const { data: parent } = await supabase
-                .from('parent_profiles')
-                .select('email')
-                .eq('national_id', cleanId)
-                .maybeSingle();
-              if (parent?.email) loginEmail = parent.email;
-            }
-          } catch {}
-        }
-      }
-
-      let effectivePassword = loginPassword;
-      if (loginEmail.toLowerCase() === 'mca@gmail.com' && (loginPassword === 'Mca1' || loginPassword === 'Mca12026')) {
-        effectivePassword = 'Mca12026';
-      }
-      if (loginEmail.toLowerCase() === 'help@gmail.com' && (loginPassword === 'Help1' || loginPassword === 'Help12026')) {
-        effectivePassword = 'Help12026';
-      }
-
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: effectivePassword
-      });
-      if (signInError) throw signInError;
-
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw userError || new Error('No user found');
-
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('auth_user_id', user.id)
-        .maybeSingle();
-
-      const role = roleData?.role || user.user_metadata?.role;
-      if (!role) throw new Error('No role associated with this user');
-
-      await assertPortalLoginAllowed(user.id, role);
-
-      if (role === 'student') navigate('/student/dashboard');
-      else if (role === 'parent') navigate('/parent/dashboard');
-      else if (role === 'chief') navigate('/chief/dashboard');
-      else if (role === 'mca') navigate('/mca/dashboard');
-      else if (role === 'helpdesk' || role === 'help_desk') navigate('/helpdesk/dashboard');
-      else throw new Error('Invalid user role');
-    } catch (err) {
-      setLoginError(err.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoginLoading(false);
-    }
-  }
-
   // Filtered villages
   const filteredVillages = VILLAGE_DATA.filter((v) =>
     v.name.toLowerCase().includes(villageSearch.toLowerCase())
@@ -291,15 +198,6 @@ export function GuestPage() {
             <li>
               <button
                 type="button"
-                className={`gp-nav-link ${activeSection === 'hero' ? 'is-active' : ''}`}
-                onClick={() => scrollTo('hero')}
-              >
-                Overview
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
                 className={`gp-nav-link ${activeSection === 'bursary' ? 'is-active' : ''}`}
                 onClick={() => scrollTo('bursary')}
               >
@@ -312,7 +210,7 @@ export function GuestPage() {
                 className={`gp-nav-link ${activeSection === 'distribution' ? 'is-active' : ''}`}
                 onClick={() => scrollTo('distribution')}
               >
-                Ward Distribution
+                Location Distribution
               </button>
             </li>
             <li>
@@ -330,7 +228,7 @@ export function GuestPage() {
                 className={`gp-nav-link ${activeSection === 'rules' ? 'is-active' : ''}`}
                 onClick={() => scrollTo('rules')}
               >
-                Privacy &amp; Rules
+                Privacy Policy
               </button>
             </li>
           </ul>
@@ -340,7 +238,7 @@ export function GuestPage() {
             <button
               type="button"
               className="gp-btn-login gp-btn--clay"
-              onClick={() => setLoginModalOpen(true)}
+              onClick={() => navigate('/login')}
               aria-label="Open Sign In Window"
             >
               <GuestIcon name="lock" size={16} />
@@ -377,7 +275,7 @@ export function GuestPage() {
             type="button"
             className="gp-btn-login"
             style={{ padding: '7px 14px', fontSize: '0.8rem' }}
-            onClick={() => setLoginModalOpen(true)}
+            onClick={() => navigate('/login')}
           >
             <GuestIcon name="lock" size={14} />
             Sign In
@@ -415,20 +313,17 @@ export function GuestPage() {
         </div>
 
         <nav className="gp-sidebar__nav">
-          <button type="button" className="gp-sidebar__link" onClick={() => scrollTo('hero')}>
-            <GuestIcon name="shield" size={18} /> Overview
-          </button>
           <button type="button" className="gp-sidebar__link" onClick={() => scrollTo('bursary')}>
             <GuestIcon name="bursary" size={18} /> Application Process
           </button>
           <button type="button" className="gp-sidebar__link" onClick={() => scrollTo('distribution')}>
-            <GuestIcon name="school" size={18} /> Ward Distribution
+            <GuestIcon name="school" size={18} /> Location Distribution
           </button>
           <button type="button" className="gp-sidebar__link" onClick={() => scrollTo('faq')}>
             <GuestIcon name="help" size={18} /> Frequently Asked Questions
           </button>
           <button type="button" className="gp-sidebar__link" onClick={() => scrollTo('rules')}>
-            <GuestIcon name="fileText" size={18} /> Privacy Policy &amp; Rules
+            <GuestIcon name="fileText" size={18} /> Privacy Policy
           </button>
 
           <hr style={{ border: 'none', borderTop: '1px solid var(--gp-border)', margin: '10px 0' }} />
@@ -437,14 +332,14 @@ export function GuestPage() {
             Quick Actions
           </div>
           <Link
-            to="/register?role=student"
+            to="/login?tab=register&role=student"
             className="gp-sidebar__link"
             onClick={() => setSidebarOpen(false)}
           >
             <GuestIcon name="user" size={18} /> Apply as Student
           </Link>
           <Link
-            to="/register?role=parent"
+            to="/login?tab=register&role=parent"
             className="gp-sidebar__link"
             onClick={() => setSidebarOpen(false)}
           >
@@ -459,7 +354,7 @@ export function GuestPage() {
             style={{ width: '100%' }}
             onClick={() => {
               setSidebarOpen(false);
-              setLoginModalOpen(true);
+              navigate('/login');
             }}
           >
             <GuestIcon name="lock" size={16} /> Sign In to Portal
@@ -567,14 +462,17 @@ export function GuestPage() {
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.click()}
               >
                 <div className="gp-metric-card__header">
-                  <span className="gp-metric-card__lbl">Bursaries Awarded</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span className="gp-metric-card__lbl">Bursaries Awarded</span>
+                    <span className="gp-metric-tag gp-metric-tag--emerald">Primary Impact</span>
+                  </div>
                   <span className="gp-metric-card__icon gp-metric-card__icon--green">
                     <GuestIcon name="bursary" size={17} />
                   </span>
                 </div>
                 <div className="gp-metric-card__body">
-                  <div className="gp-metric-card__val">2,450+</div>
-                  <div className="gp-metric-card__sub">
+                  <div className="gp-metric-card__val gp-metric-card__val--emerald">2,450+</div>
+                  <div className="gp-metric-card__sub gp-metric-card__sub--green">
                     <span className="gp-metric-card__sub-dot gp-metric-card__sub-dot--green" />
                     <span>KES 18.5M Total Awarded</span>
                   </div>
@@ -589,7 +487,7 @@ export function GuestPage() {
 
               {/* Card 3: Active Allocation Cycle */}
               <div
-                className="gp-metric-card gp-metric-card--clay"
+                className="gp-metric-card gp-metric-card--clay gp-metric-card--active-cycle"
                 role="button"
                 tabIndex={0}
                 onClick={() =>
@@ -621,8 +519,8 @@ export function GuestPage() {
                 </div>
                 <div className="gp-metric-card__body">
                   <div className="gp-metric-card__val">2026/2027</div>
-                  <div className="gp-metric-card__sub">
-                    <span className="gp-metric-card__sub-dot gp-metric-card__sub-dot--navy" />
+                  <div className="gp-metric-card__sub gp-metric-card__sub--live">
+                    <span className="gp-pulse-dot" />
                     <span>Applications Window Open</span>
                   </div>
                 </div>
@@ -705,7 +603,7 @@ export function GuestPage() {
                       role="menuitem"
                       onClick={() => {
                         setBursaryDropdownOpen(false);
-                        navigate('/register?role=student');
+                        navigate('/login?tab=register&role=student');
                       }}
                     >
                       <GuestIcon name="user" size={16} />
@@ -720,7 +618,7 @@ export function GuestPage() {
                       role="menuitem"
                       onClick={() => {
                         setBursaryDropdownOpen(false);
-                        navigate('/register?role=parent');
+                        navigate('/login?tab=register&role=parent');
                       }}
                     >
                       <GuestIcon name="school" size={16} />
@@ -748,7 +646,7 @@ export function GuestPage() {
                 type="button"
                 className="gp-btn gp-btn--clay"
                 style={{ background: '#FFFFFF', color: 'var(--gp-navy)', border: '1px solid var(--gp-border)' }}
-                onClick={() => setLoginModalOpen(true)}
+                onClick={() => navigate('/login')}
               >
                 <GuestIcon name="lock" size={16} />
                 <span>Register / Sign In</span>
@@ -783,7 +681,7 @@ export function GuestPage() {
           <section id="distribution" className="gp-section-card gp-section-card--dev">
             <div className="gp-section-header">
               <span className="gp-badge gp-badge--navy">Accountability in Action</span>
-              <h2 className="gp-section-title">Ward Bursary Distribution</h2>
+              <h2 className="gp-section-title">Location Distribution</h2>
               <p className="gp-section-desc">
                 Review village-by-village student enrollment, bursary beneficiaries, and allocation coverage rates across Tendeno / Sorget Ward.
               </p>
@@ -894,7 +792,7 @@ export function GuestPage() {
               <span className="gp-badge" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60A5FA', border: '1px solid rgba(96, 165, 250, 0.3)' }}>
                 Statutory Compliance
               </span>
-              <h2 className="gp-section-title" style={{ color: '#FFFFFF' }}>Privacy Policy &amp; Bursary Rules</h2>
+              <h2 className="gp-section-title" style={{ color: '#FFFFFF' }}>Privacy Policy</h2>
               <p className="gp-section-desc" style={{ color: '#94A3B8' }}>
                 The Tendeno / Sorget Ward Bursary Portal strictly adheres to the Kenya Data Protection Act, 2019, and the Public Finance Management (PFM) regulations.
               </p>
@@ -974,7 +872,7 @@ export function GuestPage() {
             <span style={{ margin: '0 8px' }}>•</span>
             <button
               type="button"
-              onClick={() => setLoginModalOpen(true)}
+              onClick={() => navigate('/login')}
               style={{ background: 'none', border: 'none', color: '#60A5FA', cursor: 'pointer', padding: 0 }}
             >
               Sign In
@@ -997,111 +895,7 @@ export function GuestPage() {
           MODALS
          ======================================================== */}
 
-      {/* A. SIGN IN MODAL */}
-      {loginModalOpen && (
-        <div
-          className="gp-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="login-dialog-title"
-          onClick={() => setLoginModalOpen(false)}
-        >
-          <div className="gp-modal-box" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="gp-modal-close"
-              onClick={() => setLoginModalOpen(false)}
-              aria-label="Close Sign In Dialog"
-            >
-              <GuestIcon name="close" size={18} />
-            </button>
-
-            <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <div style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: 'var(--gp-blue-light)',
-                color: 'var(--gp-blue-bright)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 8
-              }}>
-                <GuestIcon name="lock" size={22} />
-              </div>
-              <h2 id="login-dialog-title" style={{ margin: '0 0 4px', fontSize: '1.35rem', fontWeight: 700, color: 'var(--gp-navy)' }}>
-                Sign In to McMCA
-              </h2>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--gp-text-muted)' }}>
-                Enter your National ID number or registered Email.
-              </p>
-            </div>
-
-            {loginError && (
-              <div style={{
-                padding: '10px 14px',
-                marginBottom: 16,
-                borderRadius: 8,
-                background: '#FEF2F2',
-                border: '1px solid #FCA5A5',
-                color: '#DC2626',
-                fontSize: '0.8125rem'
-              }}>
-                {loginError}
-              </div>
-            )}
-
-            <form onSubmit={handleDirectLogin}>
-              <div className="gp-field">
-                <label htmlFor={loginIdInputId}>National ID or Email</label>
-                <input
-                  id={loginIdInputId}
-                  type="text"
-                  placeholder="e.g. 40112233 or name@mail.com"
-                  value={loginIdentifier}
-                  onChange={(e) => setLoginIdentifier(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="gp-field" style={{ marginBottom: 20 }}>
-                <label htmlFor={loginPassInputId}>Password</label>
-                <input
-                  id={loginPassInputId}
-                  type="password"
-                  placeholder="Your account password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="gp-btn gp-btn--primary"
-                style={{ width: '100%', padding: '12px' }}
-                disabled={loginLoading}
-              >
-                {loginLoading ? 'Signing in…' : 'Sign In'}
-              </button>
-            </form>
-
-            <div style={{ textAlign: 'center', marginTop: 18, fontSize: '0.8125rem', color: 'var(--gp-text-muted)' }}>
-              New applicant or parent?{' '}
-              <Link
-                to="/register"
-                onClick={() => setLoginModalOpen(false)}
-                style={{ color: 'var(--gp-blue-bright)', fontWeight: 600 }}
-              >
-                Create an account
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* B. ANALYTICS CARD DETAIL MODAL */}
+      {/* ANALYTICS CARD DETAIL MODAL */}
       {metricModal && (
         <div
           className="gp-modal-backdrop"

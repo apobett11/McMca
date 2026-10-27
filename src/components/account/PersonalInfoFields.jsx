@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { VerifiedField } from './VerifiedField.jsx';
 
 export function PersonalInfoFields({
@@ -10,10 +11,169 @@ export function PersonalInfoFields({
   idPrefix = '',
   isStudent = false
 }) {
+  const navigate = useNavigate();
+  const [showNoIdModal, setShowNoIdModal] = useState(false);
   const id = (name) => `${idPrefix}${name}`;
 
   return (
     <>
+      {/* For Student Register: National ID is the very first input with immediate "I don't have an ID" button */}
+      {isStudent && (
+        <div className={`field ${errors.nationalId ? 'field--invalid' : ''}`} style={{ marginBottom: 16 }}>
+          <label htmlFor={id('nationalId')}>National ID number</label>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
+            <input
+              id={id('nationalId')}
+              name="nationalId"
+              type="text"
+              value={values.nationalId || ''}
+              onChange={(e) => onChange('nationalId', e.target.value)}
+              placeholder="e.g. 40112233"
+              required
+              style={{ flex: 1 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowNoIdModal(true)}
+              style={{
+                padding: '10px 14px',
+                borderRadius: 8,
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                background: 'rgba(239, 68, 68, 0.12)',
+                color: '#F87171',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              I don't have an ID
+            </button>
+          </div>
+          {errors.nationalId ? <p className="field__error-msg">{errors.nationalId}</p> : null}
+        </div>
+      )}
+
+      {/* No ID Popup Prompt */}
+      {showNoIdModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(11, 17, 32, 0.85)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            style={{
+              background: '#1E293B',
+              borderRadius: 20,
+              maxWidth: 480,
+              width: '100%',
+              padding: '28px 24px',
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
+              color: '#E2E8F0',
+              fontFamily: 'inherit'
+            }}
+          >
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                background: 'rgba(239, 68, 68, 0.15)',
+                color: '#F87171',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 10
+              }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 700, color: '#FFFFFF' }}>
+                National ID Required for Student Application
+              </h3>
+            </div>
+
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              borderRadius: 12,
+              padding: '14px 16px',
+              marginBottom: 18,
+              border: '1px solid rgba(148, 163, 184, 0.12)',
+              fontSize: 13,
+              lineHeight: 1.55,
+              color: '#CBD5E1'
+            }}>
+              <p style={{ margin: '0 0 8px', fontWeight: 600, color: '#F87171' }}>
+                Why lack of ID will cause application to fail:
+              </p>
+              <ul style={{ margin: 0, paddingLeft: 18, color: '#94A3B8' }}>
+                <li style={{ marginBottom: 4 }}>Independent student bursary applications require an official Kenyan National ID under Public Finance Management (PFM) regulations.</li>
+                <li style={{ marginBottom: 4 }}>Without a National ID, independent verification, identity vetting, and statutory bank auditing cannot be performed.</li>
+                <li>Learners without a National ID cannot register an independent account and must have their bursary submitted through a parent or guardian.</li>
+              </ul>
+            </div>
+
+            <div style={{
+              background: 'rgba(37, 99, 235, 0.08)',
+              borderRadius: 12,
+              padding: '14px 16px',
+              marginBottom: 22,
+              border: '1px solid rgba(59, 130, 246, 0.25)'
+            }}>
+              <h4 style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                What to do
+              </h4>
+              <ol style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: '#E2E8F0', lineHeight: 1.6 }}>
+                <li style={{ fontWeight: 600, marginBottom: 4 }}>Register online</li>
+                <li style={{ fontWeight: 600, marginBottom: 4 }}>Setup parent's documents</li>
+                <li style={{ fontWeight: 600, marginBottom: 4 }}>Register children below 18 years</li>
+                <li style={{ fontWeight: 600, marginBottom: 4 }}>Upload documents for each child</li>
+                <li style={{ fontWeight: 600 }}>Apply for the child</li>
+              </ol>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowNoIdModal(false);
+                navigate('/');
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 20px',
+                borderRadius: 12,
+                border: 'none',
+                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              I Agree
+            </button>
+          </div>
+        </div>
+      )}
+
       <VerifiedField
         id={id('firstName')}
         name="firstName"
@@ -81,14 +241,16 @@ export function PersonalInfoFields({
             placeholder="07XX XXX XXX"
             autoComplete="tel"
           />
-          <VerifiedField
-            id={id('nationalId')}
-            name="nationalId"
-            label="National ID number"
-            value={values.nationalId}
-            error={errors.nationalId}
-            onChange={(v) => onChange('nationalId', v)}
-          />
+          {!isStudent && (
+            <VerifiedField
+              id={id('nationalId')}
+              name="nationalId"
+              label="National ID number"
+              value={values.nationalId}
+              error={errors.nationalId}
+              onChange={(v) => onChange('nationalId', v)}
+            />
+          )}
         </>
       ) : null}
       {isStudent ? (

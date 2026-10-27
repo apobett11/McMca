@@ -94,35 +94,48 @@
   overflow: hidden;
 }
 
-/* Distinct Section Card 1: Hero Civic Atmosphere */
+/* Distinct Section Hierarchy & Focus Levels */
+/* Tier 1: Grand Civic Hero Entrance */
 .gp-section-card--hero {
-  background: radial-gradient(130% 100% at 50% -10%, #E2EDFD 0%, #F0F5FC 55%, #FFFFFF 100%);
-  border-color: #BFDBFE;
-  box-shadow: 0 14px 40px -6px rgba(37, 99, 235, 0.09), inset 0 2px 4px rgba(255, 255, 255, 1);
+  background: radial-gradient(135% 100% at 50% -10%, #DCE9FC 0%, #F0F5FC 50%, #FFFFFF 100%);
+  border: 1.5px solid #93C5FD;
+  box-shadow: 0 20px 50px -8px rgba(37, 99, 235, 0.12), inset 0 2px 4px #FFFFFF;
   text-align: center;
-  padding: 48px 36px 38px;
+  padding: 50px 36px 40px;
+  position: relative;
 }
 
-/* Distinct Section Card 2: Bursary Warm Porcelain Canvas with subtle navy mist */
+.gp-section-card--hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(37, 99, 235, 0.4) 50%, transparent 100%);
+}
+
+/* Tier 1 Action Core: Bursary Application Process Guide */
 .gp-section-card--bursary {
-  background: radial-gradient(120% 100% at 50% -15%, rgba(224, 231, 255, 0.45) 0%, rgba(241, 245, 249, 0.75) 45%, #FFFFFF 100%);
-  border-color: #CBD5E1;
-  box-shadow: 0 14px 36px -6px rgba(15, 23, 42, 0.08), inset 0 1px 2px rgba(255, 255, 255, 1);
+  background: radial-gradient(120% 100% at 50% -15%, rgba(238, 242, 255, 0.65) 0%, rgba(248, 250, 252, 0.9) 50%, #FFFFFF 100%);
+  border: 1.5px solid #CBD5E1;
+  box-shadow: 0 16px 42px -6px rgba(37, 99, 235, 0.07), inset 0 1px 2px #FFFFFF;
 }
 
-/* Distinct Section Card 3: Constituency Development with civic aura */
+/* Tier 2: Location Distribution (Constituency Data & Transparency) */
 .gp-section-card--dev {
-  background: radial-gradient(120% 90% at 50% -10%, #EEF4FD 0%, #F8FAFC 50%, #FFFFFF 100%);
-  border-color: #CBD5E1;
-  box-shadow: 0 12px 32px -6px rgba(15, 23, 42, 0.07), inset 0 1px 2px rgba(255, 255, 255, 1);
+  background: radial-gradient(120% 90% at 50% -10%, #F0F7FF 0%, #F8FAFC 55%, #FFFFFF 100%);
+  border: 1.5px solid #CBD5E1;
+  box-shadow: 0 12px 32px -6px rgba(15, 23, 42, 0.06), inset 0 1px 2px #FFFFFF;
 }
 
-/* Distinct Section Card 4: Community Social Deep Obsidian Midnight */
-.gp-section-card--social {
-  background: radial-gradient(120% 100% at 50% 0%, #1E293B 0%, #0F172A 65%, #080D1A 100%);
+/* Tier 3: Statutory Compliance & Governance Foundation (Deep Obsidian) */
+.gp-section-card--social,
+.gp-section-card--rules {
+  background: radial-gradient(120% 100% at 50% 0%, #1E293B 0%, #0F172A 70%, #080D1A 100%);
   border: 1.5px solid #334155;
   color: #FFFFFF;
-  box-shadow: 0 20px 48px -10px rgba(15, 23, 42, 0.35);
+  box-shadow: 0 22px 52px -10px rgba(15, 23, 42, 0.38);
 }
 
 /* Subsection hierarchy blocks inside section cards */
@@ -317,27 +330,38 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 10px;
-  color: var(--gp-navy-subtle);
-  font-size: 0.875rem;
+  padding: 8px 16px;
+  border-radius: 12px;
+  color: var(--gp-navy, #0F172A);
+  font-size: 0.85rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   text-decoration: none;
-  transition: var(--gp-spring);
   cursor: pointer;
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(203, 213, 225, 0.65);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .gp-nav-link:hover {
-  background: rgba(241, 245, 249, 0.8);
-  color: var(--gp-navy);
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(37, 99, 235, 0.4);
+  color: var(--gp-blue-bright, #2563EB);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
+.gp-nav-link:active,
 .gp-nav-link.is-active {
-  background: var(--gp-blue-light);
-  color: var(--gp-blue-bright);
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.55);
+  color: var(--gp-blue-bright, #2563EB);
   font-weight: 700;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.85);
+  transform: translateY(0);
 }
 
 /* Highly visible login button in nav */
@@ -477,21 +501,39 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
-  border-radius: var(--gp-radius);
-  font-size: 0.92rem;
+  padding: 12px 16px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--gp-navy);
+  color: var(--gp-navy, #0F172A);
   text-decoration: none;
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.7);
   text-align: left;
   cursor: pointer;
   width: 100%;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .gp-sidebar__link:hover {
-  background: var(--gp-surface-soft);
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(37, 99, 235, 0.35);
+  color: var(--gp-blue-bright, #2563EB);
+  transform: translateX(3px);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.06);
+}
+
+.gp-sidebar__link:active,
+.gp-sidebar__link.is-active {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(37, 99, 235, 0.55);
+  color: var(--gp-blue-bright, #2563EB);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.18);
 }
 
 .gp-sidebar__footer {
@@ -564,6 +606,95 @@
 
 .gp-metric-card--clay:active {
   transform: translateY(1px) scale(0.99);
+}
+
+/* Hero Metric Card Hierarchy & Visual Focus */
+.gp-metric-card--featured {
+  background: linear-gradient(155deg, #FFFFFF 0%, #ECFDF5 100%) !important;
+  border: 2px solid #10B981 !important;
+  box-shadow: 0 12px 28px -4px rgba(16, 185, 129, 0.22), 0 2px 6px rgba(15, 23, 42, 0.04), inset 0 1px 2px rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  z-index: 2;
+}
+
+.gp-metric-card--featured:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 20px 36px -4px rgba(16, 185, 129, 0.3), 0 4px 12px rgba(15, 23, 42, 0.06);
+  border-color: #059669 !important;
+}
+
+.gp-metric-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.gp-metric-tag--emerald {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.gp-metric-card__val--emerald {
+  color: #065F46 !important;
+  font-size: 2.05rem !important;
+}
+
+.gp-metric-card--active-cycle {
+  background: linear-gradient(155deg, #FFFFFF 0%, #EFF6FF 100%) !important;
+  border: 1.5px solid #3B82F6 !important;
+  box-shadow: 0 8px 24px -4px rgba(59, 130, 246, 0.16), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.gp-metric-card--active-cycle:hover {
+  border-color: #2563EB !important;
+  box-shadow: 0 16px 32px -4px rgba(59, 130, 246, 0.25);
+  transform: translateY(-4px);
+}
+
+.gp-metric-card__sub--live {
+  background: #EFF6FF !important;
+  border-color: #BFDBFE !important;
+  color: #1D4ED8 !important;
+}
+
+.gp-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.gp-pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.45);
+  animation: gp-live-pulse 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes gp-live-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
 }
 
 .gp-metric-card--tvet {
