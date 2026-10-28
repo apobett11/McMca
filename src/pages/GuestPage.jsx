@@ -265,8 +265,8 @@ export function GuestPage() {
             style={{ height: 26, width: 'auto' }}
           />
           <div style={{ lineHeight: 1.1 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--gp-navy)' }}>McMCA Bursary Portal</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--gp-text-muted)' }}>Tendeno / Sorget Ward</div>
+            <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#FFFFFF' }}>McMCA Bursary Portal</div>
+            <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>Tendeno / Sorget Ward</div>
           </div>
         </div>
 
