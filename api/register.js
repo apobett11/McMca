@@ -1,5 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
 
+async function parseRequestBody(req) {
+  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+    return req.body;
+  }
+  if (typeof req.body === 'string' && req.body.trim()) {
+    try {
+      return JSON.parse(req.body);
+    } catch {}
+  }
+  return new Promise((resolve) => {
+    let raw = '';
+    req.on('data', (chunk) => { raw += chunk; });
+    req.on('end', () => {
+      try {
+        resolve(raw ? JSON.parse(raw) : (req.body || {}));
+      } catch {
+        resolve(req.body || {});
+      }
+    });
+    req.on('error', () => resolve(req.body || {}));
+  });
+}
+
 export default async function handler(req, res) {
   // Set CORS headers for Vercel
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -36,7 +59,7 @@ export default async function handler(req, res) {
 
   let authUserId = null;
   try {
-    const payload = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    const payload = await parseRequestBody(req);
     const { role, email, password, fields = {} } = payload;
 
     if (!role || !email || !password) {
@@ -53,7 +76,7 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Check if account already exists with this national ID or email
+    // Check if account already exists with this national ID or email in student_profiles
     const { data: existingStudent } = await admin
       .from('student_profiles')
       .select('id, email, national_id')
@@ -77,7 +100,8 @@ export default async function handler(req, res) {
     }
 
     // 1. Create auth user (atomic: rollback if any subsequent step fails)
-    const { data: authData, error: authError } = await admin.auth.admin.createUser({
+    let authData = null;
+    let createResult = await admin.auth.admin.createUser({
       email: cleanEmail,
       password: password,
       email_confirm: true,
@@ -89,8 +113,37 @@ export default async function handler(req, res) {
       }
     });
 
-    if (authError) {
-      res.status(400).json({ error: authError.message || 'Could not create authentication user.' });
+    let authError = createResult.error;
+    authData = createResult.data;
+
+    // Handle case where an incomplete/orphaned auth account exists from earlier failed attempts
+    if (authError && (authError.message?.toLowerCase().includes('already been registered') || authError.code === 'email_exists' || authError.status === 422)) {
+      const { data: listData } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const orphan = listData?.users?.find((u) => u.email?.toLowerCase() === cleanEmail);
+      if (orphan) {
+        const { data: orphanRoles } = await admin.from('user_roles').select('id').eq('auth_user_id', orphan.id);
+        if (!orphanRoles || orphanRoles.length === 0) {
+          // Orphaned auth record without roles/profile — clean up and recreate cleanly
+          await admin.auth.admin.deleteUser(orphan.id);
+          const retry = await admin.auth.admin.createUser({
+            email: cleanEmail,
+            password: password,
+            email_confirm: true,
+            user_metadata: {
+              role,
+              first_name: fields.firstName,
+              last_name: fields.lastName,
+              national_id: cleanId
+            }
+          });
+          authData = retry.data;
+          authError = retry.error;
+        }
+      }
+    }
+
+    if (authError || !authData?.user) {
+      res.status(400).json({ error: authError?.message || 'Could not create authentication user.' });
       return;
     }
 

@@ -70,7 +70,8 @@ function registerApiPlugin(supabaseUrl, serviceRoleKey) {
         }
 
         // 1. Create auth user (atomic: rollback if any subsequent step fails)
-        const { data: authData, error: authError } = await admin.auth.admin.createUser({
+        let authData = null;
+        let createResult = await admin.auth.admin.createUser({
           email: cleanEmail,
           password: password,
           email_confirm: true,
@@ -82,9 +83,37 @@ function registerApiPlugin(supabaseUrl, serviceRoleKey) {
           }
         });
 
-        if (authError) {
+        let authError = createResult.error;
+        authData = createResult.data;
+
+        // Clean up orphaned auth user from earlier failed attempts
+        if (authError && (authError.message?.toLowerCase().includes('already been registered') || authError.code === 'email_exists' || authError.status === 422)) {
+          const { data: listData } = await admin.auth.admin.listUsers({ perPage: 1000 });
+          const orphan = listData?.users?.find((u) => u.email?.toLowerCase() === cleanEmail);
+          if (orphan) {
+            const { data: orphanRoles } = await admin.from('user_roles').select('id').eq('auth_user_id', orphan.id);
+            if (!orphanRoles || orphanRoles.length === 0) {
+              await admin.auth.admin.deleteUser(orphan.id);
+              const retry = await admin.auth.admin.createUser({
+                email: cleanEmail,
+                password: password,
+                email_confirm: true,
+                user_metadata: {
+                  role,
+                  first_name: fields.firstName,
+                  last_name: fields.lastName,
+                  national_id: cleanId
+                }
+              });
+              authData = retry.data;
+              authError = retry.error;
+            }
+          }
+        }
+
+        if (authError || !authData?.user) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: authError.message || 'Could not create authentication user.' }));
+          res.end(JSON.stringify({ error: authError?.message || 'Could not create authentication user.' }));
           return;
         }
 
