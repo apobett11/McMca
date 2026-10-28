@@ -1,60 +1,43 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-
-const StudentDashboardPage = lazy(() => import('../pages/StudentDashboardPage.jsx').then(m => ({ default: m.StudentDashboardPage })));
-const StudentApplicationsPage = lazy(() => import('../pages/StudentApplicationsPage.jsx').then(m => ({ default: m.StudentApplicationsPage })));
-const StudentFormsPage = lazy(() => import('../pages/StudentFormsPage.jsx').then(m => ({ default: m.StudentFormsPage })));
-const StudentNotificationsPage = lazy(() => import('../pages/StudentNotificationsPage.jsx').then(m => ({ default: m.StudentNotificationsPage })));
-const StudentAppealsPage = lazy(() => import('../pages/StudentAppealsPage.jsx').then(m => ({ default: m.StudentAppealsPage })));
-const StudentSupportPage = lazy(() => import('../pages/StudentSupportPage.jsx').then(m => ({ default: m.StudentSupportPage })));
-const StudentProfilePage = lazy(() => import('../pages/StudentProfilePage.jsx').then(m => ({ default: m.StudentProfilePage })));
-const StudentMessagesPage = lazy(() => import('../pages/StudentMessagesPage.jsx').then(m => ({ default: m.StudentMessagesPage })));
-const StudentLinkParentsPage = lazy(() => import('../pages/StudentLinkParentsPage.jsx').then(m => ({ default: m.StudentLinkParentsPage })));
-
-function RouteFallback() {
-  return (
-    <div style={{
-      minHeight: '60vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: '#94A3B8'
-    }}>
-      Loading…
-    </div>
-  );
-}
+import { StudentDashboardPage } from '../pages/StudentDashboardPage.jsx';
+import { StudentApplicationsPage } from '../pages/StudentApplicationsPage.jsx';
+import { StudentFormsPage } from '../pages/StudentFormsPage.jsx';
+import { StudentNotificationsPage } from '../pages/StudentNotificationsPage.jsx';
+import { StudentAppealsPage } from '../pages/StudentAppealsPage.jsx';
+import { StudentSupportPage } from '../pages/StudentSupportPage.jsx';
+import { StudentProfilePage } from '../pages/StudentProfilePage.jsx';
+import { StudentMessagesPage } from '../pages/StudentMessagesPage.jsx';
+import { StudentLinkParentsPage } from '../pages/StudentLinkParentsPage.jsx';
 
 export function StudentRoutes() {
   return (
-    <Suspense fallback={<RouteFallback />}>
-      <Routes>
-        <Route path="/" element={<Navigate to="dashboard" replace />} />
-        <Route path="" element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<StudentDashboardPage />} />
-        <Route path="forms" element={<StudentFormsPage />} />
-        <Route path="applications" element={<StudentApplicationsPage />} />
-        <Route path="documents" element={<StudentFormsPage />} />
-        <Route path="new-application" element={<Navigate to="forms" replace />} />
-        <Route path="notifications" element={<StudentNotificationsPage />} />
-        <Route path="appeals" element={<StudentAppealsPage />} />
-        <Route path="support" element={<StudentSupportPage />} />
-        <Route path="profile" element={<StudentProfilePage />} />
-        <Route path="messages" element={<StudentMessagesPage />} />
-        <Route path="link-parents" element={<StudentLinkParentsPage />} />
-        <Route path="/student/dashboard" element={<StudentDashboardPage />} />
-        <Route path="/student/forms" element={<StudentFormsPage />} />
-        <Route path="/student/applications" element={<StudentApplicationsPage />} />
-        <Route path="/student/documents" element={<StudentFormsPage />} />
-        <Route path="/student/new-application" element={<Navigate to="forms" replace />} />
-        <Route path="/student/notifications" element={<StudentNotificationsPage />} />
-        <Route path="/student/appeals" element={<StudentAppealsPage />} />
-        <Route path="/student/support" element={<StudentSupportPage />} />
-        <Route path="/student/profile" element={<StudentProfilePage />} />
-        <Route path="/student/messages" element={<StudentMessagesPage />} />
-        <Route path="/student/link-parents" element={<StudentLinkParentsPage />} />
-        <Route path="*" element={<Navigate to="dashboard" replace />} />
-      </Routes>
-    </Suspense>
+    <Routes>
+      <Route path="/" element={<Navigate to="dashboard" replace />} />
+      <Route path="" element={<Navigate to="dashboard" replace />} />
+      <Route path="dashboard" element={<StudentDashboardPage />} />
+      <Route path="forms" element={<StudentFormsPage />} />
+      <Route path="applications" element={<StudentApplicationsPage />} />
+      <Route path="documents" element={<StudentFormsPage />} />
+      <Route path="new-application" element={<Navigate to="forms" replace />} />
+      <Route path="notifications" element={<StudentNotificationsPage />} />
+      <Route path="appeals" element={<StudentAppealsPage />} />
+      <Route path="support" element={<StudentSupportPage />} />
+      <Route path="profile" element={<StudentProfilePage />} />
+      <Route path="messages" element={<StudentMessagesPage />} />
+      <Route path="link-parents" element={<StudentLinkParentsPage />} />
+      <Route path="/student/dashboard" element={<StudentDashboardPage />} />
+      <Route path="/student/forms" element={<StudentFormsPage />} />
+      <Route path="/student/applications" element={<StudentApplicationsPage />} />
+      <Route path="/student/documents" element={<StudentFormsPage />} />
+      <Route path="/student/new-application" element={<Navigate to="forms" replace />} />
+      <Route path="/student/notifications" element={<StudentNotificationsPage />} />
+      <Route path="/student/appeals" element={<StudentAppealsPage />} />
+      <Route path="/student/support" element={<StudentSupportPage />} />
+      <Route path="/student/profile" element={<StudentProfilePage />} />
+      <Route path="/student/messages" element={<StudentMessagesPage />} />
+      <Route path="/student/link-parents" element={<StudentLinkParentsPage />} />
+      <Route path="*" element={<Navigate to="dashboard" replace />} />
+    </Routes>
   );
 }

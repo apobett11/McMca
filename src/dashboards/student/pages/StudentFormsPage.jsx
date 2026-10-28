@@ -32,10 +32,21 @@ export function StudentFormsPage() {
       return [];
     }
   })();
+  const localCompleted = (() => {
+    try {
+      if (user?.id && (localStorage.getItem(`mcmca_student_documents_completed_${user.id}`) === 'true' || localStorage.getItem('mcmca_student_documents_completed') === 'true')) {
+        return DASHBOARD_STUDENT_STEPS.map((s) => s.key);
+      }
+      return JSON.parse(localStorage.getItem('wizard_completed_dashboard_student') || '[]');
+    } catch {
+      return [];
+    }
+  })();
   const dbCompleted = registration?.completedKeys || [];
-  const completedKeys = Array.from(new Set([...dbCompleted, ...sessionCompleted, 'personal_information']));
-  const doneCount = DASHBOARD_STUDENT_STEPS.filter(s => completedKeys.includes(s.key)).length;
-  const isAllComplete = doneCount === DASHBOARD_STUDENT_STEPS.length;
+  const completedKeys = Array.from(new Set([...dbCompleted, ...sessionCompleted, ...localCompleted, 'personal_information']));
+  const isDocumentsDone = completedKeys.length >= DASHBOARD_STUDENT_STEPS.length || applications.length > 0;
+  const doneCount = isDocumentsDone ? DASHBOARD_STUDENT_STEPS.length : DASHBOARD_STUDENT_STEPS.filter(s => completedKeys.includes(s.key)).length;
+  const isAllComplete = isDocumentsDone || (doneCount === DASHBOARD_STUDENT_STEPS.length);
 
   const [startAtKey, setStartAtKey] = useState(location.state?.startAtKey || null);
   const [wizardOpen, setWizardOpen] = useState(() => Boolean(location.state?.startAtKey || !isAllComplete));

@@ -78,7 +78,7 @@ export function StudentDashboardPage() {
   })();
   const profile = { ...(data?.registration?.profile || {}), ...sessionProfile };
 
-  // Merge session completed keys with DB completed keys and pre-checked personal info
+  // Merge session completed keys with DB completed keys, localStorage, and pre-checked personal info
   const sessionCompleted = (() => {
     try {
       return JSON.parse(sessionStorage.getItem('wizard_completed_dashboard_student') || '[]');
@@ -86,8 +86,18 @@ export function StudentDashboardPage() {
       return [];
     }
   })();
+  const localCompleted = (() => {
+    try {
+      if (user?.id && (localStorage.getItem(`mcmca_student_documents_completed_${user.id}`) === 'true' || localStorage.getItem('mcmca_student_documents_completed') === 'true')) {
+        return DASHBOARD_STUDENT_STEPS.map((s) => s.key);
+      }
+      return JSON.parse(localStorage.getItem('wizard_completed_dashboard_student') || '[]');
+    } catch {
+      return [];
+    }
+  })();
   const dbCompleted = data?.registration?.completedKeys || [];
-  const completedKeys = Array.from(new Set([...dbCompleted, ...sessionCompleted, ...extraCompleted, 'personal_information']));
+  const completedKeys = Array.from(new Set([...dbCompleted, ...sessionCompleted, ...localCompleted, ...extraCompleted, 'personal_information']));
 
   // Merge submitted applications (from storage) with session and DB applications
   const sessionApps = (() => {
@@ -132,12 +142,13 @@ export function StudentDashboardPage() {
 
   const showSkeleton = loading && !data;
   const steps = DASHBOARD_STUDENT_STEPS;
-  const doneCount = steps.filter((step) => completedKeys.includes(step.key)).length;
+  const isDocumentsDone = completedKeys.length >= steps.length || apps.length > 0;
+  const doneCount = isDocumentsDone ? steps.length : steps.filter((step) => completedKeys.includes(step.key)).length;
   const pct = steps.length ? Math.round((doneCount / steps.length) * 100) : 0;
   const studentName = [profile?.first_name, profile?.middle_name, profile?.last_name].filter(Boolean).join(' ')
     || user?.user_metadata?.full_name
     || 'Student';
-  const complete = doneCount === steps.length && steps.length > 0;
+  const complete = isDocumentsDone || (doneCount === steps.length && steps.length > 0);
 
   const appStripPct = hasAppliedThisCycle || apps.length > 0 ? 100 : 0;
 
@@ -148,13 +159,6 @@ export function StudentDashboardPage() {
     window.addEventListener('mcmca_apps_updated', onAppUpdated);
     return () => window.removeEventListener('mcmca_apps_updated', onAppUpdated);
   }, [refresh]);
-
-  // When student registration is incomplete, show forms now without asking now or later
-  useEffect(() => {
-    if (!loading && data && !complete) {
-      navigate('/student/forms');
-    }
-  }, [loading, data, complete, navigate]);
 
   return (
     <StudentLayout pageTitle="Overview" layout="dashboard" studentName={profile ? studentName : ''}>
@@ -183,9 +187,9 @@ export function StudentDashboardPage() {
           </div>
         </section>
 
-        {/* Consolidated single card: ranges, checklist, and applications */}
-        <section className="dash-single-card">
-          <div className="dash-single-card__head">
+        {/* Card 1: Registration & Bursary Overview */}
+        <section className="dash-single-card" style={{ marginBottom: 20 }}>
+          <div className="dash-single-card__head" style={{ borderBottom: 'none' }}>
             <div>
               <h2 className="stitch-section-title" style={{ margin: 0 }}>Registration & Bursary Overview</h2>
               <p className="field__help" style={{ margin: '4px 0 0' }}>
@@ -223,9 +227,11 @@ export function StudentDashboardPage() {
               )}
             </div>
           </div>
+        </section>
 
-          {/* Analytics cards with thin progress ranges inside card */}
-          <div className="dash-analytics-strips" style={{ margin: 0, padding: 16, borderBottom: '1px solid var(--glass-border)' }}>
+        {/* Card 2: Analytics & progress strips */}
+        <section className="dash-single-card" style={{ marginBottom: 20 }}>
+          <div className="dash-analytics-strips" style={{ margin: 0, padding: 16 }}>
             <div className="dash-strip-card">
               <div className="dash-strip-card__head">
                 <div>
@@ -274,19 +280,24 @@ export function StudentDashboardPage() {
               </div>
             </div>
           </div>
+        </section>
 
-          {error ? (
-            <div className="notice" role="alert" style={{ margin: 16 }}>
-              <strong>Could not load</strong>
-              <p>{error}</p>
+        {error ? (
+          <div className="notice" role="alert" style={{ marginBottom: 20 }}>
+            <strong>Could not load</strong>
+            <p>{error}</p>
+          </div>
+        ) : null}
+
+        {/* Card 3: Registration Checklist */}
+        <section className="dash-single-card" style={{ marginBottom: 20 }}>
+          <div className="dash-single-card__head">
+            <div>
+              <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>Registration Checklist</h3>
+              <p className="field__help" style={{ margin: '4px 0 0' }}>
+                Personal information is pre-checked from registration. Click any step to open and complete it.
+              </p>
             </div>
-          ) : null}
-
-          <div style={{ padding: '16px 22px 10px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>
-            <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>Registration Checklist</h3>
-            <p className="field__help" style={{ margin: '4px 0 0' }}>
-              Personal information is pre-checked from registration. Click any step to open and complete it.
-            </p>
           </div>
 
           {showSkeleton ? (
@@ -327,9 +338,11 @@ export function StudentDashboardPage() {
               })}
             </ul>
           )}
+        </section>
 
-          {/* Applications inside single card */}
-          <div className="dash-single-card__head" style={{ borderTop: '1px solid var(--glass-border)' }}>
+        {/* Card 4: Applications & history */}
+        <section className="dash-single-card" style={{ marginBottom: 20 }}>
+          <div className="dash-single-card__head">
             <div>
               <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>Applications</h3>
               <p className="field__help" style={{ margin: '4px 0 0' }}>

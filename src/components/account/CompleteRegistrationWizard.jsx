@@ -559,6 +559,12 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
         wizard.setStepIndex(nextIncompleteIdx);
       } else {
         setDone(true);
+        try {
+          if (user?.id) {
+            localStorage.setItem(`mcmca_student_documents_completed_${user.id}`, 'true');
+          }
+          localStorage.setItem('mcmca_student_documents_completed', 'true');
+        } catch {}
       }
       return;
     } catch (err) {
