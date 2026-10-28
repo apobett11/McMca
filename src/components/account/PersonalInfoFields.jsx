@@ -60,52 +60,7 @@ export function PersonalInfoFields({
         </div>
       )}
 
-      {/* For Student: Never changeable Independent Allocation row */}
-      {isStudent && (
-        <div className="field" style={{ marginBottom: 16 }}>
-          <label style={{ margin: '0 0 6px 0', fontSize: 13, fontWeight: 600, color: '#E2E8F0', display: 'block' }}>
-            Student Allocation Category
-          </label>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '11px 14px',
-            borderRadius: 10,
-            border: '1px solid rgba(148, 163, 184, 0.25)',
-            background: 'rgba(15, 23, 42, 0.65)',
-            color: '#E2E8F0',
-            fontSize: 14
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{
-                display: 'inline-block',
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                background: '#10B981'
-              }} />
-              <span style={{ fontWeight: 600 }}>Independent</span>
-              <span style={{ fontSize: 12, color: '#94A3B8' }}>(Self-registered)</span>
-            </div>
-            <span style={{
-              fontSize: 11,
-              textTransform: 'uppercase',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              padding: '3px 8px',
-              borderRadius: 6,
-              background: 'rgba(148, 163, 184, 0.15)',
-              color: '#94A3B8'
-            }}>
-              Permanent · Locked
-            </span>
-          </div>
-          <p className="field__help" style={{ margin: '4px 0 0', fontSize: 12, color: '#94A3B8' }}>
-            All registrations through the student register are permanently assigned as Independent and operate their own dashboard.
-          </p>
-        </div>
-      )}
+
 
       {/* No ID Popup Prompt */}
       {showNoIdModal && (
