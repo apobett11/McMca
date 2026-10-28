@@ -11,7 +11,8 @@ export function IdentityScanStep({
   registeredId,
   fileField = 'idPhoto',
   backField = 'idBack',
-  requireBothSides = true
+  requireBothSides = true,
+  errors = {}
 }) {
   const fullName = registeredName || joinFullName(values);
   const expected = {
@@ -31,6 +32,7 @@ export function IdentityScanStep({
         kind={UPLOAD_KIND.IDENTITY_FRONT}
         expected={expected}
         help="Front of the card, well lit, all corners visible."
+        error={errors[fileField]}
         onFile={(file, verification) => onFile(fileField, file, verification)}
       />
       {requireBothSides ? (
@@ -41,6 +43,7 @@ export function IdentityScanStep({
           kind={UPLOAD_KIND.IDENTITY_BACK}
           expected={expected}
           help="Back of the card."
+          error={errors[backField]}
           onFile={(file, verification) => onFile(backField, file, verification)}
         />
       ) : null}

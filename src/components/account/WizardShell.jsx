@@ -20,7 +20,8 @@ export function WizardShell({
   embedded = false,
   onStepSelect,
   canSelectStep,
-  completedKeys = []
+  completedKeys = [],
+  hideBack = false
 }) {
   return (
     <section
@@ -50,13 +51,13 @@ export function WizardShell({
         {children}
       </div>
 
-      <div className="btn-row" style={{ marginTop: 18 }}>
-        {stepIndex > 0 ? (
+      <div className="btn-row" style={{ marginTop: 18, justifyContent: hideBack ? 'flex-end' : undefined }}>
+        {!hideBack && (stepIndex > 0 ? (
           <button type="button" className="btn btn--secondary" onClick={onBack} disabled={submitting || saveStatus === 'success'} style={{ borderRadius: 999, width: 'auto' }}>
             <Icon name="chevronLeft" size={18} />
             {backLabel}
           </button>
-        ) : extraAction}
+        ) : extraAction)}
         <button
           type="button"
           className={`btn btn--primary wizard-next-btn ${saveStatus === 'success' ? 'wizard-next-btn--success' : ''}`}

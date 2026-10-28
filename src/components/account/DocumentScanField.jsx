@@ -8,12 +8,15 @@ export function DocumentScanField({
   onFile,
   expected,
   kind = UPLOAD_KIND.IDENTITY_FRONT,
-  help = 'Take a clear, well-lit photo. The full document should fill the frame. Names are read from the picture and checked against the form.'
+  help = 'Take a clear, well-lit photo. The full document should fill the frame. Names are read from the picture and checked against the form.',
+  error: propError
 }) {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
   const [extracted, setExtracted] = useState('');
+
+  const activeError = propError || error;
 
   async function handleChange(nextFile) {
     setError('');
@@ -23,7 +26,7 @@ export function DocumentScanField({
       onFile(null, null);
       return;
     }
-    // Photo validation disabled: accept any uploaded photo without verification errors
+    // Photo validation: accept any attached photo
     setStatus('Photo attached.');
     onFile(nextFile, {
       ok: true,
@@ -33,20 +36,33 @@ export function DocumentScanField({
   }
 
   return (
-    <div className="field">
+    <div className={`field ${activeError ? 'field--invalid' : ''}`} style={{ marginBottom: 16 }}>
       <label htmlFor={id}>{label}</label>
       <input
         id={id}
+        name={id}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         capture="environment"
+        className={activeError ? 'is-invalid' : ''}
+        aria-invalid={Boolean(activeError)}
         onChange={(e) => handleChange(e.target.files?.[0] || null)}
         disabled={checking}
+        style={{
+          display: 'block',
+          width: '100%',
+          padding: '8px 12px',
+          background: 'rgba(15, 23, 42, 0.6)',
+          border: activeError ? '1px solid #ef4444' : '1px solid rgba(148, 163, 184, 0.25)',
+          borderRadius: 8,
+          color: '#E2E8F0',
+          fontSize: 13
+        }}
       />
-      {error ? <p className="field__help">{error}</p> : null}
+      {activeError ? <p className="field__error-msg">{activeError}</p> : null}
       {extracted ? <p className="field__help">Read from the photo: {extracted}</p> : null}
-      {status && !error ? <p className="field__help">{status}</p> : null}
-      {!error && !status ? <p className="field__help">{help}</p> : null}
+      {status && !activeError ? <p className="field__help" style={{ color: '#10B981' }}>{status}</p> : null}
+      {!activeError && !status ? <p className="field__help">{help}</p> : null}
     </div>
   );
 }

@@ -7,14 +7,14 @@ import {
   ACCOUNT_ROLE,
   DOCUMENT_KIND,
   WIZARD_FLOW,
-  joinFullName,
-  validateForm
+  joinFullName
 } from '../lib/accountAllocation';
 import { getWizardSteps } from '../lib/accountAllocation/wizardFlows';
 import {
   assignUserRole,
   createIndependentStudentAccount,
   createParentAccount,
+  createNewUserAccount,
   persistIdPair,
   registerAuthUser,
   savePendingParentFromStudent,
@@ -30,6 +30,80 @@ const DRAFT_OWNERS = {
   [ACCOUNT_ROLE.STUDENT]: 'anon-student',
   [ACCOUNT_ROLE.PARENT]: 'anon-parent'
 };
+
+function validateInstantField(name, value, allValues, currentRole) {
+  switch (name) {
+    case 'nationalId': {
+      const clean = String(value || '').replace(/\D/g, '');
+      if (!clean) return 'National ID number is required.';
+      if (clean.length < 7 || clean.length > 8) return 'National ID must be 7 or 8 digits.';
+      return '';
+    }
+    case 'firstName': {
+      if (!String(value || '').trim()) return 'First name is required.';
+      return '';
+    }
+    case 'middleName': {
+      return '';
+    }
+    case 'lastName': {
+      if (!String(value || '').trim()) return 'Last name is required.';
+      return '';
+    }
+    case 'gender': {
+      if (!value) return 'Please select a gender.';
+      return '';
+    }
+    case 'dateOfBirth': {
+      if (!value) return 'Date of birth is required.';
+      const date = new Date(value);
+      if (isNaN(date.getTime())) return 'Enter a valid date of birth.';
+      const today = new Date();
+      if (date > today) return 'Date of birth cannot be in the future.';
+      let age = today.getFullYear() - date.getFullYear();
+      const m = today.getMonth() - date.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < date.getDate())) age--;
+      if (age < 18) return 'Must be 18 years+';
+      return '';
+    }
+    case 'phone': {
+      const clean = String(value || '').trim().replace(/\s+/g, '');
+      if (!clean) return 'Phone number is required.';
+      if (!/^(?:\+254|0)(?:7|1)\d{8}$/.test(clean)) {
+        return 'Enter a valid phone number (e.g. 07XX XXX XXX).';
+      }
+      return '';
+    }
+    case 'email': {
+      const clean = String(value || '').trim();
+      if (!clean) return 'Email is required.';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
+        return 'Enter a valid email address.';
+      }
+      return '';
+    }
+    case 'password': {
+      const str = String(value || '');
+      if (!str) return 'Password is required.';
+      if (str.length < 6) return 'Password must be at least 6 characters.';
+      return '';
+    }
+    case 'confirmPassword': {
+      const str = String(value || '');
+      if (!str) return 'Confirm password is required.';
+      if (allValues?.password && str !== allValues.password) return 'Passwords do not match.';
+      return '';
+    }
+    case 'parentStatus': {
+      if (currentRole === ACCOUNT_ROLE.STUDENT && !value) {
+        return "Please select parents' status.";
+      }
+      return '';
+    }
+    default:
+      return '';
+  }
+}
 
 export function LoginPage({ initialTab = 'login' }) {
   const navigate = useNavigate();
@@ -58,6 +132,10 @@ export function LoginPage({ initialTab = 'login' }) {
   const [created, setCreated] = useState(null);
   const [finished, setFinished] = useState(false);
 
+  // Form error tracking & popup modal state
+  const [formErrors, setFormErrors] = useState({});
+  const [popupModal, setPopupModal] = useState(null); // { type: 'error' | 'success', title: string, message: string }
+
   // Sync tab with URL if needed
   useEffect(() => {
     if (paramRole) {
@@ -83,6 +161,21 @@ export function LoginPage({ initialTab = 'login' }) {
     cacheOwnerKey,
     enabled: Boolean(role) && !finished && activeTab === 'register'
   });
+
+  const handleFieldChange = (name, value) => {
+    wizard.updateField(name, value);
+    const updatedValues = { ...wizard.values, [name]: value };
+
+    // Instant inline validation on start of input
+    const err = validateInstantField(name, value, updatedValues, role);
+    setFormErrors((prev) => {
+      const next = { ...prev, [name]: err };
+      if (name === 'password' && updatedValues.confirmPassword) {
+        next.confirmPassword = validateInstantField('confirmPassword', updatedValues.confirmPassword, updatedValues, role);
+      }
+      return next;
+    });
+  };
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -169,60 +262,76 @@ export function LoginPage({ initialTab = 'login' }) {
     }
   }
 
-  async function ensureAccount() {
-    if (created) return created;
-    const existing = await supabase.auth.getUser();
-    let user = existing.data?.user || null;
-    if (!user) {
-      const registered = await registerAuthUser({
-        email: wizard.values.email.trim(),
-        password: wizard.values.password
-      });
-      user = registered.user;
-    }
-    await assignUserRole(user.id, role);
-    await refreshRole?.();
-    const profile = role === ACCOUNT_ROLE.PARENT
-      ? await createParentAccount({ userId: user.id, email: wizard.values.email.trim(), fields: wizard.values })
-      : await createIndependentStudentAccount({ userId: user.id, email: wizard.values.email.trim(), fields: wizard.values });
-    const account = { userId: user.id, profileId: profile.id, profile };
-    setCreated(account);
-    return account;
-  }
-
   async function handlePersonalStep() {
-    const schema = {
-      nationalId: {},
-      firstName: {},
-      lastName: {},
-      gender: { label: 'Gender' },
-      dateOfBirth: {},
-      email: {},
-      phone: {},
-      password: {}
-    };
-    if (role === ACCOUNT_ROLE.STUDENT) {
-      schema.parentStatus = { label: "Parents' status" };
+    const errors = {};
+    const fieldList = ['nationalId', 'firstName', 'lastName', 'gender', 'dateOfBirth', 'phone', 'email', 'password', 'confirmPassword'];
+    if (role === ACCOUNT_ROLE.STUDENT) fieldList.push('parentStatus');
+
+    for (const field of fieldList) {
+      const err = validateInstantField(field, wizard.values[field], wizard.values, role);
+      if (err) errors[field] = err;
     }
-    const check = validateForm(wizard.values, schema);
-    if (!check.ok) {
-      wizard.setError(Object.values(check.errors)[0]);
-      return;
+
+    if (!wizard.files.idPhoto) {
+      errors.idPhoto = 'Front of ID photo is required.';
     }
-    if (!wizard.files.idPhoto || !wizard.files.idBack) {
-      wizard.setError('Add a photo of the front and the back of your ID.');
+    if (!wizard.files.idBack) {
+      errors.idBack = 'Back of ID photo is required.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      const firstField = Object.keys(errors)[0];
+      const errMsg = errors[firstField];
+
+      setPopupModal({
+        type: 'error',
+        title: 'Registration Error',
+        message: errMsg
+      });
+
+      setTimeout(() => {
+        const fieldId = firstField === 'idPhoto' || firstField === 'idBack' ? firstField : `reg-${firstField}`;
+        const target = document.getElementById(fieldId) || document.querySelector(`[name="${firstField}"]`);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (typeof target.focus === 'function') target.focus();
+        }
+      }, 100);
       return;
     }
 
     setSubmitting(true);
+    setFormErrors({});
     wizard.setError('');
+
     try {
-      const account = await ensureAccount();
+      const emailVal = String(wizard.values.email || '').trim();
+      const pwdVal = String(wizard.values.password || '');
+
+      // 1. Complete atomic registration: create auth user, UUID, user_roles, and profile (all or nothing)
+      const account = await createNewUserAccount({
+        role,
+        email: emailVal,
+        password: pwdVal,
+        fields: wizard.values
+      });
+
+      // 2. Establish authenticated session on frontend
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: emailVal,
+        password: pwdVal
+      });
+      if (signInErr) {
+        console.warn('Sign-in after register warning:', signInErr);
+      }
+
+      // 3. Persist ID documents front & back under authenticated session
       await persistIdPair({
-        authUserId: account.userId,
+        authUserId: account.user.id,
         ownerType: role,
-        ownerId: account.profileId,
-        studentProfileId: role === ACCOUNT_ROLE.STUDENT ? account.profileId : null,
+        ownerId: account.profile.id,
+        studentProfileId: role === ACCOUNT_ROLE.STUDENT ? account.profile.id : null,
         expected: {
           fullName: joinFullName(wizard.values),
           nationalId: wizard.values.nationalId
@@ -243,16 +352,16 @@ export function LoginPage({ initialTab = 'login' }) {
         dateOfBirth: wizard.values.dateOfBirth,
         phone: wizard.values.phone,
         nationalId: wizard.values.nationalId,
-        email: wizard.values.email.trim()
+        email: emailVal
       };
       if (role === ACCOUNT_ROLE.STUDENT) {
         payload.parentStatus = wizard.values.parentStatus || '';
       }
 
       await saveWizardStep({
-        authUserId: account.userId,
+        authUserId: account.user.id,
         ownerType: role,
-        ownerId: account.profileId,
+        ownerId: account.profile.id,
         flowId: role === ACCOUNT_ROLE.STUDENT ? WIZARD_FLOW.DASHBOARD_STUDENT : WIZARD_FLOW.DASHBOARD_PARENT,
         stepKey: 'personal_information',
         payload,
@@ -261,22 +370,28 @@ export function LoginPage({ initialTab = 'login' }) {
 
       try {
         const idMap = JSON.parse(localStorage.getItem('mcmca_id_map') || '{}');
-        const cleanId = String(wizard.values.nationalId || '').trim().replace(/\D/g, '');
-        if (cleanId) {
-          idMap[cleanId] = wizard.values.email.trim();
+        const cleanIdNum = String(wizard.values.nationalId || '').trim().replace(/\D/g, '');
+        if (cleanIdNum) {
+          idMap[cleanIdNum] = emailVal;
           localStorage.setItem('mcmca_id_map', JSON.stringify(idMap));
         }
-        const flowStoreKey = role === ACCOUNT_ROLE.STUDENT ? 'wizard_completed_dashboard_student' : 'wizard_completed_dashboard_parent';
-        const dataStoreKey = role === ACCOUNT_ROLE.STUDENT ? 'wizard_data_dashboard_student' : 'wizard_data_dashboard_parent';
-        sessionStorage.setItem(flowStoreKey, JSON.stringify(['personal_information']));
-        sessionStorage.setItem(dataStoreKey, JSON.stringify(payload));
       } catch {}
 
       await wizard.completeStep('personal_information', payload, ['idPhoto', 'idBack']);
       await supabase.auth.signOut();
-      setFinished(true);
+
+      // Show success popup where user naturally sees it
+      setPopupModal({
+        type: 'success',
+        title: 'Account Created Successfully!',
+        message: `Your ${role === ACCOUNT_ROLE.STUDENT ? 'Student' : 'Parent'} registration has been written to the database. Sign in using your National ID number or email to access your dashboard.`
+      });
     } catch (err) {
-      wizard.setError(err.message || 'Could not create the account.');
+      setPopupModal({
+        type: 'error',
+        title: 'Registration Failed',
+        message: err.message || 'Could not complete registration. Please try again.'
+      });
     } finally {
       setSubmitting(false);
     }
@@ -306,6 +421,123 @@ export function LoginPage({ initialTab = 'login' }) {
       fontFamily: 'var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)',
       padding: '32px 16px'
     }}>
+      {/* Universal Success & Failed State Popup */}
+      {popupModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(11, 17, 32, 0.85)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            style={{
+              background: '#1E293B',
+              borderRadius: 20,
+              maxWidth: 440,
+              width: '100%',
+              padding: '28px 24px',
+              border: popupModal.type === 'error' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(16, 185, 129, 0.4)',
+              boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.7)',
+              textAlign: 'center',
+              color: '#E2E8F0',
+              fontFamily: 'inherit'
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                background: popupModal.type === 'error' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                color: popupModal.type === 'error' ? '#EF4444' : '#10B981',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 14
+              }}
+            >
+              {popupModal.type === 'error' ? (
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              ) : (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </div>
+
+            <h3 style={{ margin: '0 0 10px', fontSize: 20, fontWeight: 700, color: '#FFFFFF' }}>
+              {popupModal.title}
+            </h3>
+
+            <p style={{ margin: '0 0 24px', fontSize: 14, color: '#94A3B8', lineHeight: 1.55 }}>
+              {popupModal.message}
+            </p>
+
+            {popupModal.type === 'success' ? (
+              <button
+                type="button"
+                onClick={() => {
+                  const targetId = wizard.values.nationalId || wizard.values.email || '';
+                  setPopupModal(null);
+                  setRole(null);
+                  setFinished(false);
+                  setActiveTab('login');
+                  setIdentifier(targetId);
+                  setPassword('');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
+                }}
+              >
+                Sign In Now
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPopupModal(null)}
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                }}
+              >
+                Dismiss & Fix Errors
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div style={{
         width: '100%',
         maxWidth: activeTab === 'register' && role && !finished ? 560 : 420,
@@ -368,7 +600,7 @@ export function LoginPage({ initialTab = 'login' }) {
           </button>
         </div>
 
-        {/* 1. MINIMALISTIC SIGN IN VIEW (No explanations, only essential fields) */}
+        {/* 1. MINIMALISTIC SIGN IN VIEW */}
         {activeTab === 'login' && (
           <div>
             {loginError && (
@@ -462,53 +694,10 @@ export function LoginPage({ initialTab = 'login' }) {
           </div>
         )}
 
-        {/* 2. REGISTER VIEW (Dropdown to register as parent or student) */}
+        {/* 2. REGISTER VIEW */}
         {activeTab === 'register' && (
           <div>
-            {finished ? (
-              <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                <div style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: '50%',
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  color: '#10B981',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 14
-                }}>
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: '#FFFFFF' }}>
-                  Account Created
-                </h3>
-                <p style={{ margin: '0 0 24px', fontSize: 13, color: '#94A3B8', lineHeight: 1.5 }}>
-                  Sign in using your National ID number and password to access your dashboard.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFinished(false);
-                    setActiveTab('login');
-                  }}
-                  style={{
-                    padding: '12px 28px',
-                    borderRadius: 12,
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
-                    color: '#FFFFFF',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Sign In Now
-                </button>
-              </div>
-            ) : !role ? (
+            {!role ? (
               <div>
                 <div style={{ marginBottom: 20 }}>
                   <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, color: '#E2E8F0' }}>
@@ -556,30 +745,8 @@ export function LoginPage({ initialTab = 'login' }) {
             ) : (
               /* Official Registration Form for Student or Parent */
               <div>
-                {/* Role header with switch option */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#FFFFFF' }}>
-                    {role === ACCOUNT_ROLE.STUDENT ? 'Student Registration' : 'Parent Registration'}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setRole(null)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#A78BFA',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      padding: '4px 8px'
-                    }}
-                  >
-                    Change role
-                  </button>
-                </div>
-
                 {wizard.loading ? (
-                  <p style={{ color: '#94A3B8', fontSize: 13 }}>Restoring saved progress…</p>
+                  <p style={{ color: '#94A3B8', fontSize: 13, textAlign: 'center' }}>Restoring saved progress…</p>
                 ) : (
                   <WizardShell
                     embedded
@@ -588,24 +755,25 @@ export function LoginPage({ initialTab = 'login' }) {
                     error={wizard.error}
                     submitting={submitting}
                     nextLabel="Create account"
-                    extraAction={
-                      <button
-                        type="button"
-                        className="btn btn--secondary"
-                        onClick={() => setRole(null)}
-                        style={{ borderRadius: 999, width: 'auto' }}
-                      >
-                        Back
-                      </button>
-                    }
-                    onBack={() => wizard.setStepIndex((i) => Math.max(0, i - 1))}
+                    hideBack={true}
+                    extraAction={null}
                     onNext={handlePersonalStep}
                   >
                     {wizard.currentStep?.key === 'personal_information' && (
                       <>
+                        <h2 style={{
+                          fontSize: 22,
+                          fontWeight: 800,
+                          textAlign: 'center',
+                          color: '#FFFFFF',
+                          margin: '0 0 20px 0'
+                        }}>
+                          Personal Information
+                        </h2>
                         <PersonalInfoFields
                           values={wizard.values}
-                          onChange={wizard.updateField}
+                          onChange={handleFieldChange}
+                          errors={formErrors}
                           includeAuth
                           idPrefix="reg-"
                           isStudent={role === ACCOUNT_ROLE.STUDENT}
@@ -613,7 +781,14 @@ export function LoginPage({ initialTab = 'login' }) {
                         <IdentityScanStep
                           values={wizard.values}
                           files={wizard.files}
-                          onFile={wizard.updateFile}
+                          errors={formErrors}
+                          onFile={(field, file, verification) => {
+                            wizard.updateFile(field, file, verification);
+                            setFormErrors((prev) => ({
+                              ...prev,
+                              [field]: file ? '' : 'This document is required.'
+                            }));
+                          }}
                           registeredName={joinFullName(wizard.values)}
                           registeredId={wizard.values.nationalId}
                         />

@@ -9362,3 +9362,52 @@ h1.section-card__title {
 }
 
 
+
+/* Date input place selection & placed values styling */
+input[type="date"] {
+  color-scheme: dark !important;
+  color: #E2E8F0 !important;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  color: #E2E8F0 !important;
+  display: flex !important;
+  align-items: center;
+}
+
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  color: #E2E8F0 !important;
+}
+
+input[type="date"]::-webkit-datetime-edit-text {
+  color: #94A3B8 !important;
+  padding: 0 4px;
+}
+
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #E2E8F0 !important;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+input[type="date"]::-webkit-datetime-edit-month-field:focus,
+input[type="date"]::-webkit-datetime-edit-day-field:focus,
+input[type="date"]::-webkit-datetime-edit-year-field:focus {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  outline: none;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.9);
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}

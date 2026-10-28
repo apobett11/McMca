@@ -13,44 +13,47 @@ export function PersonalInfoFields({
 }) {
   const navigate = useNavigate();
   const [showNoIdModal, setShowNoIdModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const id = (name) => `${idPrefix}${name}`;
 
   return (
     <>
-      {/* For Student Register: National ID is the very first input with immediate "I don't have an ID" button */}
+      {/* For Student Register: National ID is the very first input with "I don't have an ID" blue bold link */}
       {isStudent && (
         <div className={`field ${errors.nationalId ? 'field--invalid' : ''}`} style={{ marginBottom: 16 }}>
-          <label htmlFor={id('nationalId')}>National ID number</label>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
-            <input
-              id={id('nationalId')}
-              name="nationalId"
-              type="text"
-              value={values.nationalId || ''}
-              onChange={(e) => onChange('nationalId', e.target.value)}
-              placeholder="e.g. 40112233"
-              required
-              style={{ flex: 1 }}
-            />
-            <button
-              type="button"
-              onClick={() => setShowNoIdModal(true)}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <label htmlFor={id('nationalId')} style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#E2E8F0' }}>
+              National ID number
+            </label>
+            <a
+              href="#no-id"
+              onClick={(e) => {
+                e.preventDefault();
+                setShowNoIdModal(true);
+              }}
               style={{
-                padding: '10px 14px',
-                borderRadius: 8,
-                border: '1px solid rgba(239, 68, 68, 0.4)',
-                background: 'rgba(239, 68, 68, 0.12)',
-                color: '#F87171',
-                fontSize: 12,
+                color: '#3B82F6',
                 fontWeight: 700,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.15s ease'
+                fontSize: 13,
+                textDecoration: 'none',
+                cursor: 'pointer'
               }}
             >
               I don't have an ID
-            </button>
+            </a>
           </div>
+          <input
+            id={id('nationalId')}
+            name="nationalId"
+            type="text"
+            value={values.nationalId || ''}
+            onChange={(e) => onChange('nationalId', e.target.value)}
+            placeholder="e.g. 40112233"
+            required
+            aria-invalid={Boolean(errors.nationalId)}
+            className={errors.nationalId ? 'is-invalid' : ''}
+            style={{ width: '100%' }}
+          />
           {errors.nationalId ? <p className="field__error-msg">{errors.nationalId}</p> : null}
         </div>
       )}
@@ -174,60 +177,86 @@ export function PersonalInfoFields({
         </div>
       )}
 
-      <VerifiedField
-        id={id('firstName')}
-        name="firstName"
-        label="First name"
-        value={values.firstName}
-        error={errors.firstName}
-        onChange={(v) => onChange('firstName', v)}
-        autoComplete="given-name"
-      />
-      <VerifiedField
-        id={id('middleName')}
-        name="middleName"
-        label="Middle name"
-        required={false}
-        value={values.middleName}
-        error={errors.middleName}
-        onChange={(v) => onChange('middleName', v)}
-        autoComplete="additional-name"
-      />
-      <VerifiedField
-        id={id('lastName')}
-        name="lastName"
-        label="Last name"
-        value={values.lastName}
-        error={errors.lastName}
-        onChange={(v) => onChange('lastName', v)}
-        autoComplete="family-name"
-      />
-      <div className={`field ${errors.gender ? 'field--invalid' : ''}`}>
-        <label htmlFor={id('gender')}>Gender</label>
-        <select
-          id={id('gender')}
-          value={values.gender || ''}
-          onChange={(e) => onChange('gender', e.target.value)}
-          required
-          aria-invalid={Boolean(errors.gender)}
-          className={errors.gender ? 'is-invalid' : ''}
-        >
-          <option value="">Select</option>
-          <option value="Female">Female</option>
-          <option value="Male">Male</option>
-          <option value="Other">Other</option>
-        </select>
-        {errors.gender ? <p className="field__error-msg">{errors.gender}</p> : null}
+      {/* Names lateral with overarching label */}
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#E2E8F0', marginBottom: 8 }}>
+          Names as they appear in the ID
+        </label>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+          gap: 10
+        }}>
+          <VerifiedField
+            id={id('firstName')}
+            name="firstName"
+            label="First name"
+            value={values.firstName}
+            error={errors.firstName}
+            onChange={(v) => onChange('firstName', v)}
+            autoComplete="given-name"
+          />
+          <VerifiedField
+            id={id('middleName')}
+            name="middleName"
+            label="Middle name"
+            required={false}
+            value={values.middleName}
+            error={errors.middleName}
+            onChange={(v) => onChange('middleName', v)}
+            autoComplete="additional-name"
+          />
+          <VerifiedField
+            id={id('lastName')}
+            name="lastName"
+            label="Last name"
+            value={values.lastName}
+            error={errors.lastName}
+            onChange={(v) => onChange('lastName', v)}
+            autoComplete="family-name"
+          />
+        </div>
       </div>
-      <VerifiedField
-        id={id('dateOfBirth')}
-        name="dateOfBirth"
-        label="Date of birth"
-        type="date"
-        value={values.dateOfBirth}
-        error={errors.dateOfBirth}
-        onChange={(v) => onChange('dateOfBirth', v)}
-      />
+
+      {/* Gender and Date of Birth inline */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 12,
+        marginBottom: 16
+      }}>
+        <div className={`field ${errors.gender ? 'field--invalid' : ''}`} style={{ margin: 0 }}>
+          <label htmlFor={id('gender')}>Gender</label>
+          <select
+            id={id('gender')}
+            name="gender"
+            value={values.gender || ''}
+            onChange={(e) => onChange('gender', e.target.value)}
+            required
+            aria-invalid={Boolean(errors.gender)}
+            className={errors.gender ? 'is-invalid' : ''}
+          >
+            <option value="">Select</option>
+            <option value="Female">Female</option>
+            <option value="Male">Male</option>
+            <option value="Other">Other</option>
+          </select>
+          {errors.gender ? <p className="field__error-msg">{errors.gender}</p> : null}
+        </div>
+
+        <div style={{ margin: 0 }}>
+          <VerifiedField
+            id={id('dateOfBirth')}
+            name="dateOfBirth"
+            label="Date of birth"
+            type="date"
+            value={values.dateOfBirth}
+            error={errors.dateOfBirth}
+            onChange={(v) => onChange('dateOfBirth', v)}
+          />
+        </div>
+      </div>
+
       {includeContact ? (
         <>
           <VerifiedField
@@ -249,16 +278,19 @@ export function PersonalInfoFields({
               value={values.nationalId}
               error={errors.nationalId}
               onChange={(v) => onChange('nationalId', v)}
+              placeholder="e.g. 22780123"
             />
           )}
         </>
       ) : null}
+
       {isStudent ? (
         <>
           <div className={`field ${errors.parentStatus ? 'field--invalid' : ''}`} style={{ marginTop: 8 }}>
             <label htmlFor={id('parentStatus')}>Parents' status</label>
             <select
               id={id('parentStatus')}
+              name="parentStatus"
               value={values.parentStatus || ''}
               onChange={(e) => onChange('parentStatus', e.target.value)}
               required
@@ -326,6 +358,8 @@ export function PersonalInfoFields({
           ) : null}
         </>
       ) : null}
+
+      {/* Double input for password with 6-char minimum constraint & See password checkbox */}
       {includeAuth ? (
         <>
           <VerifiedField
@@ -334,18 +368,67 @@ export function PersonalInfoFields({
             label="Email"
             type="email"
             value={values.email}
+            error={errors.email}
             onChange={(v) => onChange('email', v)}
             autoComplete="email"
+            placeholder="user@example.com"
           />
-          <VerifiedField
-            id={id('password')}
-            name="password"
-            label="Password"
-            type="password"
-            value={values.password}
-            onChange={(v) => onChange('password', v)}
-            autoComplete="new-password"
-          />
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 12,
+            marginBottom: 8
+          }}>
+            <VerifiedField
+              id={id('password')}
+              name="password"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              value={values.password}
+              error={errors.password}
+              onChange={(v) => onChange('password', v)}
+              autoComplete="new-password"
+              placeholder="Min. 6 characters"
+            />
+            <VerifiedField
+              id={id('confirmPassword')}
+              name="confirmPassword"
+              label="Confirm Password"
+              type={showPassword ? 'text' : 'password'}
+              value={values.confirmPassword}
+              error={errors.confirmPassword}
+              onChange={(v) => onChange('confirmPassword', v)}
+              autoComplete="new-password"
+              placeholder="Re-enter password"
+            />
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: 13,
+              fontWeight: 500,
+              color: '#CBD5E1',
+              cursor: 'pointer',
+              userSelect: 'none'
+            }}>
+              <input
+                id={id('seePassword')}
+                type="checkbox"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+                style={{
+                  width: 16,
+                  height: 16,
+                  accentColor: '#7C3AED',
+                  cursor: 'pointer'
+                }}
+              />
+              <span>See password</span>
+            </label>
+          </div>
         </>
       ) : null}
     </>

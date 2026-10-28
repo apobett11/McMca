@@ -3,7 +3,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^(?:\+254|0)7\d{8}$/;
 const ID_RE = /^\d{7,8}$/;
 const CERT_RE = /^[A-Za-z0-9][A-Za-z0-9\-\/ ]{4,39}$/;
-const PASSWORD_MIN = 8;
+const PASSWORD_MIN = 6;
 
 export function normalizeNationalId(value) {
   return String(value || '').replace(/\s+/g, '').replace(/[^\d]/g, '');
@@ -73,18 +73,23 @@ export function validateDateOfBirth(value) {
   if (!value) return fail('Date of birth is required.');
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return fail('Enter a valid date of birth.');
-  if (date > new Date()) return fail('Date of birth cannot be in the future.');
+  const today = new Date();
+  if (date > today) return fail('Date of birth cannot be in the future.');
   const year = date.getFullYear();
   if (year < 1920) return fail('Enter a realistic date of birth.');
+
+  let age = today.getFullYear() - date.getFullYear();
+  const m = today.getMonth() - date.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < date.getDate())) age--;
+  if (age < 18) {
+    return fail('Must be 18 years+');
+  }
   return ok();
 }
 
 export function validatePassword(value) {
   const raw = String(value || '');
   if (raw.length < PASSWORD_MIN) return fail(`Password must be at least ${PASSWORD_MIN} characters.`);
-  if (!/[A-Za-z]/.test(raw) || !/\d/.test(raw)) {
-    return fail('Password must include at least one letter and one number.');
-  }
   return ok();
 }
 
@@ -139,6 +144,10 @@ export function validateField(name, value, extras = {}) {
       return validateDateOfBirth(value);
     case 'password':
       return validatePassword(value);
+    case 'confirmPassword':
+      if (!String(value || '').trim()) return fail('Confirm password is required.');
+      if (extras.password && value !== extras.password) return fail('Passwords do not match.');
+      return ok();
     case 'birthCertificateNumber':
       return validateBirthCertificateNumber(value);
     case 'gender':

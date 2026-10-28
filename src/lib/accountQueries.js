@@ -224,6 +224,19 @@ export async function uploadIdentityDocument({
   return data;
 }
 
+export async function createNewUserAccount({ role, email, password, fields }) {
+  const resp = await fetch('/api/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role, email, password, fields })
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok || !data.ok) {
+    throw new Error(data.error || 'Failed to create user account.');
+  }
+  return { user: data.user, profile: data.profile };
+}
+
 export async function createIndependentStudentAccount({ userId, email, fields }) {
   const allocation = allocateIndependentClass();
   const profile = {

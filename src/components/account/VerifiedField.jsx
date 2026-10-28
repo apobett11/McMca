@@ -18,9 +18,10 @@ export function VerifiedField({
 }) {
   const [touched, setTouched] = useState(false);
   const result = validateField(name, value, { required, label });
-  const show = touched || Boolean(error) || String(value || '').length > 0;
-  const invalid = Boolean(error) || (show && !result.ok);
-  const errorMessage = error || (!result.ok ? result.message : '');
+  const hasPropError = error !== undefined;
+  const show = touched || hasPropError || String(value || '').length > 0;
+  const invalid = hasPropError ? Boolean(error) : (show && !result.ok);
+  const errorMessage = hasPropError ? error : (!result.ok ? result.message : '');
 
   return (
     <div className={`field ${invalid ? 'field--invalid' : ''}`}>
@@ -39,6 +40,7 @@ export function VerifiedField({
           className={invalid ? 'is-invalid' : ''}
           onChange={(e) => onChange(e.target.value)}
           onBlur={() => setTouched(true)}
+          style={type === 'date' ? { colorScheme: 'dark' } : undefined}
         />
       )}
       {invalid && errorMessage ? <p className="field__error-msg">{errorMessage}</p> : null}
