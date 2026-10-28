@@ -12,6 +12,8 @@
     "dev:mca": "vite --port 5177 --strictPort --open http://localhost:5177/#/mca/dashboard",
     "build": "npx vite build",
     "preview": "vite preview",
+    "test": "node tests/parentRegisterChild.test.js",
+    "test:add-child": "node tests/parentRegisterChild.test.js",
     "test:full-year": "node tests/runFullYearSimulation.js"
   },
   "dependencies": {

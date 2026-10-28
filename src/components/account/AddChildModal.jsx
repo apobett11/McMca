@@ -63,19 +63,23 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
   });
 
   const handleFieldChange = (name, value) => {
-    if (name === 'dateOfBirth') {
-      const age = calculateAge(value);
-      if (age !== null && age >= 18) {
-        setShowAgeModal(true);
-        wizard.updateField('dateOfBirth', '');
-        return;
-      }
-    }
     // If institution details changed, reset confirmation requirement
     if (name === 'schoolName' || name === 'schoolLevel' || name === 'accountNumber' || name === 'bankName') {
       setAccountConfirmed(false);
     }
     wizard.updateField(name, value);
+  };
+
+  const handleFieldBlur = (name, value) => {
+    if (name === 'dateOfBirth' && value) {
+      const age = calculateAge(value);
+      // Grace period: allow 18-year-olds (e.g. 18 years and 11 months, age < 19).
+      // Only block if age is 19 or above.
+      if (age !== null && age >= 19) {
+        setShowAgeModal(true);
+        wizard.updateField('dateOfBirth', '');
+      }
+    }
   };
 
   function handleChangeAccountInfo() {
@@ -118,9 +122,9 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
         return;
       }
 
-      // Check child age constraint: must be below 18
+      // Check child age constraint: must be below 19 (1-year grace period for 18-year-olds awaiting ID)
       const age = calculateAge(wizard.values.dateOfBirth);
-      if (age !== null && age >= 18) {
+      if (age !== null && age >= 19) {
         setShowAgeModal(true);
         wizard.setError('You cannot add a child above the age of 18.');
         return;
@@ -131,6 +135,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
         lastName: {},
         gender: { label: 'Gender' },
         dateOfBirth: { isChild: true },
+        schoolLevel: { label: 'Education Level' },
         birthCertificateNumber: { label: 'Birth Certificate Number' }
       });
       if (!check.ok) {
@@ -143,6 +148,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
         lastName: wizard.values.lastName,
         gender: wizard.values.gender,
         dateOfBirth: wizard.values.dateOfBirth,
+        schoolLevel: wizard.values.schoolLevel,
         birthCertificateNumber: wizard.values.birthCertificateNumber
       };
       if (!editing) {
@@ -212,6 +218,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
         lastName: (wizard.values.lastName || pInfo.lastName || child?.last_name || '').trim(),
         gender: wizard.values.gender || pInfo.gender || child?.gender || '',
         dateOfBirth: wizard.values.dateOfBirth || pInfo.dateOfBirth || child?.date_of_birth || '',
+        schoolLevel: wizard.values.schoolLevel || pInfo.schoolLevel || child?.school_level || 'secondary',
         birthCertificateNumber: (wizard.values.birthCertificateNumber || pInfo.birthCertificateNumber || child?.birth_certificate_number || '').trim()
       };
 
@@ -329,6 +336,8 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
                   <PersonalInfoFields
                     values={wizard.values}
                     onChange={handleFieldChange}
+                    onBlurField={handleFieldBlur}
+                    includeLevel={true}
                     includeContact={false}
                     idPrefix="child-personal-"
                   />

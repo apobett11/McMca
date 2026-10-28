@@ -5,6 +5,8 @@ import { VerifiedField } from './VerifiedField.jsx';
 export function PersonalInfoFields({
   values,
   onChange,
+  onBlurField,
+  includeLevel = false,
   errors = {},
   includeAuth = false,
   includeContact = true,
@@ -300,9 +302,41 @@ export function PersonalInfoFields({
             value={values.dateOfBirth}
             error={errors.dateOfBirth}
             onChange={(v) => onChange('dateOfBirth', v)}
+            onBlur={(e) => onBlurField?.('dateOfBirth', e.target.value)}
           />
         </div>
       </div>
+
+      {includeLevel && (
+        <div className={`field ${errors.schoolLevel ? 'field--invalid' : ''}`} style={{ marginBottom: 16 }}>
+          <label htmlFor={id('schoolLevel')} style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#E2E8F0', marginBottom: 6 }}>
+            Education Level *
+          </label>
+          <select
+            id={id('schoolLevel')}
+            name="schoolLevel"
+            value={values.schoolLevel || ''}
+            onChange={(e) => onChange('schoolLevel', e.target.value)}
+            required
+            aria-invalid={Boolean(errors.schoolLevel)}
+            className={errors.schoolLevel ? 'is-invalid' : ''}
+            style={{ width: '100%' }}
+          >
+            <option value="">Select education level</option>
+            <option value="primary">Primary School</option>
+            <option value="secondary">Secondary School</option>
+            <option value="university_college">University / College</option>
+          </select>
+          {errors.schoolLevel ? <p className="field__error-msg">{errors.schoolLevel}</p> : null}
+          {values.schoolLevel ? (
+            <p className="field__help" style={{ color: values.schoolLevel === 'university_college' ? '#3B82F6' : '#10B981', fontWeight: 600, marginTop: 4 }}>
+              {values.schoolLevel === 'university_college'
+                ? 'Delegated: Student operates their dashboard with parent linked access.'
+                : 'Custody: Parent manages student bursary application and documents directly.'}
+            </p>
+          ) : null}
+        </div>
+      )}
 
       {includeContact ? (
         <>

@@ -8,6 +8,7 @@ export function VerifiedField({
   type = 'text',
   value,
   onChange,
+  onBlur,
   required = true,
   help,
   placeholder,
@@ -39,7 +40,10 @@ export function VerifiedField({
           aria-invalid={invalid}
           className={invalid ? 'is-invalid' : ''}
           onChange={(e) => onChange(e.target.value)}
-          onBlur={() => setTouched(true)}
+          onBlur={(e) => {
+            setTouched(true);
+            onBlur?.(e);
+          }}
           style={type === 'date' ? { colorScheme: 'dark' } : undefined}
         />
       )}

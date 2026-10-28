@@ -93,7 +93,10 @@ export function validateDateOfBirth(value, { isChild = false } = {}) {
 
   const age = calculateAge(value);
   if (isChild) {
-    if (age !== null && age >= 18) {
+    // 1-year grace period for children who turn 18 and are awaiting national ID:
+    // Check begins from 19 years old (so 18 years and 11 months is allowed).
+    // Frontend copy remains strictly "above the age of 18".
+    if (age !== null && age >= 19) {
       return fail('You cannot add a child above the age of 18.');
     }
     return ok();
@@ -171,6 +174,7 @@ export function validateField(name, value, extras = {}) {
     case 'gender':
     case 'relationship':
     case 'educationLevel':
+    case 'schoolLevel':
     case 'schoolName':
       return validateRequired(value, extras.label || 'This field');
     default:

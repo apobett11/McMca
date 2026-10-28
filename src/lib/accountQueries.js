@@ -495,13 +495,13 @@ export async function fetchParentChildren(parentAuthUserId) {
 }
 
 export async function createChildForParent({ parentProfile, fields, educationLevel }) {
-  const level = educationLevel || fields?.schoolLevel || fields?.educationLevel || 'secondary';
+  const level = fields?.schoolLevel || educationLevel || fields?.educationLevel || 'secondary';
   const allocation = allocateStudentClassFromEducation(level);
   if (!allocation.ok) throw new Error(allocation.reason);
   const permissions = planLinkPermissions(allocation.studentClass);
 
   const profile = {
-    auth_user_id: null,
+    auth_user_id: fields.auth_user_id || null,
     student_type: allocation.studentTypeCode,
     account_class: allocation.studentClass,
     category_locked: true,
@@ -582,7 +582,7 @@ async function markStudentSteps(authUserId, studentId, entries) {
 
 /** Copy the parent's shared details onto a new child, then submit the first cycle application. */
 export async function registerChildFromParent({ parentProfile, authUserId, personal, institution }) {
-  const level = institution?.schoolLevel || institution?.educationLevel || personal?.schoolLevel || 'secondary';
+  const level = personal?.schoolLevel || institution?.schoolLevel || institution?.educationLevel || 'secondary';
   const household = parentProfile?.wizard_completed?.household || {};
   const parentAuthUserId = authUserId || parentProfile?.auth_user_id;
 
