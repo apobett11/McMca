@@ -4307,39 +4307,53 @@ h1.section-card__title {
 }
 
 @media (max-width: 639px) {
-  .data-table thead {
-    display: none;
+  .data-table-wrap,
+  .data-table-container,
+  .table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .data-table,
-  .data-table tbody,
-  .data-table tr,
-  .data-table td {
-    display: block;
-    min-width: 0;
+  .data-table {
+    display: table !important;
+    width: 100% !important;
+    min-width: 520px;
+    border-collapse: collapse;
+  }
+
+  .data-table thead {
+    display: table-header-group !important;
+  }
+
+  .data-table tbody {
+    display: table-row-group !important;
   }
 
   .data-table tr {
-    margin-bottom: 12px;
-    padding: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    display: table-row !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
   }
 
+  .data-table th,
   .data-table td {
-    padding: 6px 0;
-    border: none;
-    text-align: right;
+    display: table-cell !important;
+    padding: 8px 12px !important;
+    font-size: 12.5px !important;
+    border-bottom: 1px solid var(--border) !important;
+    text-align: left !important;
+    white-space: nowrap;
+    vertical-align: middle;
   }
 
   .data-table td::before {
-    content: attr(data-label);
-    float: left;
-    font-weight: 600;
-    color: var(--text-3);
-    font-size: var(--text-xs);
-    text-transform: uppercase;
+    display: none !important;
+    content: none !important;
   }
 }
 
@@ -9090,27 +9104,62 @@ h1.section-card__title {
     width: 100%;
   }
 
-  :is(.portal--student, .portal--parent) .stitch-apps-table thead {
-    display: none;
-  }
-
-  :is(.portal--student, .portal--parent) .stitch-apps-table,
-  :is(.portal--student, .portal--parent) .stitch-apps-table tbody,
-  :is(.portal--student, .portal--parent) .stitch-apps-table tr,
-  :is(.portal--student, .portal--parent) .stitch-apps-table td {
+  :is(.portal--student, .portal--parent) .stitch-apps-table {
     display: block;
     width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-table table {
+    display: table !important;
+    width: 100% !important;
+    min-width: 560px;
+    border-collapse: collapse;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-table thead {
+    display: table-header-group !important;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-table tbody {
+    display: table-row-group !important;
   }
 
   :is(.portal--student, .portal--parent) .stitch-apps-table tr {
-    padding: 14px 16px;
+    display: table-row !important;
+    padding: 0 !important;
     border-bottom: 1px solid var(--border);
   }
 
-  :is(.portal--student, .portal--parent) .stitch-apps-table td {
-    padding: 6px 0;
-    border: none;
+  :is(.portal--student, .portal--parent) .stitch-apps-table th {
+    display: table-cell !important;
+    padding: 10px 14px !important;
+    font-size: 11.5px !important;
+    font-weight: 600;
+    white-space: nowrap;
     text-align: left !important;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-table td {
+    display: table-cell !important;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    border-bottom: 1px solid var(--border) !important;
+    text-align: left !important;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  :is(.portal--student, .portal--parent) .stitch-apps-table td[data-label="School"],
+  :is(.portal--student, .portal--parent) .stitch-apps-table td[data-label="Institution"],
+  :is(.portal--student, .portal--parent) .stitch-apps-table td[data-label="School / Institution"],
+  :is(.portal--student, .portal--parent) .stitch-apps-table td[data-label="Student"],
+  :is(.portal--student, .portal--parent) .stitch-apps-table td[data-label="Student name"],
+  :is(.portal--student, .portal--parent) .stitch-apps-table td[data-label="Full name"] {
+    white-space: normal;
+    min-width: 120px;
   }
 
   :is(.portal--student, .portal--parent) .stitch-profile-section,
@@ -9237,13 +9286,8 @@ h1.section-card__title {
 
 @media (max-width: 720px) {
   :is(.portal--student, .portal--parent) .stitch-apps-table td[data-label]::before {
-    content: attr(data-label);
-    display: block;
-    margin-bottom: 2px;
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--text-3);
+    display: none !important;
+    content: none !important;
   }
 
   .portal--parent .stitch-apps-history__head .btn {

@@ -417,7 +417,7 @@ export function StudentDashboardPage() {
           ) : (
             <div>
               <div className="stitch-apps-table" style={{ border: 'none', borderRadius: 0 }}>
-                <table>
+                <table style={{ minWidth: 540 }}>
                   <thead>
                     <tr>
                       <th>Cycle</th>
@@ -453,16 +453,6 @@ export function StudentDashboardPage() {
                     })}
                   </tbody>
                 </table>
-              </div>
-              <div className="dash-apps-footer-note">
-                <span>
-                  {complete
-                    ? 'Your profile registration is up to date.'
-                    : 'Complete the form registration to keep your bursary details up to date.'}
-                </span>
-                <Link className="btn btn--outline" to="/student/documents" style={{ borderRadius: 999, fontSize: '0.85rem' }}>
-                  {complete ? 'Review forms' : 'Complete forms'}
-                </Link>
               </div>
             </div>
           )}

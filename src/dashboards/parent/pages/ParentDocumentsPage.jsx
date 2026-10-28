@@ -218,7 +218,7 @@ export function ParentDocumentsPage() {
           </div>
         ) : (
           <div className="stitch-apps-table">
-            <table>
+            <table style={{ minWidth: 700 }}>
               <thead>
                 <tr>
                   <th>Student name</th>

@@ -553,7 +553,7 @@ export function ParentDashboardPage() {
           ) : (
             <div>
               <div className="stitch-apps-table" style={{ border: 'none', borderRadius: 0 }}>
-                <table>
+                <table style={{ minWidth: 560 }}>
                   <thead>
                     <tr>
                       <th>Student</th>
@@ -565,7 +565,7 @@ export function ParentDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedApps.slice(0, 5).map((app) => {
+                    {displayApps.map((app) => {
                       const child = children.find((c) => c.id === app.student_profile_id);
                       const name = child ? joinFullName({
                         firstName: child.first_name,
@@ -590,16 +590,6 @@ export function ParentDashboardPage() {
                     })}
                   </tbody>
                 </table>
-              </div>
-              <div className="dash-apps-footer-note">
-                <span>
-                  {complete
-                    ? 'Household registration is up to date.'
-                    : 'Complete household registration steps to keep bursary details current.'}
-                </span>
-                <Link className="btn btn--outline" to="/parent/documents" style={{ borderRadius: 999, fontSize: '0.85rem' }}>
-                  {complete ? 'Review forms' : 'Complete forms'}
-                </Link>
               </div>
             </div>
           )}
