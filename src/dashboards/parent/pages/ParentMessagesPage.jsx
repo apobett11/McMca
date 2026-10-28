@@ -180,13 +180,47 @@ export function ParentMessagesPage() {
 
   return (
     <ParentLayout pageTitle="Contact" parentName={parentName} layout="dashboard">
-      <div className="stitch-support-hero">
-        <h1 className="stitch-support-hero__title">Contact Office</h1>
-        <p className="stitch-support-hero__desc">
-          Send a message to the area chief, the MCA office, or the help desk regarding your linked student.
-        </p>
-        <div className="btn-row" style={{ marginTop: 12 }}>
-          <RefreshButton onClick={refresh} busy={refreshing} />
+      <div className="stitch-support-hero" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <h1 className="stitch-support-hero__title">Contact Office</h1>
+          <p className="stitch-support-hero__desc">
+            Send a message to the area chief, the MCA office, or the help desk regarding your linked student.
+          </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => handleOfficeClick(OFFICES[0])}
+            style={{ borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', fontSize: 14 }}
+          >
+            <Icon name="support" size={18} />
+            <span>Send message</span>
+          </button>
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={refreshing}
+            title="Refresh messages"
+            aria-label="Refresh"
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--glass-border, rgba(148, 163, 184, 0.2))',
+              borderRadius: '50%',
+              width: 38,
+              height: 38,
+              padding: 0,
+              cursor: refreshing ? 'default' : 'pointer',
+              color: refreshing ? 'var(--primary, #3B82F6)' : 'var(--text-muted, #94A3B8)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+              opacity: refreshing ? 0.7 : 1
+            }}
+          >
+            <Icon name="refresh" size={16} />
+          </button>
         </div>
       </div>
 
@@ -201,6 +235,12 @@ export function ParentMessagesPage() {
           <p style={{ margin: 0 }}>{error}</p>
         </div>
       ) : null}
+
+      <div style={{ marginTop: 22, marginBottom: 14 }}>
+        <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.15rem' }}>
+          Select who to message
+        </h2>
+      </div>
 
       <div className="stitch-support-grid">
         {OFFICES.map((item) => (
