@@ -407,7 +407,7 @@ export function LoginPage({ initialTab = 'login' }) {
     padding: '11px 14px',
     fontSize: 14,
     borderRadius: 10,
-    border: '1px solid rgba(148, 163, 184, 0.25)',
+    border: '1.5px solid rgba(148, 163, 184, 0.48)',
     background: 'rgba(15, 23, 42, 0.65)',
     color: '#E2E8F0',
     fontFamily: 'inherit',
