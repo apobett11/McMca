@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ParentHeader } from './ParentHeader.jsx';
 import { ParentFooter } from './ParentFooter.jsx';
+import { ParentDesktopSidebar } from './ParentDesktopSidebar.jsx';
 import { ParentSlideMenu } from './ParentSlideMenu.jsx';
 import { NotificationModal } from '../../../components/NotificationModal.jsx';
 
@@ -36,9 +37,23 @@ export function ParentLayout({
         onMenuOpen={() => setMenuOpen(true)}
         onNotificationsOpen={() => setNotificationsOpen(true)}
       />
-      <main className={mainClass} role="main">
-        <div className="main__content">{children}</div>
-      </main>
+      <div className="parent-portal-body">
+        <ParentDesktopSidebar parentName={parentName} />
+        <main
+          className={mainClass}
+          role="main"
+          style={{
+            flex: '1',
+            minWidth: 0,
+            width: '100%',
+            maxWidth: layout === 'dashboard' ? '1280px' : '820px',
+            margin: '0 auto',
+            padding: '0 24px'
+          }}
+        >
+          <div className="main__content">{children}</div>
+        </main>
+      </div>
       {showFooter ? <ParentFooter /> : null}
       <ParentSlideMenu
         open={menuOpen}

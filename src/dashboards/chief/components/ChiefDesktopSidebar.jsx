@@ -41,17 +41,17 @@ export function ChiefDesktopSidebar({ chiefName }) {
   }
 
   return (
-    <aside className="chief-desktop-sidebar" aria-label="Chief navigation">
-      <div style={{ padding: '0 12px 18px', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.08))', marginBottom: 12 }}>
-        <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8', fontWeight: 600 }}>
+    <aside className="app-desktop-sidebar chief-desktop-sidebar" aria-label="Chief navigation">
+      <div className="sidebar-header" style={{ padding: '0 12px 18px', borderBottom: '1px solid var(--border-subtle, rgba(255,255,255,0.08))', marginBottom: 12 }}>
+        <div className="sidebar-subtitle" style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8', fontWeight: 600 }}>
           Chief Workspace
         </div>
-        <div style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text)', marginTop: 2 }}>
+        <div className="sidebar-title" style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {chiefName || 'Ward Chief'}
         </div>
       </div>
 
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+      <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
         {CHIEF_ITEMS.map((item) => {
           const hasUpdate =
             (item.key === 'applications' && counts.applications > 0) ||
@@ -63,6 +63,7 @@ export function ChiefDesktopSidebar({ chiefName }) {
               key={item.path}
               to={item.path}
               end={item.path === '/chief/dashboard'}
+              title={item.label}
               className={({ isActive }) =>
                 `chief-desktop-sidebar__link ${isActive ? 'chief-desktop-sidebar__link--active' : ''}`
               }
@@ -79,7 +80,7 @@ export function ChiefDesktopSidebar({ chiefName }) {
               }}
             >
               <Icon name={item.icon} size={20} />
-              <span style={{ flex: 1 }}>{item.label}</span>
+              <span className="sidebar-link-label" style={{ flex: 1 }}>{item.label}</span>
               {hasUpdate && (
                 <span className="nav-update-dot" title="Pending update" />
               )}
@@ -88,10 +89,11 @@ export function ChiefDesktopSidebar({ chiefName }) {
         })}
       </nav>
 
-      <div style={{ paddingTop: 12, borderTop: '1px solid var(--border-subtle, rgba(255,255,255,0.08))', marginTop: 'auto' }}>
+      <div className="sidebar-footer" style={{ paddingTop: 12, borderTop: '1px solid var(--border-subtle, rgba(255,255,255,0.08))', marginTop: 'auto' }}>
         <button
           type="button"
           onClick={handleLogout}
+          title="Sign Out"
           className="chief-desktop-sidebar__link chief-desktop-sidebar__link--logout"
           style={{
             display: 'flex',
@@ -108,7 +110,7 @@ export function ChiefDesktopSidebar({ chiefName }) {
           }}
         >
           <Icon name="logout" size={20} />
-          <span>Sign Out</span>
+          <span className="sidebar-link-label">Sign Out</span>
         </button>
       </div>
     </aside>

@@ -187,6 +187,26 @@ export function StudentDashboardPage() {
           </div>
         </section>
 
+        {/* Stay Verified Single Card */}
+        <section className="dash-single-card" style={{ marginBottom: 20 }}>
+          <div className="dash-single-card__head" style={{ borderBottom: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+            <div>
+              <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.25rem' }}>Stay Verified</h2>
+              <p className="field__help" style={{ margin: '4px 0 0', color: 'var(--text-secondary, #94A3B8)' }}>
+                Complete your verification to ensure smooth application processing.
+              </p>
+            </div>
+            <Link
+              to="/student/profile"
+              className="btn btn--primary"
+              style={{ borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', width: 'auto', textDecoration: 'none' }}
+            >
+              <Icon name="profile" size={18} />
+              <span>Update Profile</span>
+            </Link>
+          </div>
+        </section>
+
         {/* Card 1: Registration & Bursary Overview */}
         <section className="dash-single-card" style={{ marginBottom: 20 }}>
           <div className="dash-single-card__head" style={{ borderBottom: 'none' }}>

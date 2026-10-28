@@ -61,22 +61,24 @@ const OFFICE_LABELS = {
   help: 'Help desk'
 };
 
-export async function sendStudentOfficeMessage(userId, { office, body }) {
+export async function sendStudentOfficeMessage(userId, { office, body, heading }) {
   const profileId = await getProfileIdByAuthId(userId);
   const text = String(body || '').trim();
+  const headingText = String(heading || '').trim();
+  const fullText = headingText ? `${headingText}\n\n${text}` : text;
   if (!OFFICE_LABELS[office]) throw new Error('Choose who should receive this message.');
-  if (text.length < 8) throw new Error('Write a short message before sending.');
+  if (text.length < 5) throw new Error('Write a short message before sending.');
   const { error } = await supabase.from('student_activity_logs').insert({
     student_profile_id: profileId,
     activity_type: 'office_message',
-    activity_description: text,
-    metadata: { office, office_label: OFFICE_LABELS[office] }
+    activity_description: fullText,
+    metadata: { office, office_label: OFFICE_LABELS[office], heading: headingText }
   });
   if (error) throw error;
   const { error: noteError } = await supabase.from('student_notifications').insert({
     student_profile_id: profileId,
-    title: `Message sent to ${OFFICE_LABELS[office]}`,
-    message: 'Your message is with the office.'
+    title: headingText ? `${headingText} (${OFFICE_LABELS[office]})` : `Message sent to ${OFFICE_LABELS[office]}`,
+    message: text.slice(0, 120)
   });
   if (noteError) console.error('Could not store the message receipt', noteError);
   return { office, label: OFFICE_LABELS[office] };
@@ -94,19 +96,22 @@ export async function fetchStudentOfficeMessages(userId) {
   return data || [];
 }
 
-export async function sendParentOfficeMessage({ parentAuthUserId, studentProfileId, studentName, office, body }) {
+export async function sendParentOfficeMessage({ parentAuthUserId, studentProfileId, studentName, office, body, heading }) {
   const text = String(body || '').trim();
+  const headingText = String(heading || '').trim();
+  const fullText = headingText ? `${headingText}\n\n${text}` : text;
   if (!OFFICE_LABELS[office]) throw new Error('Choose who should receive this message.');
-  if (text.length < 8) throw new Error('Write a short message before sending.');
+  if (text.length < 5) throw new Error('Write a short message before sending.');
   if (!studentProfileId) throw new Error('Please choose the student with an issue.');
 
   const { error } = await supabase.from('student_activity_logs').insert({
     student_profile_id: studentProfileId,
     activity_type: 'office_message',
-    activity_description: text,
+    activity_description: fullText,
     metadata: {
       office,
       office_label: OFFICE_LABELS[office],
+      heading: headingText,
       tagged_student_id: studentProfileId,
       tagged_student_name: studentName || 'Student',
       sent_by_parent: true,
@@ -120,7 +125,7 @@ export async function sendParentOfficeMessage({ parentAuthUserId, studentProfile
   try {
     await supabase.from('student_notifications').insert({
       student_profile_id: studentProfileId,
-      title: `Message sent to ${OFFICE_LABELS[office]}`,
+      title: headingText ? `${headingText} (${OFFICE_LABELS[office]})` : `Message sent to ${OFFICE_LABELS[office]}`,
       message: `Parent sent a message regarding ${studentName || 'student'}.`
     });
   } catch (noteError) {

@@ -34,12 +34,13 @@ const OFFICES = [
 
 export function ParentMessagesPage() {
   const { user } = useAuth();
-  const [targetOffice, setTargetOffice] = useState(null);
+  const [targetOffice, setTargetOffice] = useState(OFFICES[0]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentModalOpen, setStudentModalOpen] = useState(false);
   const [composeModalOpen, setComposeModalOpen] = useState(false);
   const [limitModalOpen, setLimitModalOpen] = useState(false);
   const [limitOffice, setLimitOffice] = useState(null);
+  const [heading, setHeading] = useState('');
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -109,6 +110,7 @@ export function ParentMessagesPage() {
   function handleSelectStudentAndProceed(child) {
     setSelectedStudent(child);
     setStudentModalOpen(false);
+    setHeading('');
     setBody('');
     setError('');
     setComposeModalOpen(true);
@@ -143,21 +145,25 @@ export function ParentMessagesPage() {
         studentProfileId: selectedStudent.id,
         studentName: childFullName,
         office: targetOffice.id,
+        heading,
         body
       });
 
       const text = body.trim();
+      const head = heading.trim();
+      const displayDesc = head ? `${head} — ${text}` : text;
       const newMsg = {
         id: `local-${Date.now()}`,
         student_profile_id: selectedStudent.id,
         metadata: {
           office: targetOffice.id,
           office_label: result.label || targetOffice.title,
+          heading: head,
           tagged_student_id: selectedStudent.id,
           tagged_student_name: childFullName,
           sent_by_parent: true
         },
-        activity_description: text,
+        activity_description: displayDesc,
         created_at: new Date().toISOString()
       };
 
@@ -166,6 +172,7 @@ export function ParentMessagesPage() {
         messages: [newMsg, ...(prev?.messages || [])]
       }));
 
+      setHeading('');
       setBody('');
       setComposeModalOpen(false);
       setSelectedStudent(null);
@@ -320,7 +327,7 @@ export function ParentMessagesPage() {
           <div className="modal-panel modal-panel--prompt" style={{ maxWidth: 560 }}>
             <div className="modal-panel__header">
               <h2 id="compose-modal-title" className="modal-panel__title">
-                Message {targetOffice.title.toLowerCase()}
+                Send Message
               </h2>
               <button type="button" className="modal-panel__close" onClick={() => setComposeModalOpen(false)} aria-label="Close">×</button>
             </div>
@@ -329,7 +336,7 @@ export function ParentMessagesPage() {
                 <div style={{
                   padding: '10px 14px',
                   background: 'rgba(212,175,55,0.1)',
-                  borderRadius: 8,
+                  borderRadius: 10,
                   marginBottom: 16,
                   border: '1px solid rgba(212,175,55,0.2)'
                 }}>
@@ -347,20 +354,95 @@ export function ParentMessagesPage() {
                   </p>
                 </div>
 
+                {/* Recipient Dropdown */}
                 <div className="field">
-                  <label htmlFor="office-message">Your message</label>
+                  <label htmlFor="parent-recipient-dropdown" style={{ fontWeight: 600, display: 'block', marginBottom: 6 }}>Recipient</label>
+                  <select
+                    id="parent-recipient-dropdown"
+                    value={targetOffice.id}
+                    onChange={(e) => {
+                      const selected = OFFICES.find((o) => o.id === e.target.value);
+                      if (selected) {
+                        setTargetOffice(selected);
+                        setError('');
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 10,
+                      background: 'var(--surface-container, #1e293b)',
+                      color: 'var(--text, #f8fafc)',
+                      border: '1px solid var(--border-subtle, rgba(255,255,255,0.15))',
+                      fontSize: 14
+                    }}
+                  >
+                    <option value="mca">Member of County Assembly (MCA Office)</option>
+                    <option value="chief">Area Chief</option>
+                    <option value="help">Help Desk</option>
+                  </select>
+                </div>
+
+                {/* Heading (capped at 80 characters, one sentence) */}
+                <div className="field" style={{ marginTop: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <label htmlFor="parent-message-heading" style={{ fontWeight: 600 }}>
+                      Heading <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-secondary, #94a3b8)' }}>(one sentence)</span>
+                    </label>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: heading.length >= 80 ? '#ef4444' : 'var(--text-secondary, #94a3b8)' }}>
+                      {heading.length} / 80
+                    </span>
+                  </div>
+                  <input
+                    id="parent-message-heading"
+                    type="text"
+                    maxLength={80}
+                    value={heading}
+                    onChange={(e) => setHeading(e.target.value.slice(0, 80))}
+                    placeholder="Brief summary in one sentence..."
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 10,
+                      background: 'var(--surface-container, #1e293b)',
+                      color: 'var(--text, #f8fafc)',
+                      border: '1px solid var(--border-subtle, rgba(255,255,255,0.15))',
+                      fontSize: 14
+                    }}
+                  />
+                </div>
+
+                {/* Message (capped at 500 characters) */}
+                <div className="field" style={{ marginTop: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <label htmlFor="office-message" style={{ fontWeight: 600 }}>Message</label>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: body.length >= 500 ? '#ef4444' : 'var(--text-secondary, #94a3b8)' }}>
+                      {body.length} / 500
+                    </span>
+                  </div>
                   <textarea
                     id="office-message"
                     rows={4}
+                    maxLength={500}
                     value={body}
-                    onChange={(event) => setBody(event.target.value)}
+                    onChange={(event) => setBody(event.target.value.slice(0, 500))}
                     placeholder={`Write your message regarding ${selectedStudent.first_name || 'the student'}...`}
                     required
-                    autoFocus
+                    style={{
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 10,
+                      background: 'var(--surface-container, #1e293b)',
+                      color: 'var(--text, #f8fafc)',
+                      border: '1px solid var(--border-subtle, rgba(255,255,255,0.15))',
+                      fontSize: 14,
+                      resize: 'vertical'
+                    }}
                   />
                 </div>
-                {error ? <p className="field__help" style={{ color: '#f87171' }}>{error}</p> : null}
-                <div className="btn-row" style={{ marginTop: 16 }}>
+                {error ? <p className="field__help" style={{ color: '#f87171', marginTop: 10 }}>{error}</p> : null}
+                <div className="btn-row" style={{ marginTop: 18 }}>
                   <button
                     type="button"
                     className="btn btn--secondary"
@@ -373,7 +455,7 @@ export function ParentMessagesPage() {
                   <button
                     type="submit"
                     className="btn btn--primary"
-                    disabled={sending || !body.trim()}
+                    disabled={sending || !body.trim() || !heading.trim()}
                     style={{ borderRadius: 999, width: 'auto' }}
                   >
                     {sending ? 'Sending…' : 'Send message'}

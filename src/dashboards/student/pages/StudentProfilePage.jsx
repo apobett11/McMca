@@ -606,6 +606,17 @@ export function StudentProfilePage() {
               Never share your password or OTP with anyone. Ward staff will not ask for it.
             </p>
           </section>
+
+          <section className="stitch-profile-promo" style={{ marginTop: 20 }}>
+            <div className="stitch-profile-promo__glow" />
+            <h3 className="stitch-profile-promo__title">Stay Verified</h3>
+            <p className="stitch-profile-promo__desc">
+              Complete your verification to ensure smooth application processing.
+            </p>
+            <button className="stitch-profile-promo__btn" type="button" onClick={() => setEditing(true)}>
+              Update Profile
+            </button>
+          </section>
         </div>
       </div>
 
