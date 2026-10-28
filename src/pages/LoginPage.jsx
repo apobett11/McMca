@@ -165,14 +165,30 @@ export function LoginPage({ initialTab = 'login' }) {
 
   const handleFieldChange = (name, value) => {
     wizard.updateField(name, value);
-    const updatedValues = { ...wizard.values, [name]: value };
+    // Suppress alerts while input is actively going on; clear any stale error for this field
+    if (formErrors[name]) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+  };
 
-    // Instant inline validation on start of input
-    const err = validateInstantField(name, value, updatedValues, role);
+  const handleFieldBlur = (name, value) => {
+    const updatedValues = { ...wizard.values, [name]: value ?? wizard.values[name] };
+    const err = validateInstantField(name, updatedValues[name], updatedValues, role);
     setFormErrors((prev) => {
-      const next = { ...prev, [name]: err };
+      const next = { ...prev };
+      if (err) {
+        next[name] = err;
+      } else {
+        delete next[name];
+      }
       if (name === 'password' && updatedValues.confirmPassword) {
-        next.confirmPassword = validateInstantField('confirmPassword', updatedValues.confirmPassword, updatedValues, role);
+        const confirmErr = validateInstantField('confirmPassword', updatedValues.confirmPassword, updatedValues, role);
+        if (confirmErr) next.confirmPassword = confirmErr;
+        else delete next.confirmPassword;
       }
       return next;
     });
@@ -811,6 +827,7 @@ export function LoginPage({ initialTab = 'login' }) {
                         <PersonalInfoFields
                           values={wizard.values}
                           onChange={handleFieldChange}
+                          onBlurField={handleFieldBlur}
                           errors={formErrors}
                           includeAuth
                           idPrefix="reg-"

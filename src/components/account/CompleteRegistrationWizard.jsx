@@ -507,8 +507,9 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           childrenSecondary: wizard.values.childrenSecondary || '',
           childrenTertiary: wizard.values.childrenTertiary || '',
           parentStatus: wizard.values.parentStatus,
-          fatherOccupation: wizard.values.fatherOccupation || '',
+          fatherOccupation: wizard.values.fatherOccupation || wizard.values.parentOccupation || '',
           motherOccupation: wizard.values.motherOccupation || '',
+          guardianOccupation: wizard.values.guardianOccupation || '',
           monthlyIncome: wizard.values.monthlyIncome,
           disability: wizard.values.disability,
           disabilityNote: wizard.values.disabilityNote || '',
@@ -610,32 +611,56 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           <p style={{ fontSize: 14, color: '#94A3B8', maxWidth: 440, margin: '0 0 24px 0', lineHeight: 1.55 }}>
             All your registration steps have been saved successfully. You will now be redirected to the dashboard homepage.
           </p>
-          <button
-            type="button"
-            className="btn btn--primary"
-            onClick={() => {
-              onFinished?.();
-              onClose?.();
-              if (role === ACCOUNT_ROLE.PARENT) {
-                navigate('/parent/dashboard');
-              } else {
-                navigate('/student/dashboard');
-              }
-            }}
-            style={{
-              borderRadius: 999,
-              padding: '12px 32px',
-              fontWeight: 700,
-              fontSize: 15,
-              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-              color: '#FFFFFF',
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
-            }}
-          >
-            Go to Dashboard Homepage
-          </button>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => {
+                onFinished?.();
+                onClose?.();
+                if (role === ACCOUNT_ROLE.PARENT) {
+                  navigate('/parent/applications');
+                } else {
+                  navigate('/student/applications');
+                }
+              }}
+              style={{
+                borderRadius: 999,
+                padding: '12px 28px',
+                fontWeight: 700,
+                fontSize: 15,
+                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                color: '#FFFFFF',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)'
+              }}
+            >
+              See Application
+            </button>
+            <button
+              type="button"
+              className="btn btn--outline"
+              onClick={() => {
+                onFinished?.();
+                onClose?.();
+                if (role === ACCOUNT_ROLE.PARENT) {
+                  navigate('/parent/dashboard');
+                } else {
+                  navigate('/student/dashboard');
+                }
+              }}
+              style={{
+                borderRadius: 999,
+                padding: '12px 28px',
+                fontWeight: 700,
+                fontSize: 15,
+                cursor: 'pointer'
+              }}
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       ) : wizard.loading || !profile ? (
         <p className="field__help">Loading your details…</p>
@@ -687,6 +712,7 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
                 values={wizard.values}
                 onChange={handleFieldChange}
                 errors={stepErrors}
+                parentStatus={wizard.values.parentStatus || profile?.parentStatus}
               />
               <IdentityScanStep
                 values={{

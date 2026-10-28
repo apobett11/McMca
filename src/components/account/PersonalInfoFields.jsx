@@ -181,7 +181,7 @@ export function PersonalInfoFields({
         </div>
       )}
 
-      {/* Names lateral with overarching label */}
+      {/* Names lateral with overarching label - flows naturally on small screens */}
       <div style={{ marginBottom: 16 }}>
         <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#E2E8F0', marginBottom: 8 }}>
           Names as they appear in the ID
@@ -198,6 +198,7 @@ export function PersonalInfoFields({
             value={values.firstName}
             error={errors.firstName}
             onChange={(v) => onChange('firstName', v)}
+            onBlur={(e) => onBlurField?.('firstName', e?.target ? e.target.value : values.firstName)}
             autoComplete="given-name"
           />
           <VerifiedField
@@ -208,6 +209,7 @@ export function PersonalInfoFields({
             value={values.middleName}
             error={errors.middleName}
             onChange={(v) => onChange('middleName', v)}
+            onBlur={(e) => onBlurField?.('middleName', e?.target ? e.target.value : values.middleName)}
             autoComplete="additional-name"
           />
           <VerifiedField
@@ -217,15 +219,16 @@ export function PersonalInfoFields({
             value={values.lastName}
             error={errors.lastName}
             onChange={(v) => onChange('lastName', v)}
+            onBlur={(e) => onBlurField?.('lastName', e?.target ? e.target.value : values.lastName)}
             autoComplete="family-name"
           />
         </div>
       </div>
 
-      {/* Gender and Date of Birth inline */}
+      {/* Gender and Date of Birth inline - flows over cleanly on small viewports */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
         gap: 12,
         marginBottom: 16
       }}>
@@ -236,6 +239,7 @@ export function PersonalInfoFields({
             name="gender"
             value={values.gender || ''}
             onChange={(e) => onChange('gender', e.target.value)}
+            onBlur={(e) => onBlurField?.('gender', e.target.value)}
             required
             aria-invalid={Boolean(errors.gender)}
             className={errors.gender ? 'is-invalid' : ''}
@@ -257,7 +261,7 @@ export function PersonalInfoFields({
             value={values.dateOfBirth}
             error={errors.dateOfBirth}
             onChange={(v) => onChange('dateOfBirth', v)}
-            onBlur={(e) => onBlurField?.('dateOfBirth', e.target.value)}
+            onBlur={(e) => onBlurField?.('dateOfBirth', e?.target ? e.target.value : values.dateOfBirth)}
           />
         </div>
       </div>
@@ -272,6 +276,7 @@ export function PersonalInfoFields({
             name="schoolLevel"
             value={values.schoolLevel || ''}
             onChange={(e) => onChange('schoolLevel', e.target.value)}
+            onBlur={(e) => onBlurField?.('schoolLevel', e.target.value)}
             required
             aria-invalid={Boolean(errors.schoolLevel)}
             className={errors.schoolLevel ? 'is-invalid' : ''}
@@ -293,8 +298,14 @@ export function PersonalInfoFields({
         </div>
       )}
 
-      {includeContact ? (
-        <>
+      {/* Phone number and Email side by side */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+        gap: 12,
+        marginBottom: 16
+      }}>
+        {includeContact ? (
           <VerifiedField
             id={id('phone')}
             name="phone"
@@ -303,21 +314,52 @@ export function PersonalInfoFields({
             value={values.phone}
             error={errors.phone}
             onChange={(v) => onChange('phone', v)}
+            onBlur={(e) => onBlurField?.('phone', e?.target ? e.target.value : values.phone)}
             placeholder="07XX XXX XXX"
             autoComplete="tel"
           />
-          {!isStudent && (
-            <VerifiedField
-              id={id('nationalId')}
-              name="nationalId"
-              label="National ID number"
-              value={values.nationalId}
-              error={errors.nationalId}
-              onChange={(v) => onChange('nationalId', v)}
-              placeholder="e.g. 22780123"
-            />
-          )}
-        </>
+        ) : null}
+
+        {includeAuth ? (
+          <VerifiedField
+            id={id('email')}
+            name="email"
+            label="Email address"
+            type="email"
+            value={values.email}
+            error={errors.email}
+            onChange={(v) => onChange('email', v)}
+            onBlur={(e) => onBlurField?.('email', e?.target ? e.target.value : values.email)}
+            autoComplete="email"
+            placeholder="user@example.com"
+          />
+        ) : !isStudent && includeContact ? (
+          <VerifiedField
+            id={id('nationalId')}
+            name="nationalId"
+            label="National ID number"
+            value={values.nationalId}
+            error={errors.nationalId}
+            onChange={(v) => onChange('nationalId', v)}
+            onBlur={(e) => onBlurField?.('nationalId', e?.target ? e.target.value : values.nationalId)}
+            placeholder="e.g. 22780123"
+          />
+        ) : null}
+      </div>
+
+      {!isStudent && includeContact && includeAuth ? (
+        <div style={{ marginBottom: 16 }}>
+          <VerifiedField
+            id={id('nationalId')}
+            name="nationalId"
+            label="National ID number"
+            value={values.nationalId}
+            error={errors.nationalId}
+            onChange={(v) => onChange('nationalId', v)}
+            onBlur={(e) => onBlurField?.('nationalId', e?.target ? e.target.value : values.nationalId)}
+            placeholder="e.g. 22780123"
+          />
+        </div>
       ) : null}
 
       {isStudent ? (
@@ -347,49 +389,67 @@ export function PersonalInfoFields({
               <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
                 Custodian details (who will register as parent)
               </p>
-              <VerifiedField
-                id={id('custodianFirstName')}
-                name="custodianFirstName"
-                label="Custodian first name"
-                value={values.custodianFirstName}
-                error={errors.custodianFirstName}
-                onChange={(v) => onChange('custodianFirstName', v)}
-              />
-              <VerifiedField
-                id={id('custodianMiddleName')}
-                name="custodianMiddleName"
-                label="Custodian middle name"
-                required={false}
-                value={values.custodianMiddleName}
-                error={errors.custodianMiddleName}
-                onChange={(v) => onChange('custodianMiddleName', v)}
-              />
-              <VerifiedField
-                id={id('custodianLastName')}
-                name="custodianLastName"
-                label="Custodian last name"
-                value={values.custodianLastName}
-                error={errors.custodianLastName}
-                onChange={(v) => onChange('custodianLastName', v)}
-              />
-              <VerifiedField
-                id={id('custodianPhone')}
-                name="custodianPhone"
-                label="Custodian phone number"
-                type="tel"
-                value={values.custodianPhone}
-                error={errors.custodianPhone}
-                onChange={(v) => onChange('custodianPhone', v)}
-                placeholder="07XX XXX XXX"
-              />
-              <VerifiedField
-                id={id('custodianNationalId')}
-                name="custodianNationalId"
-                label="Custodian National ID"
-                value={values.custodianNationalId}
-                error={errors.custodianNationalId}
-                onChange={(v) => onChange('custodianNationalId', v)}
-              />
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                gap: 10,
+                marginBottom: 10
+              }}>
+                <VerifiedField
+                  id={id('custodianFirstName')}
+                  name="custodianFirstName"
+                  label="Custodian first name"
+                  value={values.custodianFirstName}
+                  error={errors.custodianFirstName}
+                  onChange={(v) => onChange('custodianFirstName', v)}
+                  onBlur={(e) => onBlurField?.('custodianFirstName', e?.target ? e.target.value : values.custodianFirstName)}
+                />
+                <VerifiedField
+                  id={id('custodianMiddleName')}
+                  name="custodianMiddleName"
+                  label="Custodian middle name"
+                  required={false}
+                  value={values.custodianMiddleName}
+                  error={errors.custodianMiddleName}
+                  onChange={(v) => onChange('custodianMiddleName', v)}
+                  onBlur={(e) => onBlurField?.('custodianMiddleName', e?.target ? e.target.value : values.custodianMiddleName)}
+                />
+                <VerifiedField
+                  id={id('custodianLastName')}
+                  name="custodianLastName"
+                  label="Custodian last name"
+                  value={values.custodianLastName}
+                  error={errors.custodianLastName}
+                  onChange={(v) => onChange('custodianLastName', v)}
+                  onBlur={(e) => onBlurField?.('custodianLastName', e?.target ? e.target.value : values.custodianLastName)}
+                />
+              </div>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: 10
+              }}>
+                <VerifiedField
+                  id={id('custodianPhone')}
+                  name="custodianPhone"
+                  label="Custodian phone number"
+                  type="tel"
+                  value={values.custodianPhone}
+                  error={errors.custodianPhone}
+                  onChange={(v) => onChange('custodianPhone', v)}
+                  onBlur={(e) => onBlurField?.('custodianPhone', e?.target ? e.target.value : values.custodianPhone)}
+                  placeholder="07XX XXX XXX"
+                />
+                <VerifiedField
+                  id={id('custodianNationalId')}
+                  name="custodianNationalId"
+                  label="Custodian National ID"
+                  value={values.custodianNationalId}
+                  error={errors.custodianNationalId}
+                  onChange={(v) => onChange('custodianNationalId', v)}
+                  onBlur={(e) => onBlurField?.('custodianNationalId', e?.target ? e.target.value : values.custodianNationalId)}
+                />
+              </div>
             </div>
           ) : null}
         </>
@@ -398,20 +458,9 @@ export function PersonalInfoFields({
       {/* Double input for password with 6-char minimum constraint & See password checkbox */}
       {includeAuth ? (
         <>
-          <VerifiedField
-            id={id('email')}
-            name="email"
-            label="Email"
-            type="email"
-            value={values.email}
-            error={errors.email}
-            onChange={(v) => onChange('email', v)}
-            autoComplete="email"
-            placeholder="user@example.com"
-          />
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
             gap: 12,
             marginBottom: 8
           }}>
@@ -423,6 +472,7 @@ export function PersonalInfoFields({
               value={values.password}
               error={errors.password}
               onChange={(v) => onChange('password', v)}
+              onBlur={(e) => onBlurField?.('password', e?.target ? e.target.value : values.password)}
               autoComplete="new-password"
               placeholder="Min. 6 characters"
             />
@@ -434,6 +484,7 @@ export function PersonalInfoFields({
               value={values.confirmPassword}
               error={errors.confirmPassword}
               onChange={(v) => onChange('confirmPassword', v)}
+              onBlur={(e) => onBlurField?.('confirmPassword', e?.target ? e.target.value : values.confirmPassword)}
               autoComplete="new-password"
               placeholder="Re-enter password"
             />

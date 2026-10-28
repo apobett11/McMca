@@ -156,7 +156,7 @@ export function StudentFormsPage() {
           <p style={{ margin: '6px 0 12px' }}>{notice}</p>
           <div className="btn-row">
             <Link className="btn btn--primary" to="/student/applications" style={{ borderRadius: 999, width: 'auto' }}>
-              View Bursary Status
+              See Application
             </Link>
             <Link className="btn btn--outline" to="/student/dashboard" style={{ borderRadius: 999, width: 'auto' }}>
               Return to Overview

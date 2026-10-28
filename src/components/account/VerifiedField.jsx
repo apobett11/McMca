@@ -18,15 +18,19 @@ export function VerifiedField({
   children
 }) {
   const [touched, setTouched] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const result = validateField(name, value, { required, label });
   const hasPropError = error !== undefined;
-  const show = touched || hasPropError || String(value || '').length > 0;
+  // Inline verification alert MUST wait for input to end (blur); NEVER when input is going on (isFocused)
+  const show = !isFocused && (touched || hasPropError);
   const invalid = hasPropError ? Boolean(error) : (show && !result.ok);
   const errorMessage = hasPropError ? error : (!result.ok ? result.message : '');
 
   return (
-    <div className={`field ${invalid ? 'field--invalid' : ''}`}>
-      <label htmlFor={id || name}>{label}</label>
+    <div className={`field ${invalid ? 'field--invalid' : ''}`} style={{ minWidth: 0 }}>
+      <label htmlFor={id || name}>
+        {label} {!required && <span style={{ fontSize: 12, fontWeight: 400, color: '#94A3B8' }}>(optional)</span>}
+      </label>
       {children || (
         <input
           id={id || name}
@@ -40,7 +44,9 @@ export function VerifiedField({
           aria-invalid={invalid}
           className={invalid ? 'is-invalid' : ''}
           onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setIsFocused(true)}
           onBlur={(e) => {
+            setIsFocused(false);
             setTouched(true);
             onBlur?.(e);
           }}

@@ -43,9 +43,32 @@ export function validateFamilyData(values = {}) {
     errors.cumulativeLevels = errorMsg;
   }
 
-  if (!values.parentStatus) {
+  const status = values.parentStatus || '';
+  if (!status) {
     errors.parentStatus = 'Please select parents in the household.';
   }
+
+  const isBoth = status === 'both' || status === 'both_alive';
+  const isSingle = status === 'single' || status === 'single_parent' || status === 'father_deceased' || status === 'mother_deceased';
+  const isOrphan = status === 'orphan' || status === 'both_deceased';
+
+  if (isBoth) {
+    if (!String(values.fatherOccupation || '').trim()) {
+      errors.fatherOccupation = "Father's occupation is required.";
+    }
+    if (!String(values.motherOccupation || '').trim()) {
+      errors.motherOccupation = "Mother's occupation is required.";
+    }
+  } else if (isSingle) {
+    if (!String(values.parentOccupation || values.fatherOccupation || values.motherOccupation || '').trim()) {
+      errors.parentOccupation = "Parent's occupation is required.";
+    }
+  } else if (isOrphan) {
+    if (!String(values.guardianOccupation || values.fatherOccupation || values.motherOccupation || '').trim()) {
+      errors.guardianOccupation = "Guardian's occupation is required.";
+    }
+  }
+
   if (!values.monthlyIncome) {
     errors.monthlyIncome = 'Please select approximate monthly income.';
   }
@@ -72,6 +95,11 @@ export function FamilyFields({ values = {}, onChange, errors = {}, idPrefix = 'f
   const tert = values.childrenTertiary !== undefined && values.childrenTertiary !== '' ? Number(values.childrenTertiary) : 0;
   const cumulativeLevels = prim + sec + tert;
   const maxAllowed = inSchool !== null && inSchool > 0 ? inSchool : (totalChildren !== null ? totalChildren : null);
+
+  const status = values.parentStatus || '';
+  const isBoth = status === 'both' || status === 'both_alive';
+  const isOrphan = status === 'orphan' || status === 'both_deceased';
+  const isSingle = status === 'single' || status === 'single_parent' || status === 'father_deceased' || status === 'mother_deceased';
 
   const localErrors = useMemo(() => {
     return validateFamilyData(values);
@@ -234,10 +262,10 @@ export function FamilyFields({ values = {}, onChange, errors = {}, idPrefix = 'f
           </div>
         </div>
 
-        {/* Pair 3: College/TVET/University & info hint */}
+        {/* Pair 3: College/TVET/University */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: 16
         }}>
           <div className={`field ${mergedErrors.childrenTertiary ? 'field--invalid' : ''}`} style={{ margin: 0 }}>
@@ -258,20 +286,6 @@ export function FamilyFields({ values = {}, onChange, errors = {}, idPrefix = 'f
             />
             {mergedErrors.childrenTertiary ? <p className="field__error-msg">{mergedErrors.childrenTertiary}</p> : null}
           </div>
-
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '10px 14px',
-            borderRadius: 10,
-            background: 'rgba(148, 163, 184, 0.06)',
-            border: '1px solid rgba(148, 163, 184, 0.12)',
-            fontSize: 12,
-            color: 'var(--text-muted, #94A3B8)',
-            lineHeight: 1.45
-          }}>
-            Cumulative learners in primary, secondary, and college cannot exceed the total students.
-          </div>
         </div>
       </section>
 
@@ -289,7 +303,7 @@ export function FamilyFields({ values = {}, onChange, errors = {}, idPrefix = 'f
         {/* Pair 1: Parents in household & Monthly income */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: 16,
           marginBottom: 14
         }}>
@@ -306,6 +320,9 @@ export function FamilyFields({ values = {}, onChange, errors = {}, idPrefix = 'f
               className={`stitch-profile-form__input ${mergedErrors.parentStatus ? 'is-invalid' : ''}`}
             >
               <option value="">Select status...</option>
+              <option value="both">Both parents present</option>
+              <option value="single">Single parent</option>
+              <option value="orphan">Orphan</option>
               {PARENT_STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
@@ -334,37 +351,91 @@ export function FamilyFields({ values = {}, onChange, errors = {}, idPrefix = 'f
           </div>
         </div>
 
-        {/* Pair 2: Father's occupation & Mother's occupation */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 16,
-          marginBottom: 14
-        }}>
-          <div style={{ margin: 0 }}>
-            <VerifiedField
-              id={id('fatherOccupation')}
-              name="fatherOccupation"
-              label="Father's occupation"
-              required={false}
-              value={values.fatherOccupation}
-              onChange={(v) => onChange('fatherOccupation', v)}
-              placeholder="e.g. Farmer, Trader, Employed"
-            />
-          </div>
+        {/* Conditional occupations:
+            - If both parents: requires both father & mother occupations
+            - If single parent: requires 1 parent occupation
+            - If orphan / none: requires 1 guardian occupation
+        */}
+        {isBoth ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 16,
+            marginBottom: 14
+          }}>
+            <div style={{ margin: 0 }}>
+              <VerifiedField
+                id={id('fatherOccupation')}
+                name="fatherOccupation"
+                label="Father's occupation *"
+                required={true}
+                value={values.fatherOccupation}
+                error={mergedErrors.fatherOccupation}
+                onChange={(v) => onChange('fatherOccupation', v)}
+                placeholder="e.g. Farmer, Trader, Employed"
+              />
+            </div>
 
-          <div style={{ margin: 0 }}>
-            <VerifiedField
-              id={id('motherOccupation')}
-              name="motherOccupation"
-              label="Mother's occupation"
-              required={false}
-              value={values.motherOccupation}
-              onChange={(v) => onChange('motherOccupation', v)}
-              placeholder="e.g. Business, Teacher, Homemaker"
-            />
+            <div style={{ margin: 0 }}>
+              <VerifiedField
+                id={id('motherOccupation')}
+                name="motherOccupation"
+                label="Mother's occupation *"
+                required={true}
+                value={values.motherOccupation}
+                error={mergedErrors.motherOccupation}
+                onChange={(v) => onChange('motherOccupation', v)}
+                placeholder="e.g. Business, Teacher, Homemaker"
+              />
+            </div>
           </div>
-        </div>
+        ) : isOrphan ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 16,
+            marginBottom: 14
+          }}>
+            <div style={{ margin: 0 }}>
+              <VerifiedField
+                id={id('guardianOccupation')}
+                name="guardianOccupation"
+                label="Guardian's occupation *"
+                required={true}
+                value={values.guardianOccupation}
+                error={mergedErrors.guardianOccupation}
+                onChange={(v) => {
+                  onChange('guardianOccupation', v);
+                  onChange('fatherOccupation', v);
+                }}
+                placeholder="e.g. Business, Farmer, Employed"
+              />
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 16,
+            marginBottom: 14
+          }}>
+            <div style={{ margin: 0 }}>
+              <VerifiedField
+                id={id('parentOccupation')}
+                name="parentOccupation"
+                label="Parent's occupation *"
+                required={true}
+                value={values.parentOccupation || values.fatherOccupation || values.motherOccupation}
+                error={mergedErrors.parentOccupation}
+                onChange={(v) => {
+                  onChange('parentOccupation', v);
+                  onChange('fatherOccupation', v);
+                }}
+                placeholder="e.g. Farmer, Trader, Employed"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Pair 3: Disability & Other Bursary */}
         <div style={{
