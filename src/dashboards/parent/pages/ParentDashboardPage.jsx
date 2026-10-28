@@ -562,8 +562,6 @@ export function ParentDashboardPage() {
                       <th>Level</th>
                       <th>Status</th>
                       <th>Allocated</th>
-                      <th>Requested</th>
-                      <th>Fee balance</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -587,8 +585,6 @@ export function ParentDashboardPage() {
                             </span>
                           </td>
                           <td data-label="Allocated">{formatMoney(app.allocated_amount)}</td>
-                          <td data-label="Requested">{formatMoney(app.requested_amount)}</td>
-                          <td data-label="Fee balance">{formatMoney(app.fee_balance)}</td>
                         </tr>
                       );
                     })}

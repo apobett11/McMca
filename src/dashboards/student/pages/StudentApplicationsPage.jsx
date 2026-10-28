@@ -135,9 +135,6 @@ export function StudentApplicationsPage() {
                   <th>Level</th>
                   <th>Status</th>
                   <th>Allocated</th>
-                  <th>Requested</th>
-                  <th>Fee balance</th>
-                  <th>Submitted</th>
                 </tr>
               </thead>
               <tbody>
@@ -156,13 +153,6 @@ export function StudentApplicationsPage() {
                         </span>
                       </td>
                       <td data-label="Allocated">{formatMoney(app.allocated_amount ?? app.allocatedAmount)}</td>
-                      <td data-label="Requested">{formatMoney(app.requested_amount ?? app.amountRequested)}</td>
-                      <td data-label="Fee balance">{formatMoney(app.fee_balance ?? app.feeBalance)}</td>
-                      <td data-label="Submitted">
-                        {app.submitted_at || app.created_at || app.submittedDate
-                          ? new Date(app.submitted_at || app.created_at || app.submittedDate).toLocaleDateString()
-                          : '—'}
-                      </td>
                     </tr>
                   );
                 })}

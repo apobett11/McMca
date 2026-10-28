@@ -185,8 +185,6 @@ export function ParentApplicationsPage() {
                       <th>School</th>
                       <th>Status</th>
                       <th>Amount allocated</th>
-                      <th>Requested</th>
-                      <th>Fee balance</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -203,8 +201,6 @@ export function ParentApplicationsPage() {
                             </span>
                           </td>
                           <td data-label="Amount allocated">{formatMoney(app?.allocated_amount)}</td>
-                          <td data-label="Requested">{formatMoney(app?.requested_amount)}</td>
-                          <td data-label="Fee balance">{formatMoney(app?.fee_balance)}</td>
                         </tr>
                       );
                     })}
