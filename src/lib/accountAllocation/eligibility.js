@@ -52,3 +52,34 @@ export function canStudentLogin(studentClass) {
     studentClass === 'DEL'
   );
 }
+
+export function isCustodyStudent(studentClass) {
+  const c = String(studentClass || '').trim().toLowerCase();
+  return c === STUDENT_CLASS.CUSTODY || c === 'custody' || c === 'cus';
+}
+
+export function isIndependentStudent(studentClass) {
+  const c = String(studentClass || '').trim().toLowerCase();
+  return c === STUDENT_CLASS.INDEPENDENT || c === 'independent' || c === 'ind';
+}
+
+export function isDelegatedStudent(studentClass) {
+  const c = String(studentClass || '').trim().toLowerCase();
+  return c === STUDENT_CLASS.DELEGATED || c === 'delegated' || c === 'del';
+}
+
+/** Check if delegated student profile has all required details finalized. */
+export function isDelegatedSetupComplete(profile) {
+  if (!profile) return false;
+  const hasName = Boolean(profile.first_name?.trim() && profile.last_name?.trim());
+  const hasEmail = Boolean(profile.email?.trim());
+  const hasSchool = Boolean(
+    profile.school_name?.trim() ||
+    profile.institution_name?.trim() ||
+    profile.admission_number?.trim() ||
+    profile.school_level ||
+    profile.institution_level
+  );
+  const notBlocked = profile.account_status !== 'blocked';
+  return Boolean(hasName && hasEmail && hasSchool && notBlocked);
+}

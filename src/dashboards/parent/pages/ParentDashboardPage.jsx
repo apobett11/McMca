@@ -565,7 +565,7 @@ export function ParentDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {displayApps.map((app) => {
+                    {sortedApps.map((app) => {
                       const child = children.find((c) => c.id === app.student_profile_id);
                       const name = child ? joinFullName({
                         firstName: child.first_name,

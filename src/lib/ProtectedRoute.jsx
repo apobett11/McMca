@@ -29,12 +29,19 @@ export function ProtectedRoute({ children, requiredRole }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && role !== requiredRole) {
-    if (role) {
-      const target = (role === 'helpdesk' || role === 'help_desk') ? '/helpdesk/dashboard' : `/${role}/dashboard`;
-      return <Navigate to={target} replace />;
+  if (requiredRole) {
+    const isHelpDesk = (r) => r === 'helpdesk' || r === 'help_desk';
+    const matches = Array.isArray(requiredRole)
+      ? requiredRole.some((req) => req === role || (isHelpDesk(req) && isHelpDesk(role)))
+      : (requiredRole === role || (isHelpDesk(requiredRole) && isHelpDesk(role)));
+
+    if (!matches) {
+      if (role) {
+        const target = isHelpDesk(role) ? '/helpdesk/dashboard' : `/${role}/dashboard`;
+        return <Navigate to={target} replace />;
+      }
+      return <Navigate to="/login" replace />;
     }
-    return <Navigate to="/login" replace />;
   }
 
   return children;

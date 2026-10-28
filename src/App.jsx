@@ -4,18 +4,31 @@ import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { hasSupabaseConfig } from './lib/supabase.js';
 import { ProtectedRoute } from './lib/ProtectedRoute.jsx';
+import { AccountGate } from './lib/AccountGate.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
 import { RegisterPage } from './pages/RegisterPage.jsx';
 import { GuestPage } from './pages/GuestPage.jsx';
-import { AccountGate } from './lib/AccountGate.jsx';
 
-// Dashboard Routers
-import { StudentRoutes } from './dashboards/student/routes/StudentRoutes.jsx';
-import { ParentRoutes } from './dashboards/parent/routes/ParentRoutes.jsx';
-import { ChiefRoutes } from './dashboards/chief/routes/ChiefRoutes.jsx';
-import { MCARoutes } from './dashboards/mca/routes/MCARoutes.jsx';
-import { HelpDeskRoutes } from './dashboards/helpdesk/routes/HelpDeskRoutes.jsx';
+// Code-split dashboard routers for optimal load performance
+const StudentRoutes = lazy(() =>
+  import('./dashboards/student/routes/StudentRoutes.jsx').then((m) => ({ default: m.StudentRoutes }))
+);
+const ParentRoutes = lazy(() =>
+  import('./dashboards/parent/routes/ParentRoutes.jsx').then((m) => ({ default: m.ParentRoutes }))
+);
+const ChiefRoutes = lazy(() =>
+  import('./dashboards/chief/routes/ChiefRoutes.jsx').then((m) => ({ default: m.ChiefRoutes }))
+);
+const MCARoutes = lazy(() =>
+  import('./dashboards/mca/routes/MCARoutes.jsx').then((m) => ({ default: m.MCARoutes }))
+);
+const HelpDeskRoutes = lazy(() =>
+  import('./dashboards/helpdesk/routes/HelpDeskRoutes.jsx').then((m) => ({ default: m.HelpDeskRoutes }))
+);
 
+/**
+ * Global Error Boundary catching unexpected runtime issues in UI trees.
+ */
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -29,6 +42,11 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo);
   }
+
+  handleReload = () => {
+    window.sessionStorage.clear();
+    window.location.reload();
+  };
 
   render() {
     if (this.state.hasError) {
@@ -50,32 +68,66 @@ class ErrorBoundary extends React.Component {
           fontFamily: 'sans-serif',
           textAlign: 'center'
         }}>
-          <h2 style={{ fontSize: 20, marginBottom: 8 }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: isChunkError ? 'rgba(59, 130, 246, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+            color: isChunkError ? '#60A5FA' : '#F87171',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 22,
+            marginBottom: 16
+          }}>
+            {isChunkError ? '⟳' : '!'}
+          </div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
             {isChunkError ? 'New update available' : 'Something went wrong'}
           </h2>
-          <p style={{ color: '#94A3B8', maxWidth: 420, marginBottom: 20, lineHeight: 1.5 }}>
+          <p style={{ color: '#94A3B8', maxWidth: 420, marginBottom: 20, lineHeight: 1.5, fontSize: 14 }}>
             {isChunkError
               ? 'A newer version of the dashboard is available. Reload the page to load it.'
-              : 'An unexpected error occurred while loading this view.'}
+              : 'An unexpected error occurred while loading this view. Try reloading or return to login.'}
           </p>
-          <button
-            type="button"
-            onClick={() => {
-              window.sessionStorage.clear();
-              window.location.reload();
-            }}
-            style={{
-              padding: '10px 20px',
-              borderRadius: 8,
-              background: '#D97706',
-              color: '#FFFFFF',
-              border: 'none',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            Reload Page
-          </button>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button
+              type="button"
+              onClick={this.handleReload}
+              style={{
+                padding: '10px 22px',
+                borderRadius: 999,
+                background: '#D97706',
+                color: '#FFFFFF',
+                border: 'none',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: 14
+              }}
+            >
+              Reload Page
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                window.sessionStorage.clear();
+                window.location.hash = '#/login';
+                window.location.reload();
+              }}
+              style={{
+                padding: '10px 22px',
+                borderRadius: 999,
+                background: 'rgba(255, 255, 255, 0.08)',
+                color: '#E2E8F0',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontSize: 14
+              }}
+            >
+              Go to Login
+            </button>
+          </div>
         </div>
       );
     }
@@ -83,6 +135,9 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+/**
+ * Standard Loading Fallback for Suspense transitions
+ */
 function RouterLoadingFallback() {
   return (
     <div style={{
@@ -91,43 +146,83 @@ function RouterLoadingFallback() {
       alignItems: 'center',
       justifyContent: 'center',
       background: 'var(--background, #0B1120)',
-      color: 'var(--text, #E2E8F0)'
+      color: 'var(--text, #E2E8F0)',
+      fontFamily: 'var(--font-body, sans-serif)'
     }}>
-      Loading...
+      <div style={{ textAlign: 'center', padding: 24 }}>
+        <div style={{
+          width: 36,
+          height: 36,
+          border: '3px solid rgba(59, 130, 246, 0.2)',
+          borderTopColor: '#3B82F6',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+          margin: '0 auto 12px'
+        }} />
+        <p style={{ color: '#94A3B8', fontSize: 13, letterSpacing: '0.02em' }}>Loading portal…</p>
+        <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+      </div>
     </div>
   );
 }
 
-function RoleBasedRouter() {
-  const { role, loading } = useAuth();
-
-  if (loading) {
-    return <RouterLoadingFallback />;
+/**
+ * Helper to determine default home dashboard path by user role
+ */
+export function getRoleDashboardPath(role) {
+  switch (role) {
+    case 'student':
+      return '/student/dashboard';
+    case 'parent':
+      return '/parent/dashboard';
+    case 'chief':
+      return '/chief/dashboard';
+    case 'mca':
+      return '/mca/dashboard';
+    case 'helpdesk':
+    case 'help_desk':
+      return '/helpdesk/dashboard';
+    default:
+      return '/login';
   }
+}
 
-  if (!role) return <LoginPage />;
+/**
+ * Redirects authenticated users away from public pages (e.g. login, register)
+ * to their respective role dashboard.
+ */
+function PublicOnlyRoute({ children }) {
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return <RouterLoadingFallback />;
+  if (isAuthenticated && role) {
+    return <Navigate to={getRoleDashboardPath(role)} replace />;
+  }
+  return children;
+}
 
-  return (
-    <Suspense fallback={<RouterLoadingFallback />}>
-      {(() => {
-        switch (role) {
-          case 'student':
-            return <StudentRoutes />;
-          case 'parent':
-            return <ParentRoutes />;
-          case 'chief':
-            return <ChiefRoutes />;
-          case 'mca':
-            return <MCARoutes />;
-          case 'helpdesk':
-          case 'help_desk':
-            return <HelpDeskRoutes />;
-          default:
-            return <Navigate to="/login" replace />;
-        }
-      })()}
-    </Suspense>
-  );
+/**
+ * Landing page handler: redirects authenticated users to their role portal,
+ * and unauthenticated visitors to the public guest portal.
+ */
+function HomeRoute() {
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return <RouterLoadingFallback />;
+  if (isAuthenticated && role) {
+    return <Navigate to={getRoleDashboardPath(role)} replace />;
+  }
+  return <GuestPage />;
+}
+
+/**
+ * Catch-all route to handle 404s and redirect to the correct home
+ */
+function CatchAllRoute() {
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return <RouterLoadingFallback />;
+  if (isAuthenticated && role) {
+    return <Navigate to={getRoleDashboardPath(role)} replace />;
+  }
+  return <Navigate to="/" replace />;
 }
 
 function MissingSupabaseConfig() {
@@ -145,37 +240,16 @@ function MissingSupabaseConfig() {
       <div style={{ maxWidth: 480 }}>
         <h1 style={{ fontSize: 22, margin: '0 0 12px' }}>Database connection is not configured</h1>
         <p style={{ lineHeight: 1.5, color: '#94A3B8' }}>
-          This build has no browser-safe Supabase key. In Vercel → Settings → Environment Variables,
-          set the <strong>publishable / anon</strong> key (starts with <code>sb_publishable_</code> or a JWT whose role is <code>anon</code>).
-          Never put <code>sb_secret_</code> or the service role key in the frontend variables. Then Redeploy.
+          This build has no browser-safe Supabase key. In your environment settings,
+          set the publishable/anon key (starts with <code>sb_publishable_</code> or a JWT with role <code>anon</code>).
         </p>
-        <ul style={{ lineHeight: 1.7, color: '#E2E8F0' }}>
+        <ul style={{ lineHeight: 1.7, color: '#E2E8F0', paddingLeft: 20 }}>
           <li><code>VITE_SUPABASE_URL</code> — your project URL</li>
           <li><code>VITE_SUPABASE_ANON_KEY</code> — the anon / publishable key</li>
         </ul>
-        <p style={{ lineHeight: 1.5, color: '#94A3B8' }}>
-          Do not add the service role key. After saving, trigger a new deployment so Vite can bake the keys into the build.
-        </p>
       </div>
     </div>
   );
-}
-
-function HomeRoute() {
-  const { isAuthenticated, loading } = useAuth();
-  if (loading) {
-    return <RouterLoadingFallback />;
-  }
-  if (isAuthenticated) {
-    return (
-      <ProtectedRoute>
-        <AccountGate>
-          <RoleBasedRouter />
-        </AccountGate>
-      </ProtectedRoute>
-    );
-  }
-  return <GuestPage />;
 }
 
 export function App() {
@@ -187,25 +261,91 @@ export function App() {
         ) : (
           <AuthProvider>
             <HashRouter>
-              <Routes>
-                <Route path="/" element={<HomeRoute />} />
-                <Route path="/guest" element={<GuestPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/onboarding" element={<Navigate to="/" replace />} />
-                <Route path="/helpdesk/*" element={<HelpDeskRoutes />} />
-                <Route path="/mca/*" element={<MCARoutes />} />
-                <Route path="/chief/*" element={<ChiefRoutes />} />
-                <Route path="/parent/*" element={<ParentRoutes />} />
-                <Route path="/student/*" element={<StudentRoutes />} />
-                <Route path="/*" element={
-                  <ProtectedRoute>
-                    <AccountGate>
-                      <RoleBasedRouter />
-                    </AccountGate>
-                  </ProtectedRoute>
-                } />
-              </Routes>
+              <Suspense fallback={<RouterLoadingFallback />}>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<HomeRoute />} />
+                  <Route path="/guest" element={<GuestPage />} />
+                  <Route
+                    path="/login"
+                    element={
+                      <PublicOnlyRoute>
+                        <LoginPage />
+                      </PublicOnlyRoute>
+                    }
+                  />
+                  <Route
+                    path="/register"
+                    element={
+                      <PublicOnlyRoute>
+                        <RegisterPage />
+                      </PublicOnlyRoute>
+                    }
+                  />
+
+                  {/*
+                    Student portal:
+                    1. Protected: only accessible to role='student'
+                    2. AccountGate:
+                       - Independent: renders always
+                       - Delegated: renders when details are correct and set up
+                       - Custody: never renders
+                  */}
+                  <Route
+                    path="/student/*"
+                    element={
+                      <ProtectedRoute requiredRole="student">
+                        <AccountGate>
+                          <StudentRoutes />
+                        </AccountGate>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Parent portal */}
+                  <Route
+                    path="/parent/*"
+                    element={
+                      <ProtectedRoute requiredRole="parent">
+                        <ParentRoutes />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Chief portal */}
+                  <Route
+                    path="/chief/*"
+                    element={
+                      <ProtectedRoute requiredRole="chief">
+                        <ChiefRoutes />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* MCA portal */}
+                  <Route
+                    path="/mca/*"
+                    element={
+                      <ProtectedRoute requiredRole="mca">
+                        <MCARoutes />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Help Desk portal */}
+                  <Route
+                    path="/helpdesk/*"
+                    element={
+                      <ProtectedRoute requiredRole={['helpdesk', 'help_desk']}>
+                        <HelpDeskRoutes />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Catch-all fallback */}
+                  <Route path="*" element={<CatchAllRoute />} />
+                </Routes>
+              </Suspense>
             </HashRouter>
           </AuthProvider>
         )}
