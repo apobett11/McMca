@@ -442,7 +442,8 @@ export async function fetchParentChildren(parentAuthUserId) {
 }
 
 export async function createChildForParent({ parentProfile, fields, educationLevel }) {
-  const allocation = allocateStudentClassFromEducation(educationLevel);
+  const level = educationLevel || fields?.schoolLevel || fields?.educationLevel || 'secondary';
+  const allocation = allocateStudentClassFromEducation(level);
   if (!allocation.ok) throw new Error(allocation.reason);
   const permissions = planLinkPermissions(allocation.studentClass);
 
@@ -459,7 +460,7 @@ export async function createChildForParent({ parentProfile, fields, educationLev
     gender: fields.gender,
     date_of_birth: fields.dateOfBirth,
     birth_certificate_number: fields.birthCertificateNumber?.trim() || null,
-    school_level: educationLevel,
+    school_level: level,
     account_status: ACCOUNT_STATUS.ACTIVE,
     is_active: true,
     national_id_verified: false
@@ -528,11 +529,12 @@ async function markStudentSteps(authUserId, studentId, entries) {
 
 /** Copy the parent's shared details onto a new child, then submit the first cycle application. */
 export async function registerChildFromParent({ parentProfile, authUserId, personal, institution }) {
+  const level = institution?.schoolLevel || institution?.educationLevel || personal?.schoolLevel || 'secondary';
   const household = parentProfile?.wizard_completed?.household || {};
   const student = await createChildForParent({
     parentProfile,
     fields: personal,
-    educationLevel: institution.schoolLevel
+    educationLevel: level
   });
   const bank = {
     bankName: institution.bankName || '',
@@ -541,7 +543,7 @@ export async function registerChildFromParent({ parentProfile, authUserId, perso
   };
   const updated = await updateChildProfile(student.id, {
     school_name: String(institution.schoolName || '').trim(),
-    school_level: institution.schoolLevel,
+    school_level: level,
     admission_number: String(institution.admissionNumber || '').trim()
   });
   if (household && typeof household === 'object') {
@@ -596,6 +598,7 @@ export async function registerChildFromParent({ parentProfile, authUserId, perso
 }
 
 export async function updateChildFormDetails({ studentId, authUserId, personal, institution }) {
+  const level = institution?.schoolLevel || institution?.educationLevel || personal?.schoolLevel || 'secondary';
   const bank = {
     bankName: institution.bankName || '',
     bankBranch: institution.bankBranch || '',
@@ -609,7 +612,7 @@ export async function updateChildFormDetails({ studentId, authUserId, personal, 
     date_of_birth: personal.dateOfBirth,
     birth_certificate_number: personal.birthCertificateNumber?.trim() || null,
     school_name: String(institution.schoolName || '').trim(),
-    school_level: institution.schoolLevel,
+    school_level: level,
     admission_number: String(institution.admissionNumber || '').trim()
   });
   await mergeWizardCompleted('student_profiles', studentId, { institution: bank });

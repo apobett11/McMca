@@ -169,16 +169,13 @@ export function useWizardSession({
       await clearWizardFiles(cacheOwnerKey, flowId, fileFields);
 
       const nextPos = resolveWizardPosition({ steps, completedKeys: nextCompleted });
+      const nextValues = { ...values, ...(payload || {}) };
+      setValues(nextValues);
+
       if (nextPos.complete) {
         clearWizardDraft(cacheOwnerKey, flowId);
       } else {
-        const upcoming = steps[nextPos.index];
-        const keep = new Set(upcoming?.fields || []);
-        const slim = {};
-        Object.entries(values).forEach(([key, value]) => {
-          if (keep.has(key)) slim[key] = value;
-        });
-        persistDraft(slim, nextPos.index);
+        persistDraft(nextValues, nextPos.index);
         setStepIndex(nextPos.index);
       }
       return nextPos;

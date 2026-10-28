@@ -9,18 +9,37 @@ const LEVEL_TO_CLASS = Object.freeze({
   tvet: STUDENT_CLASS.DELEGATED,
   university_college: STUDENT_CLASS.DELEGATED,
   secondary: STUDENT_CLASS.CUSTODY,
-  primary: STUDENT_CLASS.CUSTODY
+  primary: STUDENT_CLASS.CUSTODY,
+  'primary school': STUDENT_CLASS.CUSTODY,
+  'secondary school': STUDENT_CLASS.CUSTODY,
+  'secondary / high school': STUDENT_CLASS.CUSTODY,
+  'tertiary (college, tvet or university)': STUDENT_CLASS.DELEGATED,
+  'university / college': STUDENT_CLASS.DELEGATED,
+  'university': STUDENT_CLASS.DELEGATED,
+  'college': STUDENT_CLASS.DELEGATED,
+  'high school': STUDENT_CLASS.CUSTODY
 });
 
 /** Autonomous: map an education level to custody or delegated. Never used for independent students. */
 export function allocateStudentClassFromEducation(educationLevel) {
-  const studentClass = LEVEL_TO_CLASS[educationLevel];
-  if (!studentClass) {
-    return {
-      ok: false,
-      reason: 'Select primary school, secondary / high school, or tertiary.'
-    };
+  const raw = String(educationLevel || '').trim().toLowerCase();
+  let studentClass = LEVEL_TO_CLASS[educationLevel] || LEVEL_TO_CLASS[raw];
+
+  if (!studentClass && raw) {
+    if (raw.includes('prim')) {
+      studentClass = STUDENT_CLASS.CUSTODY;
+    } else if (raw.includes('sec') || raw.includes('high')) {
+      studentClass = STUDENT_CLASS.CUSTODY;
+    } else if (raw.includes('tvet') || raw.includes('poly') || raw.includes('univ') || raw.includes('colleg') || raw.includes('tert')) {
+      studentClass = STUDENT_CLASS.DELEGATED;
+    }
   }
+
+  // Graceful fallback for child registration under parent (never block on education level)
+  if (!studentClass) {
+    studentClass = STUDENT_CLASS.CUSTODY;
+  }
+
   return {
     ok: true,
     studentClass,

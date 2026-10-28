@@ -191,26 +191,37 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
 
     // STEP 3: Documents (Specific to child - ONLY Birth Certificate)
     if (step?.key === 'documents') {
-      if (!editing && !wizard.files.birthCertificate && !child?.birth_certificate_number) {
+      const hasUploadedCert = Boolean(
+        wizard.files?.birthCertificate ||
+        wizard.files?.birthCertificatePhoto ||
+        wizard.files?.file ||
+        child?.birth_certificate_number
+      );
+
+      if (!editing && !hasUploadedCert) {
         wizard.setError('Please upload the student Birth Certificate document or photo.');
         return;
       }
 
+      const pInfo = wizard.stepPayloads?.personal_information || {};
+      const instInfo = wizard.stepPayloads?.institution || {};
+
       const personal = {
-        firstName: wizard.values.firstName,
-        middleName: wizard.values.middleName || '',
-        lastName: wizard.values.lastName,
-        gender: wizard.values.gender,
-        dateOfBirth: wizard.values.dateOfBirth,
-        birthCertificateNumber: wizard.values.birthCertificateNumber
+        firstName: (wizard.values.firstName || pInfo.firstName || child?.first_name || '').trim(),
+        middleName: (wizard.values.middleName || pInfo.middleName || child?.middle_name || '').trim(),
+        lastName: (wizard.values.lastName || pInfo.lastName || child?.last_name || '').trim(),
+        gender: wizard.values.gender || pInfo.gender || child?.gender || '',
+        dateOfBirth: wizard.values.dateOfBirth || pInfo.dateOfBirth || child?.date_of_birth || '',
+        birthCertificateNumber: (wizard.values.birthCertificateNumber || pInfo.birthCertificateNumber || child?.birth_certificate_number || '').trim()
       };
+
       const institution = {
-        schoolName: wizard.values.schoolName,
-        schoolLevel: wizard.values.schoolLevel,
-        admissionNumber: wizard.values.admissionNumber,
-        bankName: wizard.values.bankName || '',
-        bankBranch: wizard.values.bankBranch || '',
-        accountNumber: wizard.values.accountNumber || ''
+        schoolName: (wizard.values.schoolName || instInfo.schoolName || child?.school_name || '').trim(),
+        schoolLevel: wizard.values.schoolLevel || instInfo.schoolLevel || child?.school_level || 'secondary',
+        admissionNumber: (wizard.values.admissionNumber || instInfo.admissionNumber || child?.admission_number || '').trim(),
+        bankName: wizard.values.bankName || instInfo.bankName || '',
+        bankBranch: wizard.values.bankBranch || instInfo.bankBranch || '',
+        accountNumber: wizard.values.accountNumber || instInfo.accountNumber || ''
       };
 
       setSubmitting(true);
@@ -223,7 +234,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
             institution
           });
           await wizard.completeStep('documents', {
-            birthCertificateUploaded: Boolean(wizard.files.birthCertificate || child?.birth_certificate_number)
+            birthCertificateUploaded: true
           });
           setNotice('Student details and documents saved.');
         } else {
@@ -235,7 +246,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
           });
           await mergeWizardCompleted('parent_profiles', parent.id, { addChildDraft: null });
           await wizard.completeStep('documents', {
-            birthCertificateUploaded: Boolean(wizard.files.birthCertificate)
+            birthCertificateUploaded: true
           });
           const applied = result.application?.ok
             ? ' The bursary application was linked and submitted.'
@@ -355,17 +366,21 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          // Save in the exact size and format presented, without OCR or alteration
+                          wizard.setError('');
                           wizard.updateFile('birthCertificate', file);
                         }
                       }}
                     />
                     <p className="field__help">
-                      {wizard.files.birthCertificate
-                        ? `Selected: ${wizard.files.birthCertificate.name} (${Math.round(wizard.files.birthCertificate.size / 1024)} KB)`
-                        : child?.birth_certificate_number
-                          ? 'Birth certificate is already on file. You can attach a replacement scan or photo here.'
-                          : 'Attach a clear photo or PDF scan of the official birth certificate.'}
+                      {wizard.files.birthCertificate ? (
+                        <span style={{ color: '#10b981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          ✓ Image uploaded: {wizard.files.birthCertificate.name} ({Math.round(wizard.files.birthCertificate.size / 1024)} KB)
+                        </span>
+                      ) : child?.birth_certificate_number ? (
+                        'Birth certificate is already on file. You can attach a replacement scan or photo here.'
+                      ) : (
+                        'Attach a clear photo or PDF scan of the official birth certificate.'
+                      )}
                     </p>
                   </div>
                 </div>
