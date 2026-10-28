@@ -122,11 +122,45 @@ export function ParentApplicationsPage() {
           <div className="skeleton-wrap">
             <div className="skeleton skeleton--hero" />
           </div>
+        ) : children.length === 0 ? (
+          <div className="notice" style={{ padding: '32px 20px', textAlign: 'center' }}>
+            <div style={{
+              width: 52,
+              height: 52,
+              borderRadius: '50%',
+              background: 'rgba(239, 68, 68, 0.12)',
+              color: '#EF4444',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 14
+            }}>
+              <Icon name="plus" size={26} />
+            </div>
+            <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
+              No students or applications yet
+            </h3>
+            <p style={{ margin: '0 auto 18px', color: 'var(--text-muted, #94A3B8)', fontSize: 14, maxWidth: 460, lineHeight: 1.55 }}>
+              Your household registration is ready. Add your student child to submit and track their bursary applications.
+            </p>
+            <div className="btn-row" style={{ justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={handleAddStudentClick}
+                style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}
+                disabled={registrationIncomplete || hasIncompleteChild}
+              >
+                <Icon name="plus" size={18} />
+                Add a student
+              </button>
+            </div>
+          </div>
         ) : groups.length === 0 ? (
-          <div className="notice">
+          <div className="notice" style={{ padding: '24px 20px', textAlign: 'center' }}>
             <strong>No applications yet</strong>
-            <p>Add a student from here or Home. Each student appears here under their bursary cycle.</p>
-            <div className="btn-row" style={{ marginTop: 12 }}>
+            <p>Your linked student is on file. Bursary applications for open cycles will appear here.</p>
+            <div className="btn-row" style={{ marginTop: 12, justifyContent: 'center' }}>
               <button
                 type="button"
                 className="btn btn--primary"
@@ -134,11 +168,9 @@ export function ParentApplicationsPage() {
                 style={{ borderRadius: 999, width: 'auto' }}
                 disabled={registrationIncomplete || hasIncompleteChild}
               >
-                Add a student
+                <Icon name="plus" size={18} />
+                Add another student
               </button>
-              <Link className="btn btn--secondary" to="/parent/documents" style={{ borderRadius: 999, width: 'auto' }}>
-                Open documents
-              </Link>
             </div>
           </div>
         ) : (

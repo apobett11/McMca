@@ -32,6 +32,7 @@ import { WizardShell } from './WizardShell.jsx';
 import { PersonalInfoFields } from './PersonalInfoFields.jsx';
 import { ParentInfoFields } from './ParentInfoFields.jsx';
 import { InstitutionFields } from './InstitutionFields.jsx';
+import { AccountConfirmModal } from './AccountConfirmModal.jsx';
 import { IdentityScanStep } from './IdentityScanStep.jsx';
 import { HomeFields } from './HomeFields.jsx';
 import { FamilyFields, validateFamilyData } from './FamilyFields.jsx';
@@ -129,6 +130,8 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
   const [stepErrors, setStepErrors] = useState({});
   const [bootError, setBootError] = useState('');
   const [done, setDone] = useState(false);
+  const [showAccountConfirm, setShowAccountConfirm] = useState(false);
+  const [accountConfirmed, setAccountConfirmed] = useState(false);
 
   const flowId = role === ACCOUNT_ROLE.PARENT
     ? WIZARD_FLOW.DASHBOARD_PARENT
@@ -153,6 +156,9 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
 
   const handleFieldChange = (field, value) => {
     wizard.updateField(field, value);
+    if (field === 'schoolName' || field === 'schoolLevel' || field === 'accountNumber' || field === 'bankName' || field === 'bankBranch') {
+      setAccountConfirmed(false);
+    }
     if (stepErrors[field]) {
       setStepErrors((prev) => {
         const next = { ...prev };
@@ -161,6 +167,25 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
       });
     }
   };
+
+  function handleChangeAccountInfo() {
+    setShowAccountConfirm(false);
+    setAccountConfirmed(false);
+    wizard.updateField('bankBranch', '');
+    wizard.updateField('bankName', '');
+    wizard.updateField('accountNumber', '');
+    setTimeout(() => {
+      const el = document.getElementById('sch-bankBranch') || document.getElementById('sch-bankName');
+      el?.focus();
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  }
+
+  function handleProceedAccountInfo() {
+    setShowAccountConfirm(false);
+    setAccountConfirmed(true);
+    handleNext(true);
+  }
 
   useEffect(() => {
     let active = true;
@@ -222,7 +247,7 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
     return docs;
   }
 
-  async function handleNext() {
+  async function handleNext(bypassConfirm = false) {
     if (!profile || !user?.id) return;
     const key = wizard.currentStep?.key;
     setSubmitting(true);
@@ -340,11 +365,11 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
 
       if (key === 'institution') {
         const check = validateForm(wizard.values, {
-          schoolName: { label: 'School or institution' },
-          schoolLevel: { label: 'School level' },
-          admissionNumber: { label: 'Admission number' },
-          bankName: { label: 'Bank name' },
+          schoolName: { label: 'School / Institution Name' },
+          schoolLevel: { label: 'Institution Level' },
+          admissionNumber: { label: 'Admission number or registration number' },
           bankBranch: { label: 'Bank branch' },
+          bankName: { label: 'Bank name' },
           accountNumber: { label: 'Account number' }
         });
         if (!check.ok) {
@@ -357,6 +382,13 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           }, 50);
           return;
         }
+
+        if (!bypassConfirm && !accountConfirmed) {
+          setShowAccountConfirm(true);
+          setSubmitting(false);
+          return;
+        }
+
         setStepErrors({});
         wizard.setError('');
 
@@ -701,6 +733,17 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           ) : null}
         </WizardShell>
       )}
+
+      {/* Account Confirmation Popup Modal */}
+      <AccountConfirmModal
+        isOpen={showAccountConfirm}
+        schoolName={wizard.values.schoolName}
+        bankName={wizard.values.bankName}
+        accountNumber={wizard.values.accountNumber}
+        bankBranch={wizard.values.bankBranch}
+        onChangeInformation={handleChangeAccountInfo}
+        onProceed={handleProceedAccountInfo}
+      />
     </>
   );
 

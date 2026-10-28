@@ -42,13 +42,6 @@ function levelLabel(value) {
   return EDUCATION_LEVEL_LABEL[value] || value;
 }
 
-const QUICK_LINKS = [
-  { to: '/parent/applications', icon: 'applications', title: 'Applications', desc: 'Bursary records', tone: 'primary' },
-  { to: '/parent/documents', icon: 'documents', title: 'Documents', desc: 'Shared details and each child', tone: 'secondary' },
-  { to: '/parent/messages', icon: 'support', title: 'Contact Office', desc: 'MCA & Chief messages', tone: 'tertiary' },
-  { to: '/parent/children/new', icon: 'plus', title: 'Add a child', desc: 'Register a student', tone: 'error' }
-];
-
 export function ParentDashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -131,6 +124,74 @@ export function ParentDashboardPage() {
     }
   }, [loading, data, complete]);
 
+  // Reactive household metrics & expected children in school
+  const sessionHousehold = (() => {
+    try {
+      return JSON.parse(sessionStorage.getItem('wizard_data_dashboard_parent') || '{}');
+    } catch {
+      return {};
+    }
+  })();
+  const household = { ...(data?.household || {}), ...sessionHousehold };
+
+  const rawInSchool = household.childrenInSchool !== undefined && household.childrenInSchool !== '' ? Number(household.childrenInSchool) : null;
+  const rawInFamily = household.childrenInFamily !== undefined && household.childrenInFamily !== '' ? Number(household.childrenInFamily) : null;
+  const targetInSchool = (rawInSchool !== null && rawInSchool > 0) ? rawInSchool : (rawInFamily !== null && rawInFamily > 0 ? rawInFamily : 1);
+  const currentLinkedChildren = children.length;
+  const allChildrenAdded = targetInSchool > 0 ? (currentLinkedChildren >= targetInSchool) : (currentLinkedChildren > 0);
+
+  const addChildCard = {
+    id: 'add-child',
+    title: 'Add a child',
+    desc: 'Register a student',
+    analytics: `Current children: ${currentLinkedChildren} linked${targetInSchool > 0 ? ` (${currentLinkedChildren}/${targetInSchool} in school)` : ''}`,
+    cta: '+ Add Child',
+    tone: allChildrenAdded ? 'primary' : 'error',
+    isRed: !allChildrenAdded,
+    badge: allChildrenAdded ? 'Completed' : `Action Needed (${currentLinkedChildren}/${targetInSchool})`,
+    onClick: handleAddChildClick
+  };
+
+  const applicationsCard = {
+    id: 'applications',
+    title: 'Applications',
+    desc: 'Bursary records',
+    analytics: `${applications.length} submitted record${applications.length === 1 ? '' : 's'}`,
+    cta: 'View Records →',
+    tone: 'primary',
+    to: '/parent/applications',
+    badge: `${applications.length} Active`
+  };
+
+  const documentsCard = {
+    id: 'documents',
+    title: 'Documents',
+    desc: 'Shared details and each child',
+    analytics: `Household & ${currentLinkedChildren} student record${currentLinkedChildren === 1 ? '' : 's'}`,
+    cta: 'Open Documents →',
+    tone: 'secondary',
+    to: '/parent/documents',
+    badge: 'On file'
+  };
+
+  const messagesCard = {
+    id: 'messages',
+    title: 'Contact Office',
+    desc: 'MCA & Chief messages',
+    analytics: 'Direct administrative helpdesk',
+    cta: 'Send Message →',
+    tone: 'tertiary',
+    to: '/parent/messages',
+    badge: 'Support'
+  };
+
+  // Smart ordering:
+  // If not all children added: Add a child is FIRST (and RED). Messages is ALWAYS LAST.
+  // If all children added: Applications is FIRST, Documents, Add child, and Messages ALWAYS LAST.
+  const smartQuickCards = allChildrenAdded
+    ? [applicationsCard, documentsCard, addChildCard, messagesCard]
+    : [addChildCard, applicationsCard, documentsCard, messagesCard];
+
   return (
     <ParentLayout pageTitle="Home" parentName={parentName} layout="dashboard">
       {wizardOpen && (
@@ -181,31 +242,84 @@ export function ParentDashboardPage() {
             <h2 className="stitch-section-title">Quick actions</h2>
           </div>
           <div className="dash-suite__grid">
-            {QUICK_LINKS.map((item) => (
-              item.to === '/parent/children/new' ? (
-                <button
-                  key={item.to}
-                  type="button"
+            {smartQuickCards.map((item) => {
+              const cardContent = (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+                    <div className={`dash-suite__icon dash-suite__icon--${item.tone}`} style={{ margin: 0 }}>
+                      <Icon name={item.id === 'add-child' ? 'plus' : item.id === 'applications' ? 'applications' : item.id === 'documents' ? 'documents' : 'support'} size={22} />
+                    </div>
+                    {item.badge && (
+                      <span className={`stitch-status-badge ${item.isRed ? 'stitch-status-badge--declined' : 'stitch-status-badge--admitted'}`} style={{ fontSize: 11 }}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                  <p className="dash-suite__card-title" style={{ fontSize: 15, fontWeight: 700 }}>{item.title}</p>
+                  <p className="dash-suite__card-desc" style={{ marginBottom: 12 }}>{item.desc}</p>
+                  <div style={{
+                    padding: '8px 10px',
+                    borderRadius: 10,
+                    background: item.isRed ? 'rgba(239, 68, 68, 0.08)' : 'rgba(255, 255, 255, 0.04)',
+                    border: `1px solid ${item.isRed ? 'rgba(239, 68, 68, 0.25)' : 'rgba(148, 163, 184, 0.12)'}`,
+                    fontSize: 12,
+                    color: item.isRed ? '#F87171' : 'var(--text-muted, #94A3B8)',
+                    marginBottom: 12
+                  }}>
+                    {item.analytics}
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: item.isRed ? '#EF4444' : 'var(--primary, #3B82F6)'
+                  }}>
+                    <span>{item.cta}</span>
+                  </div>
+                </>
+              );
+
+              if (item.onClick) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="dash-suite__card luxury-gradient-card"
+                    onClick={item.onClick}
+                    style={{
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      background: item.isRed ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%)' : undefined,
+                      border: item.isRed ? '1.5px solid rgba(239, 68, 68, 0.45)' : undefined,
+                      boxShadow: item.isRed ? '0 4px 20px rgba(239, 68, 68, 0.18)' : undefined,
+                      font: 'inherit',
+                      width: '100%',
+                      padding: 20
+                    }}
+                  >
+                    {cardContent}
+                  </button>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.id}
+                  to={item.to}
                   className="dash-suite__card luxury-gradient-card"
-                  onClick={handleAddChildClick}
-                  style={{ textAlign: 'left', cursor: 'pointer', background: 'none', border: 'none', font: 'inherit' }}
+                  style={{
+                    textDecoration: 'none',
+                    padding: 20,
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
                 >
-                  <div className={`dash-suite__icon dash-suite__icon--${item.tone}`}>
-                    <Icon name={item.icon} size={22} />
-                  </div>
-                  <p className="dash-suite__card-title">{item.title}</p>
-                  <p className="dash-suite__card-desc">{item.desc}</p>
-                </button>
-              ) : (
-                <Link key={item.to} to={item.to} className="dash-suite__card luxury-gradient-card">
-                  <div className={`dash-suite__icon dash-suite__icon--${item.tone}`}>
-                    <Icon name={item.icon} size={22} />
-                  </div>
-                  <p className="dash-suite__card-title">{item.title}</p>
-                  <p className="dash-suite__card-desc">{item.desc}</p>
+                  {cardContent}
                 </Link>
-              )
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -368,16 +482,33 @@ export function ParentDashboardPage() {
               <div className="skeleton skeleton--hero" />
             </div>
           ) : children.length === 0 ? (
-            <div className="dash-apps-empty">
-              <p className="dash-apps-empty__msg">
-                You have no students linked yet. Complete your household details above, then add a child.
+            <div className="dash-apps-empty" style={{ padding: '36px 20px', textAlign: 'center' }}>
+              <div style={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                background: 'rgba(239, 68, 68, 0.12)',
+                color: '#EF4444',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 14
+              }}>
+                <Icon name="plus" size={26} />
+              </div>
+              <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
+                No students linked yet
+              </h3>
+              <p className="dash-apps-empty__msg" style={{ maxWidth: 440, margin: '0 auto 18px', color: 'var(--text-muted, #94A3B8)' }}>
+                You have no students linked yet. Add your student children to submit and track their bursary applications.
               </p>
               <button
                 type="button"
                 className="btn btn--primary"
                 onClick={handleAddChildClick}
-                style={{ borderRadius: 999, display: 'inline-flex', width: 'auto' }}
+                style={{ borderRadius: 999, display: 'inline-flex', width: 'auto', padding: '10px 24px' }}
               >
+                <Icon name="plus" size={18} />
                 Add a child
               </button>
             </div>

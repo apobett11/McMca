@@ -22,13 +22,17 @@ export const ACCOUNT_STATUS = Object.freeze({
 export const EDUCATION_LEVEL = Object.freeze({
   PRIMARY: 'primary',
   SECONDARY: 'secondary',
-  TERTIARY: 'tertiary'
+  TERTIARY: 'tertiary',
+  TVET: 'tvet',
+  UNIVERSITY_COLLEGE: 'university_college'
 });
 
 export const EDUCATION_LEVEL_LABEL = Object.freeze({
   [EDUCATION_LEVEL.PRIMARY]: 'Primary school',
   [EDUCATION_LEVEL.SECONDARY]: 'Secondary / high school',
-  [EDUCATION_LEVEL.TERTIARY]: 'Tertiary (college, TVET or university)'
+  [EDUCATION_LEVEL.TERTIARY]: 'Tertiary (college, TVET or university)',
+  [EDUCATION_LEVEL.TVET]: 'TVET',
+  [EDUCATION_LEVEL.UNIVERSITY_COLLEGE]: 'University / College'
 });
 
 export const ACCOUNT_ROLE = Object.freeze({

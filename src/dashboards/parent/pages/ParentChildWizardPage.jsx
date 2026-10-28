@@ -132,7 +132,7 @@ export function ParentChildWizardPage() {
             <>
               <VerifiedField name="schoolName" label="School / institution" value={wizard.values.schoolName || child.school_name || ''} onChange={(v) => wizard.updateField('schoolName', v)} />
               <VerifiedField name="grade" label="Grade / form / year" value={wizard.values.grade || child.institution_code || ''} onChange={(v) => wizard.updateField('grade', v)} />
-              <VerifiedField name="admissionNumber" label="Admission number" value={wizard.values.admissionNumber || child.admission_number || ''} onChange={(v) => wizard.updateField('admissionNumber', v)} />
+              <VerifiedField name="admissionNumber" label="Admission number or registration number" value={wizard.values.admissionNumber || child.admission_number || ''} onChange={(v) => wizard.updateField('admissionNumber', v)} />
             </>
           ) : null}
           {wizard.currentStep?.key === 'contacts' ? (

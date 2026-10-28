@@ -1,19 +1,24 @@
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useWizardSession } from '../../hooks/useWizardSession';
-import { WIZARD_FLOW, validateForm, joinFullName } from '../../lib/accountAllocation';
+import { WIZARD_FLOW, validateForm, joinFullName, calculateAge } from '../../lib/accountAllocation';
 import { getWizardSteps } from '../../lib/accountAllocation/wizardFlows';
 import { mergeWizardCompleted, registerChildFromParent, updateChildFormDetails } from '../../lib/accountQueries';
 import { WizardShell } from './WizardShell.jsx';
 import { PersonalInfoFields } from './PersonalInfoFields.jsx';
 import { InstitutionFields } from './InstitutionFields.jsx';
 import { VerifiedField } from './VerifiedField.jsx';
+import { AccountConfirmModal } from './AccountConfirmModal.jsx';
 import { Icon } from '../Icon.jsx';
 
 export function AddChildModal({ parent, child, existingChildren = [], onClose, onSaved }) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState('');
+  const [showAgeModal, setShowAgeModal] = useState(false);
+  const [showAccountConfirm, setShowAccountConfirm] = useState(false);
+  const [accountConfirmed, setAccountConfirmed] = useState(false);
+
   const steps = useMemo(() => getWizardSteps(WIZARD_FLOW.PARENT_ADD_CHILD), []);
   const editing = Boolean(child?.id);
 
@@ -57,6 +62,50 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
     seedValues
   });
 
+  const handleFieldChange = (name, value) => {
+    if (name === 'dateOfBirth') {
+      const age = calculateAge(value);
+      if (age !== null && age >= 18) {
+        setShowAgeModal(true);
+        wizard.updateField('dateOfBirth', '');
+        return;
+      }
+    }
+    // If institution details changed, reset confirmation requirement
+    if (name === 'schoolName' || name === 'schoolLevel' || name === 'accountNumber' || name === 'bankName') {
+      setAccountConfirmed(false);
+    }
+    wizard.updateField(name, value);
+  };
+
+  function handleChangeAccountInfo() {
+    setShowAccountConfirm(false);
+    setAccountConfirmed(false);
+    wizard.updateField('bankBranch', '');
+    wizard.updateField('bankName', '');
+    wizard.updateField('accountNumber', '');
+    setTimeout(() => {
+      const el = document.getElementById('child-inst-bankBranch') || document.getElementById('child-inst-bankName');
+      el?.focus();
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  }
+
+  async function handleProceedAccountInfo() {
+    setShowAccountConfirm(false);
+    setAccountConfirmed(true);
+    const institution = {
+      schoolName: wizard.values.schoolName,
+      schoolLevel: wizard.values.schoolLevel,
+      admissionNumber: wizard.values.admissionNumber,
+      bankName: wizard.values.bankName || '',
+      bankBranch: wizard.values.bankBranch || '',
+      accountNumber: wizard.values.accountNumber || ''
+    };
+    await wizard.completeStep('institution', institution);
+    wizard.setStepIndex(2);
+  }
+
   async function handleNext() {
     if (!parent || !user?.id) return;
     const step = wizard.currentStep;
@@ -68,11 +117,20 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
         wizard.setError('You must finish adding the current child before adding another student.');
         return;
       }
+
+      // Check child age constraint: must be below 18
+      const age = calculateAge(wizard.values.dateOfBirth);
+      if (age !== null && age >= 18) {
+        setShowAgeModal(true);
+        wizard.setError('You cannot add a child above the age of 18.');
+        return;
+      }
+
       const check = validateForm(wizard.values, {
         firstName: {},
         lastName: {},
         gender: { label: 'Gender' },
-        dateOfBirth: {},
+        dateOfBirth: { isChild: true },
         birthCertificateNumber: { label: 'Birth Certificate Number' }
       });
       if (!check.ok) {
@@ -100,14 +158,24 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
     // STEP 2: Institution details (Specific to child)
     if (step?.key === 'institution') {
       const check = validateForm(wizard.values, {
-        schoolName: { label: 'School or institution' },
-        schoolLevel: { label: 'School level' },
-        admissionNumber: { label: 'Admission number' }
+        schoolName: { label: 'School / Institution Name' },
+        schoolLevel: { label: 'Institution Level' },
+        admissionNumber: { label: 'Admission number or registration number' },
+        bankBranch: { label: 'Bank branch' },
+        bankName: { label: 'Bank name' },
+        accountNumber: { label: 'Account number' }
       });
       if (!check.ok) {
         wizard.setError(Object.values(check.errors)[0]);
         return;
       }
+
+      // Confirmation popup protocol before proceeding
+      if (!accountConfirmed) {
+        setShowAccountConfirm(true);
+        return;
+      }
+
       const institution = {
         schoolName: wizard.values.schoolName,
         schoolLevel: wizard.values.schoolLevel,
@@ -121,7 +189,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
       return;
     }
 
-    // STEP 3: Documents (Specific to child)
+    // STEP 3: Documents (Specific to child - ONLY Birth Certificate)
     if (step?.key === 'documents') {
       if (!editing && !wizard.files.birthCertificate && !child?.birth_certificate_number) {
         wizard.setError('Please upload the student Birth Certificate document or photo.');
@@ -155,8 +223,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
             institution
           });
           await wizard.completeStep('documents', {
-            birthCertificateUploaded: Boolean(wizard.files.birthCertificate || child?.birth_certificate_number),
-            feeStructureUploaded: Boolean(wizard.files.feeStructure)
+            birthCertificateUploaded: Boolean(wizard.files.birthCertificate || child?.birth_certificate_number)
           });
           setNotice('Student details and documents saved.');
         } else {
@@ -168,8 +235,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
           });
           await mergeWizardCompleted('parent_profiles', parent.id, { addChildDraft: null });
           await wizard.completeStep('documents', {
-            birthCertificateUploaded: Boolean(wizard.files.birthCertificate),
-            feeStructureUploaded: Boolean(wizard.files.feeStructure)
+            birthCertificateUploaded: Boolean(wizard.files.birthCertificate)
           });
           const applied = result.application?.ok
             ? ' The bursary application was linked and submitted.'
@@ -198,7 +264,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
           <button type="button" className="modal-panel__close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className="modal-panel__body">
-          {/* General Information pre-put summary banner */}
+          {/* General Information pre-fill summary banner */}
           <div style={{
             margin: '0 0 16px',
             padding: '12px 16px',
@@ -249,7 +315,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
                 <>
                   <PersonalInfoFields
                     values={wizard.values}
-                    onChange={wizard.updateField}
+                    onChange={handleFieldChange}
                     includeContact={false}
                     idPrefix="child-personal-"
                   />
@@ -259,7 +325,7 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
                     label="Birth Certificate Number *"
                     value={wizard.values.birthCertificateNumber}
                     error={wizard.errors?.birthCertificateNumber}
-                    onChange={(v) => wizard.updateField('birthCertificateNumber', v)}
+                    onChange={(v) => handleFieldChange('birthCertificateNumber', v)}
                     placeholder="e.g. BC12345678"
                     required
                   />
@@ -270,17 +336,17 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
               {wizard.currentStep?.key === 'institution' ? (
                 <InstitutionFields
                   values={wizard.values}
-                  onChange={wizard.updateField}
+                  onChange={handleFieldChange}
                   idPrefix="child-inst-"
                 />
               ) : null}
 
-              {/* STEP 3: Documents */}
+              {/* STEP 3: Documents (ONLY Birth Certificate) */}
               {wizard.currentStep?.key === 'documents' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div className="field">
-                    <label htmlFor="child-birth-cert-upload">
-                      Student Birth Certificate or Student ID *
+                    <label htmlFor="child-birth-cert-upload" style={{ fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                      Student Birth Certificate *
                     </label>
                     <input
                       id="child-birth-cert-upload"
@@ -289,38 +355,17 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          // Save in the exact size and format presented, without OCR or alteration
                           wizard.updateFile('birthCertificate', file);
                         }
                       }}
                     />
                     <p className="field__help">
                       {wizard.files.birthCertificate
-                        ? `Selected: ${wizard.files.birthCertificate.name}`
+                        ? `Selected: ${wizard.files.birthCertificate.name} (${Math.round(wizard.files.birthCertificate.size / 1024)} KB)`
                         : child?.birth_certificate_number
-                          ? 'Birth certificate is already on file. You can attach a replacement scan here.'
+                          ? 'Birth certificate is already on file. You can attach a replacement scan or photo here.'
                           : 'Attach a clear photo or PDF scan of the official birth certificate.'}
-                    </p>
-                  </div>
-
-                  <div className="field">
-                    <label htmlFor="child-fee-structure-upload">
-                      Fee Structure or Admission Letter (Optional / Recommended)
-                    </label>
-                    <input
-                      id="child-fee-structure-upload"
-                      type="file"
-                      accept="image/*,application/pdf"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          wizard.updateFile('feeStructure', file);
-                        }
-                      }}
-                    />
-                    <p className="field__help">
-                      {wizard.files.feeStructure
-                        ? `Selected: ${wizard.files.feeStructure.name}`
-                        : 'Upload latest fee statement or official school admission letter.'}
                     </p>
                   </div>
                 </div>
@@ -329,6 +374,78 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
           )}
         </div>
       </div>
+
+      {/* Child Age Restriction Popup Modal (Under 18 requirement) */}
+      {showAgeModal && (
+        <div
+          className="modal-root modal-root--center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="age-restriction-title"
+          style={{ zIndex: 10002 }}
+        >
+          <div className="modal-root__backdrop" onClick={() => setShowAgeModal(false)} />
+          <div
+            className="modal-panel"
+            style={{
+              maxWidth: 440,
+              padding: '24px',
+              textAlign: 'center',
+              borderRadius: 16,
+              background: 'var(--card-bg, #1e293b)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              position: 'relative',
+              zIndex: 10003
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                background: 'rgba(239, 68, 68, 0.15)',
+                color: '#ef4444',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+                fontSize: 26,
+                fontWeight: 'bold'
+              }}
+            >
+              !
+            </div>
+            <h3
+              id="age-restriction-title"
+              style={{ margin: '0 0 10px', fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc' }}
+            >
+              You cannot add a child above the age of 18.
+            </h3>
+            <p style={{ margin: '0 0 20px', fontSize: '0.92rem', color: '#94a3b8', lineHeight: 1.5 }}>
+              Children over the age of 18 can independently register as student.
+            </p>
+            <button
+              type="button"
+              className="btn btn--primary"
+              style={{ borderRadius: 999, width: '100%', padding: '10px 20px' }}
+              onClick={() => setShowAgeModal(false)}
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Account Confirmation Popup Modal */}
+      <AccountConfirmModal
+        isOpen={showAccountConfirm}
+        schoolName={wizard.values.schoolName}
+        bankName={wizard.values.bankName}
+        accountNumber={wizard.values.accountNumber}
+        bankBranch={wizard.values.bankBranch}
+        onChangeInformation={handleChangeAccountInfo}
+        onProceed={handleProceedAccountInfo}
+      />
     </div>
   );
 }

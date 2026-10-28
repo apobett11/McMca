@@ -69,7 +69,20 @@ export function validateNationalId(value, { required = true } = {}) {
   return ok();
 }
 
-export function validateDateOfBirth(value) {
+export function calculateAge(dobString) {
+  if (!dobString) return null;
+  const dob = new Date(dobString);
+  if (Number.isNaN(dob.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+export function validateDateOfBirth(value, { isChild = false } = {}) {
   if (!value) return fail('Date of birth is required.');
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return fail('Enter a valid date of birth.');
@@ -78,10 +91,15 @@ export function validateDateOfBirth(value) {
   const year = date.getFullYear();
   if (year < 1920) return fail('Enter a realistic date of birth.');
 
-  let age = today.getFullYear() - date.getFullYear();
-  const m = today.getMonth() - date.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < date.getDate())) age--;
-  if (age < 18) {
+  const age = calculateAge(value);
+  if (isChild) {
+    if (age !== null && age >= 18) {
+      return fail('You cannot add a child above the age of 18.');
+    }
+    return ok();
+  }
+
+  if (age !== null && age < 18) {
     return fail('Must be 18 years+');
   }
   return ok();
@@ -141,7 +159,7 @@ export function validateField(name, value, extras = {}) {
     case 'parentNationalId':
       return validateNationalId(value, extras);
     case 'dateOfBirth':
-      return validateDateOfBirth(value);
+      return validateDateOfBirth(value, extras);
     case 'password':
       return validatePassword(value);
     case 'confirmPassword':

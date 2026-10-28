@@ -183,19 +183,38 @@ export function ParentDocumentsPage() {
             <div className="skeleton skeleton--hero" />
           </div>
         ) : children.length === 0 ? (
-          <div className="notice">
-            <strong>No children linked yet</strong>
-            <p>Your general household information is saved. Add your child to fill their 3 student-specific steps (Personal, Institution, Documents).</p>
-            <button
-              type="button"
-              className="btn btn--primary"
-              onClick={() => setChildModal({ mode: 'add' })}
-              disabled={!canAddChild}
-              style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}
-            >
-              <Icon name="plus" size={18} />
-              Add a child
-            </button>
+          <div className="notice" style={{ padding: '32px 20px', textAlign: 'center' }}>
+            <div style={{
+              width: 52,
+              height: 52,
+              borderRadius: '50%',
+              background: 'rgba(239, 68, 68, 0.12)',
+              color: '#EF4444',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 14
+            }}>
+              <Icon name="plus" size={26} />
+            </div>
+            <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
+              No children linked yet
+            </h3>
+            <p style={{ margin: '0 auto 18px', color: 'var(--text-muted, #94A3B8)', fontSize: 14, maxWidth: 460, lineHeight: 1.55 }}>
+              Your general household details are saved. Add your child to upload their school details, birth certificate, and student-specific documents.
+            </p>
+            <div className="btn-row" style={{ justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => setChildModal({ mode: 'add' })}
+                disabled={!canAddChild}
+                style={{ borderRadius: 999, width: 'auto', padding: '10px 24px' }}
+              >
+                <Icon name="plus" size={18} />
+                Add a child
+              </button>
+            </div>
           </div>
         ) : (
           <div className="stitch-apps-table">

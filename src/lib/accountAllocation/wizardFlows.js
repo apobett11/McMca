@@ -30,7 +30,7 @@ export const LINK_PARENT_STEPS = [
 export const ADD_CHILD_STEPS = [
   { key: 'personal_information', title: 'Personal information', fields: ['firstName', 'middleName', 'lastName', 'gender', 'dateOfBirth', 'birthCertificateNumber'] },
   { key: 'institution', title: 'School / Institution', fields: ['schoolName', 'schoolLevel', 'admissionNumber', 'bankName', 'bankBranch', 'accountNumber'] },
-  { key: 'documents', title: 'Documents', fields: ['birthCertificate', 'feeStructure'] }
+  { key: 'documents', title: 'Documents', fields: ['birthCertificate'] }
 ];
 
 export const CHILD_PROFILE_STEPS = [
