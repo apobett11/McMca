@@ -406,6 +406,11 @@ export function StudentProfilePage() {
                   <p className="field__help" style={{ margin: '4px 0 0', fontSize: 12 }}>Full name must strictly follow your National ID and cannot be changed.</p>
                 </div>
                 <div className="stitch-profile-form__field">
+                  <label className="stitch-profile-form__label">Student Allocation</label>
+                  <input className="stitch-profile-form__input stitch-profile-form__input--readonly" value="Independent" readOnly />
+                  <p className="field__help" style={{ margin: '4px 0 0', fontSize: 12 }}>Independent allocation is permanently assigned at registration and cannot be changed.</p>
+                </div>
+                <div className="stitch-profile-form__field">
                   <label className="stitch-profile-form__label">Phone Number</label>
                   <input
                     type="tel"
@@ -452,8 +457,11 @@ export function StudentProfilePage() {
                   <dd>{studentName}</dd>
                 </div>
                 <div className="detail-grid__row">
-                  <dt>Student Type</dt>
-                  <dd>{studentType}</dd>
+                  <dt>Student Allocation</dt>
+                  <dd style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span className="stitch-status-badge stitch-status-badge--admitted">Independent</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted, #94A3B8)' }}>(Permanent)</span>
+                  </dd>
                 </div>
                 <div className="detail-grid__row">
                   <dt>Institution</dt>

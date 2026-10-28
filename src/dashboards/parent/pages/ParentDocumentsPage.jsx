@@ -148,66 +148,6 @@ export function ParentDocumentsPage() {
         </div>
       ) : null}
 
-      {/* Shared Household Overview Card (Pre-filled for all children) */}
-      <section style={{
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%)',
-        border: '1px solid rgba(148, 163, 184, 0.2)',
-        borderRadius: 16,
-        padding: '20px 24px',
-        marginBottom: 24,
-        boxShadow: '0 8px 20px -4px rgba(0, 0, 0, 0.3)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className={`stitch-status-badge ${sharedReady ? 'stitch-status-badge--admitted' : 'stitch-status-badge--review'}`}>
-              {sharedReady ? 'Household Details Complete' : 'Household Details Incomplete'}
-            </span>
-            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Shared across all children</span>
-          </div>
-          <div className="btn-row">
-            <button
-              type="button"
-              className="btn btn--secondary btn--compact"
-              onClick={() => openShared('home')}
-            >
-              <Icon name="review" size={14} />
-              Edit Location
-            </button>
-            <button
-              type="button"
-              className="btn btn--secondary btn--compact"
-              onClick={() => openShared('family')}
-            >
-              <Icon name="review" size={14} />
-              Edit Family
-            </button>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-          <div>
-            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.5px' }}>Ward & Location</span>
-            <p style={{ margin: '4px 0 0', fontWeight: 600, color: '#f8fafc', fontSize: '0.92rem' }}>
-              {household.ward || 'Tendeno/Sorget Ward'}
-              {household.location ? ` · ${household.location}` : ''}
-              {household.subLocation ? ` · ${household.subLocation}` : ''}
-            </p>
-          </div>
-          <div>
-            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.5px' }}>Polling Station</span>
-            <p style={{ margin: '4px 0 0', fontWeight: 600, color: '#f8fafc', fontSize: '0.92rem' }}>
-              {household.pollingStation || (homeReady ? 'Assigned Polling Station' : 'Not specified yet')}
-            </p>
-          </div>
-          <div>
-            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.5px' }}>Family Status</span>
-            <p style={{ margin: '4px 0 0', fontWeight: 600, color: '#f8fafc', fontSize: '0.92rem' }}>
-              {household.childrenInFamily ? `${household.childrenInFamily} children in household` : 'Family size on file'}
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Linked Children Documents Single Row Table */}
       <section className="stitch-apps-history">
         <div className="stitch-apps-history__head">

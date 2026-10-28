@@ -8,7 +8,6 @@ import { useCachedQuery } from '../../../lib/useCachedQuery';
 import { loadStudentRecord, studentRecordKey } from '../../../lib/portalData';
 import { DASHBOARD_STUDENT_STEPS } from '../../../lib/accountAllocation/wizardFlows';
 import { getTimeGreeting } from '../../../utils/greeting.js';
-import { ContinueRegistrationPrompt } from '../../../components/account/ContinueRegistrationPrompt.jsx';
 import { applicationSerial, cycleTitle, formatMoney } from '../../../lib/household.js';
 import { EDUCATION_LEVEL_LABEL } from '../../../lib/accountAllocation/constants.js';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
@@ -150,9 +149,15 @@ export function StudentDashboardPage() {
     return () => window.removeEventListener('mcmca_apps_updated', onAppUpdated);
   }, [refresh]);
 
+  // When student registration is incomplete, show forms now without asking now or later
+  useEffect(() => {
+    if (!loading && data && !complete) {
+      navigate('/student/forms');
+    }
+  }, [loading, data, complete, navigate]);
+
   return (
     <StudentLayout pageTitle="Overview" layout="dashboard" studentName={profile ? studentName : ''}>
-      {!complete && <ContinueRegistrationPrompt formsPath="/student/documents" />}
       <div className="stitch-dashboard">
         {/* Student identity hero */}
         <section className="student-hero">

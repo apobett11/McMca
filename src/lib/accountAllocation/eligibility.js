@@ -43,5 +43,12 @@ export function mustBeRegisteredByParent(dateOfBirth) {
 
 /** Autonomous: custody students never log into the student dashboard. */
 export function canStudentLogin(studentClass) {
-  return studentClass === STUDENT_CLASS.INDEPENDENT || studentClass === STUDENT_CLASS.DELEGATED;
+  return (
+    studentClass === STUDENT_CLASS.INDEPENDENT ||
+    studentClass === 'independent' ||
+    studentClass === 'IND' ||
+    studentClass === STUDENT_CLASS.DELEGATED ||
+    studentClass === 'delegated' ||
+    studentClass === 'DEL'
+  );
 }

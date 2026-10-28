@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
 import {
-  getWardList,
   getWardData,
   getLocationsForWard,
   getSubLocationsForLocation,
@@ -16,12 +15,14 @@ export function HomeFields({ values = {}, onChange, errors = {}, idPrefix = 'hom
   const selectedVillage = values.village || '';
   const selectedPolling = values.pollingStation || '';
 
-  const wardOptions = useMemo(() => getWardList(), []);
   const normalizedWard = useMemo(() => normalizeWardKey(selectedWard), [selectedWard]);
   const wardData = useMemo(() => getWardData(normalizedWard), [normalizedWard]);
 
-  // Keep county, constituency, subCounty in sync with selected ward
+  // Ensure ward, county, constituency, subCounty are always synced
   useEffect(() => {
+    if (!values.ward) {
+      onChange('ward', 'Tendeno/Sorget Ward');
+    }
     if (wardData) {
       if (!values.county || values.county !== wardData.county) {
         onChange('county', wardData.county);
@@ -33,7 +34,7 @@ export function HomeFields({ values = {}, onChange, errors = {}, idPrefix = 'hom
         onChange('subCounty', wardData.subCounty);
       }
     }
-  }, [wardData, values.county, values.constituency, values.subCounty, onChange]);
+  }, [wardData, values.ward, values.county, values.constituency, values.subCounty, onChange]);
 
   const availableLocations = useMemo(() => {
     return getLocationsForWard(normalizedWard);
@@ -54,20 +55,10 @@ export function HomeFields({ values = {}, onChange, errors = {}, idPrefix = 'hom
     return getPollingStationsForSubLocation(normalizedWard, selectedLocation, selectedSubLocation);
   }, [normalizedWard, selectedLocation, selectedSubLocation]);
 
-  function handleWardChange(e) {
-    const nextWard = e.target.value;
-    onChange('ward', nextWard);
-    // Reset lower cascading fields
-    onChange('location', '');
-    onChange('subLocation', '');
-    onChange('village', '');
-    onChange('pollingStation', '');
-  }
-
   function handleLocationChange(e) {
     const nextLoc = e.target.value;
     onChange('location', nextLoc);
-    // Reset sub-location, village, and polling station
+    // Cascading reset: sub-location, village, and polling station
     onChange('subLocation', '');
     onChange('village', '');
     onChange('pollingStation', '');
@@ -76,7 +67,7 @@ export function HomeFields({ values = {}, onChange, errors = {}, idPrefix = 'hom
   function handleSubLocationChange(e) {
     const nextSub = e.target.value;
     onChange('subLocation', nextSub);
-    // Reset village and polling station
+    // Cascading reset: village and polling station
     onChange('village', '');
     onChange('pollingStation', '');
   }
@@ -90,115 +81,118 @@ export function HomeFields({ values = {}, onChange, errors = {}, idPrefix = 'hom
   }
 
   return (
-    <div className="home-fields-group" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {/* Ward Dropdown */}
-      <div className={`field ${errors.ward ? 'field--invalid' : ''}`}>
-        <label htmlFor={`${idPrefix}ward`}>Ward *</label>
-        <select
-          id={`${idPrefix}ward`}
-          value={selectedWard}
-          onChange={handleWardChange}
-          className="stitch-profile-form__input"
-          required
-        >
-          {wardOptions.map((w) => (
-            <option key={w} value={w}>{w}</option>
-          ))}
-        </select>
-        {errors.ward ? <span className="field__error">{errors.ward}</span> : null}
-      </div>
-
-      {/* Location Dropdown */}
-      <div className={`field ${errors.location ? 'field--invalid' : ''}`}>
-        <label htmlFor={`${idPrefix}location`}>Location *</label>
-        <select
-          id={`${idPrefix}location`}
-          value={selectedLocation}
-          onChange={handleLocationChange}
-          className="stitch-profile-form__input"
-          required
-          disabled={availableLocations.length === 0}
-        >
-          <option value="">{availableLocations.length ? 'Select Location...' : 'Select Ward first'}</option>
-          {availableLocations.map((loc) => (
-            <option key={loc} value={loc}>{loc}</option>
-          ))}
-        </select>
-        {errors.location ? <span className="field__error">{errors.location}</span> : null}
-      </div>
-
-      {/* Sub-Location Dropdown */}
-      <div className={`field ${errors.subLocation ? 'field--invalid' : ''}`}>
-        <label htmlFor={`${idPrefix}subLocation`}>Sub-Location *</label>
-        <select
-          id={`${idPrefix}subLocation`}
-          value={selectedSubLocation}
-          onChange={handleSubLocationChange}
-          className="stitch-profile-form__input"
-          required
-          disabled={!selectedLocation || availableSubLocations.length === 0}
-        >
-          <option value="">{selectedLocation ? 'Select Sub-Location...' : 'Select Location first'}</option>
-          {availableSubLocations.map((sub) => (
-            <option key={sub} value={sub}>{sub}</option>
-          ))}
-        </select>
-        {errors.subLocation ? <span className="field__error">{errors.subLocation}</span> : null}
-      </div>
-
-      {/* Village Dropdown */}
-      <div className={`field ${errors.village ? 'field--invalid' : ''}`}>
-        <label htmlFor={`${idPrefix}village`}>Village / Neighborhood *</label>
-        <select
-          id={`${idPrefix}village`}
-          value={selectedVillage}
-          onChange={handleVillageChange}
-          className="stitch-profile-form__input"
-          required
-          disabled={!selectedSubLocation || availableVillages.length === 0}
-        >
-          <option value="">{selectedSubLocation ? 'Select Village...' : 'Select Sub-Location first'}</option>
-          {availableVillages.map((v) => (
-            <option key={v} value={v}>{v}</option>
-          ))}
-        </select>
-        {errors.village ? <span className="field__error">{errors.village}</span> : null}
-      </div>
-
-      {/* Polling Station Dropdown */}
-      <div className={`field ${errors.pollingStation ? 'field--invalid' : ''}`}>
-        <label htmlFor={`${idPrefix}pollingStation`}>Designated Polling Station *</label>
-        <select
-          id={`${idPrefix}pollingStation`}
-          value={selectedPolling}
-          onChange={handlePollingChange}
-          className="stitch-profile-form__input"
-          required
-          disabled={!selectedSubLocation || availablePollingStations.length === 0}
-        >
-          <option value="">{selectedSubLocation ? 'Select Polling Station...' : 'Select Sub-Location first'}</option>
-          {availablePollingStations.map((ps) => (
-            <option key={ps} value={ps}>{ps}</option>
-          ))}
-        </select>
-        {errors.pollingStation ? <span className="field__error">{errors.pollingStation}</span> : null}
-      </div>
-
-      {/* Jurisdiction Meta Info */}
+    <div className="home-fields-group" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Row 1: Location & Sub-Location side by side */}
       <div style={{
-        padding: '10px 14px',
-        borderRadius: 8,
-        background: 'rgba(148, 163, 184, 0.08)',
-        border: '1px solid rgba(148, 163, 184, 0.15)',
-        fontSize: '0.82rem',
-        color: 'var(--text-muted, #94a3b8)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 8
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: 16
       }}>
-        <span>County: <strong>{wardData.county}</strong></span>
-        <span>Constituency / Sub-County: <strong>{wardData.constituency}</strong></span>
+        {/* Location Dropdown */}
+        <div className={`field ${errors.location ? 'field--invalid' : ''}`} style={{ margin: 0 }}>
+          <label htmlFor={`${idPrefix}location`}>
+            Location <span style={{ color: '#EF4444' }}>*</span>
+          </label>
+          <select
+            id={`${idPrefix}location`}
+            value={selectedLocation}
+            onChange={handleLocationChange}
+            className={`stitch-profile-form__input ${errors.location ? 'is-invalid' : ''}`}
+            required
+            aria-invalid={Boolean(errors.location)}
+          >
+            <option value="">Select Location...</option>
+            {availableLocations.map((loc) => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
+          </select>
+          {errors.location ? <p className="field__error-msg">{errors.location}</p> : null}
+        </div>
+
+        {/* Sub-Location Dropdown (disabled until Location is selected) */}
+        <div className={`field ${errors.subLocation ? 'field--invalid' : ''}`} style={{ margin: 0 }}>
+          <label htmlFor={`${idPrefix}subLocation`}>
+            Sub-Location <span style={{ color: '#EF4444' }}>*</span>
+          </label>
+          <select
+            id={`${idPrefix}subLocation`}
+            value={selectedSubLocation}
+            onChange={handleSubLocationChange}
+            className={`stitch-profile-form__input ${errors.subLocation ? 'is-invalid' : ''}`}
+            required
+            aria-invalid={Boolean(errors.subLocation)}
+            disabled={!selectedLocation || availableSubLocations.length === 0}
+            style={{
+              opacity: !selectedLocation ? 0.6 : 1,
+              cursor: !selectedLocation ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <option value="">{selectedLocation ? 'Select Sub-Location...' : 'Select Location first'}</option>
+            {availableSubLocations.map((sub) => (
+              <option key={sub} value={sub}>{sub}</option>
+            ))}
+          </select>
+          {errors.subLocation ? <p className="field__error-msg">{errors.subLocation}</p> : null}
+        </div>
+      </div>
+
+      {/* Row 2: Village & Polling Station side by side */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: 16
+      }}>
+        {/* Village Dropdown (disabled until Sub-Location is selected) */}
+        <div className={`field ${errors.village ? 'field--invalid' : ''}`} style={{ margin: 0 }}>
+          <label htmlFor={`${idPrefix}village`}>
+            Village / Neighborhood <span style={{ color: '#EF4444' }}>*</span>
+          </label>
+          <select
+            id={`${idPrefix}village`}
+            value={selectedVillage}
+            onChange={handleVillageChange}
+            className={`stitch-profile-form__input ${errors.village ? 'is-invalid' : ''}`}
+            required
+            aria-invalid={Boolean(errors.village)}
+            disabled={!selectedSubLocation || availableVillages.length === 0}
+            style={{
+              opacity: !selectedSubLocation ? 0.6 : 1,
+              cursor: !selectedSubLocation ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <option value="">{selectedSubLocation ? 'Select Village...' : 'Select Sub-Location first'}</option>
+            {availableVillages.map((v) => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+          {errors.village ? <p className="field__error-msg">{errors.village}</p> : null}
+        </div>
+
+        {/* Polling Station Dropdown (disabled until Sub-Location is selected) */}
+        <div className={`field ${errors.pollingStation ? 'field--invalid' : ''}`} style={{ margin: 0 }}>
+          <label htmlFor={`${idPrefix}pollingStation`}>
+            Designated Polling Station <span style={{ color: '#EF4444' }}>*</span>
+          </label>
+          <select
+            id={`${idPrefix}pollingStation`}
+            value={selectedPolling}
+            onChange={handlePollingChange}
+            className={`stitch-profile-form__input ${errors.pollingStation ? 'is-invalid' : ''}`}
+            required
+            aria-invalid={Boolean(errors.pollingStation)}
+            disabled={!selectedSubLocation || availablePollingStations.length === 0}
+            style={{
+              opacity: !selectedSubLocation ? 0.6 : 1,
+              cursor: !selectedSubLocation ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <option value="">{selectedSubLocation ? 'Select Polling Station...' : 'Select Sub-Location first'}</option>
+            {availablePollingStations.map((ps) => (
+              <option key={ps} value={ps}>{ps}</option>
+            ))}
+          </select>
+          {errors.pollingStation ? <p className="field__error-msg">{errors.pollingStation}</p> : null}
+        </div>
       </div>
     </div>
   );

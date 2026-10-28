@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   ACCOUNT_ROLE,
@@ -33,7 +34,7 @@ import { ParentInfoFields } from './ParentInfoFields.jsx';
 import { InstitutionFields } from './InstitutionFields.jsx';
 import { IdentityScanStep } from './IdentityScanStep.jsx';
 import { HomeFields } from './HomeFields.jsx';
-import { FamilyFields } from './FamilyFields.jsx';
+import { FamilyFields, validateFamilyData } from './FamilyFields.jsx';
 import { readHousehold } from '../../lib/household.js';
 import { readQueryCache, writeQueryCache } from '../../lib/queryCache';
 
@@ -119,6 +120,7 @@ function parentSeed(profile) {
 
 export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtKey = null, handoffOnComplete = false, inline = false }) {
   const { user, role } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [pendingParent, setPendingParent] = useState(null);
   const [documents, setDocuments] = useState([]);
@@ -396,9 +398,9 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
 
       if (key === 'home_details') {
         const check = validateForm(wizard.values, {
-          ward: { label: 'Ward' },
           location: { label: 'Location' },
           subLocation: { label: 'Sub-location' },
+          village: { label: 'Village / Neighborhood' },
           pollingStation: { label: 'Polling station' }
         });
         if (!check.ok) {
@@ -415,22 +417,22 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
         wizard.setError('');
 
         stepPayload = {
-          ward: wizard.values.ward,
+          ward: wizard.values.ward || 'Tendeno/Sorget Ward',
           location: wizard.values.location,
           subLocation: wizard.values.subLocation,
           village: wizard.values.village || '',
           pollingStation: wizard.values.pollingStation,
-          constituency: wizard.values.constituency || '',
-          county: wizard.values.county || '',
-          subCounty: wizard.values.subCounty || ''
+          constituency: wizard.values.constituency || 'Kipkelion West',
+          county: wizard.values.county || 'Kericho County',
+          subCounty: wizard.values.subCounty || 'Kipkelion West'
         };
 
         try {
           if (role === ACCOUNT_ROLE.STUDENT) {
             await saveStudentHousehold(profile.id, stepPayload);
             await supabase.from('student_profiles').update({
-              county: wizard.values.county,
-              ward: wizard.values.ward,
+              county: wizard.values.county || 'Kericho County',
+              ward: wizard.values.ward || 'Tendeno/Sorget Ward',
               location_name: wizard.values.pollingStation || wizard.values.location || wizard.values.constituency
             }).eq('id', profile.id);
           } else {
@@ -451,16 +453,10 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
       }
 
       if (key === 'family_details') {
-        const check = validateForm(wizard.values, {
-          childrenInFamily: { label: 'Children in the family' },
-          parentStatus: { label: 'Parents in the household' },
-          monthlyIncome: { label: 'Monthly household income' },
-          disability: { label: 'Disability in the family' },
-          otherBursary: { label: 'Other bursary' }
-        });
-        if (!check.ok) {
-          setStepErrors(check.errors);
-          wizard.setError(Object.values(check.errors)[0]);
+        const familyCheck = validateFamilyData(wizard.values);
+        if (Object.keys(familyCheck).length > 0) {
+          setStepErrors(familyCheck);
+          wizard.setError(Object.values(familyCheck)[0]);
           setTimeout(() => {
             const firstInvalid = document.querySelector('[aria-invalid="true"], .is-invalid, .field--invalid input, .field--invalid select');
             firstInvalid?.focus();
@@ -468,26 +464,22 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
           }, 50);
           return;
         }
-        if (wizard.values.disability === 'yes' && !String(wizard.values.disabilityNote || '').trim()) {
-          setStepErrors((prev) => ({ ...prev, disabilityNote: 'Describe the disability and the support needed.' }));
-          wizard.setError('Describe the disability and the support needed.');
-          setTimeout(() => {
-            const firstInvalid = document.querySelector('[name="disabilityNote"], [aria-invalid="true"]');
-            firstInvalid?.focus();
-            firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 50);
-          return;
-        }
+
         setStepErrors({});
         wizard.setError('');
 
         stepPayload = {
           childrenInFamily: wizard.values.childrenInFamily,
-          childrenInSchool: wizard.values.childrenInSchool,
+          childrenInSchool: wizard.values.childrenInSchool || '',
+          childrenPrimary: wizard.values.childrenPrimary || '',
+          childrenSecondary: wizard.values.childrenSecondary || '',
+          childrenTertiary: wizard.values.childrenTertiary || '',
           parentStatus: wizard.values.parentStatus,
+          fatherOccupation: wizard.values.fatherOccupation || '',
+          motherOccupation: wizard.values.motherOccupation || '',
           monthlyIncome: wizard.values.monthlyIncome,
           disability: wizard.values.disability,
-          disabilityNote: wizard.values.disabilityNote,
+          disabilityNote: wizard.values.disabilityNote || '',
           otherBursary: wizard.values.otherBursary
         };
 
@@ -533,12 +525,7 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
       if (nextIncompleteIdx >= 0) {
         wizard.setStepIndex(nextIncompleteIdx);
       } else {
-        if (handoffOnComplete) {
-          onFinished?.();
-          return;
-        }
         setDone(true);
-        onFinished?.();
       }
       return;
     } catch (err) {
@@ -548,7 +535,7 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
     }
   }
 
-  const nextLabel = wizard.stepIndex >= steps.length - 1 ? 'Save registration' : 'Complete step';
+  const nextLabel = wizard.stepIndex >= steps.length - 1 ? 'Complete registration' : 'Complete step';
 
   function canSelectStep() {
     return true;
@@ -558,13 +545,65 @@ export function CompleteRegistrationWizard({ open, onClose, onFinished, startAtK
     <>
       {bootError ? <p className="field__help">{bootError}</p> : null}
       {done ? (
-        <div className="notice" style={{ padding: '24px', textAlign: 'center' }}>
-          <p className="field__help" style={{ marginTop: 0 }}>Your details are saved for this session.</p>
-          {!inline && (
-            <button type="button" className="btn btn--primary" onClick={onClose} style={{ borderRadius: 999, width: 'auto', marginTop: 12 }}>
-              Close
-            </button>
-          )}
+        <div style={{
+          padding: '40px 24px',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(15, 23, 42, 0.4)',
+          borderRadius: 16,
+          border: '1px solid rgba(16, 185, 129, 0.3)'
+        }}>
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            background: 'rgba(16, 185, 129, 0.15)',
+            color: '#10B981',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 18,
+            boxShadow: '0 0 25px rgba(16, 185, 129, 0.3)'
+          }}>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, margin: '0 0 8px 0', color: '#FFFFFF' }}>
+            Registration Complete!
+          </h2>
+          <p style={{ fontSize: 14, color: '#94A3B8', maxWidth: 440, margin: '0 0 24px 0', lineHeight: 1.55 }}>
+            All your registration steps have been saved successfully. You will now be redirected to the dashboard homepage.
+          </p>
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => {
+              onFinished?.();
+              onClose?.();
+              if (role === ACCOUNT_ROLE.PARENT) {
+                navigate('/parent/dashboard');
+              } else {
+                navigate('/student/dashboard');
+              }
+            }}
+            style={{
+              borderRadius: 999,
+              padding: '12px 32px',
+              fontWeight: 700,
+              fontSize: 15,
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              color: '#FFFFFF',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
+            }}
+          >
+            Go to Dashboard Homepage
+          </button>
         </div>
       ) : wizard.loading || !profile ? (
         <p className="field__help">Loading your details…</p>

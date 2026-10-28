@@ -11,7 +11,7 @@ import { joinFullName } from '../../../lib/accountAllocation';
 import { cycleTitle, formatMoney } from '../../../lib/household.js';
 import { EDUCATION_LEVEL_LABEL } from '../../../lib/accountAllocation/constants.js';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
-import { ContinueRegistrationPrompt } from '../../../components/account/ContinueRegistrationPrompt.jsx';
+import { CompleteRegistrationWizard } from '../../../components/account/CompleteRegistrationWizard.jsx';
 import { getTimeGreeting } from '../../../utils/greeting.js';
 import { AddChildModal } from '../../../components/account/AddChildModal.jsx';
 
@@ -62,6 +62,7 @@ export function ParentDashboardPage() {
   const [extraCompleted, setExtraCompleted] = useState([]);
   const [addChildModalOpen, setAddChildModalOpen] = useState(false);
   const [actionNotice, setActionNotice] = useState('');
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
     function onStepCompleted(e) {
@@ -123,9 +124,26 @@ export function ParentDashboardPage() {
     (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
   );
 
+  // When parent logs in and registration is incomplete, show forms immediately without asking now or later
+  useEffect(() => {
+    if (!loading && data && !complete) {
+      setWizardOpen(true);
+    }
+  }, [loading, data, complete]);
+
   return (
     <ParentLayout pageTitle="Home" parentName={parentName} layout="dashboard">
-      <ContinueRegistrationPrompt formsPath="/parent/documents" />
+      {wizardOpen && (
+        <CompleteRegistrationWizard
+          open={wizardOpen}
+          startAtKey={steps.find((s) => !completedKeys.includes(s.key))?.key || 'family_details'}
+          onClose={() => setWizardOpen(false)}
+          onFinished={() => {
+            setWizardOpen(false);
+            refresh().catch(() => {});
+          }}
+        />
+      )}
       <div className="stitch-dashboard">
         {/* Parent identity hero */}
         <section className="student-hero">

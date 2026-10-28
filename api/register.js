@@ -169,7 +169,7 @@ export default async function handler(req, res) {
       const studentProfile = {
         auth_user_id: authUserId,
         student_type: 'IND',
-        account_class: 'IND',
+        account_class: 'independent',
         category_locked: true,
         parent_created: false,
         delegated_access: false,

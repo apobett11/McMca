@@ -308,7 +308,6 @@ export function StudentFormsPage() {
           open={wizardOpen}
           inline
           startAtKey={startAtKey}
-          handoffOnComplete
           onClose={() => {
             setWizardOpen(false);
             setStartAtKey(null);
@@ -317,8 +316,7 @@ export function StudentFormsPage() {
           onFinished={() => {
             setWizardOpen(false);
             setStartAtKey(null);
-            setJustFinished(true);
-            refresh().catch(() => {});
+            navigate('/student/dashboard');
           }}
         />
       ) : null}
