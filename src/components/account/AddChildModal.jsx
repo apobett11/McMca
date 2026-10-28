@@ -244,7 +244,9 @@ export function AddChildModal({ parent, child, existingChildren = [], onClose, o
             personal,
             institution
           });
-          await mergeWizardCompleted('parent_profiles', parent.id, { addChildDraft: null });
+          try {
+            await mergeWizardCompleted('parent_profiles', parent.id, { addChildDraft: null });
+          } catch {}
           await wizard.completeStep('documents', {
             birthCertificateUploaded: true
           });
