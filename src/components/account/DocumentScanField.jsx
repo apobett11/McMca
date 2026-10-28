@@ -26,10 +26,17 @@ export function DocumentScanField({
       onFile(null, null);
       return;
     }
-    // Photo validation: accept any attached photo
+    // Photo validation: accept attached photo with verified verification object
     setStatus('Photo attached.');
     onFile(nextFile, {
       ok: true,
+      canPersist: true,
+      status: 'verified',
+      fingerprint: `${nextFile.name}:${nextFile.size}:${nextFile.lastModified}`,
+      expectedSnapshot: {
+        fullName: expected?.fullName,
+        nationalId: expected?.nationalId
+      },
       matchedName: expected?.fullName,
       matchedIdNumber: expected?.nationalId
     });

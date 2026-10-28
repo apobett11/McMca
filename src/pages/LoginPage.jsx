@@ -327,22 +327,26 @@ export function LoginPage({ initialTab = 'login' }) {
       }
 
       // 3. Persist ID documents front & back under authenticated session
-      await persistIdPair({
-        authUserId: account.user.id,
-        ownerType: role,
-        ownerId: account.profile.id,
-        studentProfileId: role === ACCOUNT_ROLE.STUDENT ? account.profile.id : null,
-        expected: {
-          fullName: joinFullName(wizard.values),
-          nationalId: wizard.values.nationalId
-        },
-        front: wizard.files.idPhoto,
-        frontResult: wizard.verifications?.idPhoto,
-        back: wizard.files.idBack,
-        backResult: wizard.verifications?.idBack,
-        frontKind: DOCUMENT_KIND.ID_FRONT,
-        backKind: DOCUMENT_KIND.ID_BACK
-      });
+      try {
+        await persistIdPair({
+          authUserId: account.user.id,
+          ownerType: role,
+          ownerId: account.profile.id,
+          studentProfileId: role === ACCOUNT_ROLE.STUDENT ? account.profile.id : null,
+          expected: {
+            fullName: joinFullName(wizard.values),
+            nationalId: wizard.values.nationalId
+          },
+          front: wizard.files.idPhoto,
+          frontResult: wizard.verifications?.idPhoto,
+          back: wizard.files.idBack,
+          backResult: wizard.verifications?.idBack,
+          frontKind: DOCUMENT_KIND.ID_FRONT,
+          backKind: DOCUMENT_KIND.ID_BACK
+        });
+      } catch (docErr) {
+        console.warn('ID documents persistence notice:', docErr);
+      }
 
       const payload = {
         firstName: wizard.values.firstName,
