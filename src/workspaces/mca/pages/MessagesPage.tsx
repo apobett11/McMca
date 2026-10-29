@@ -1,243 +1,359 @@
 import { useMemo, useState } from 'react';
-import { cx, fmtDateTime, num } from '../../lib/format.ts';
-import { useDataTick, useStored } from '../../lib/hooks.ts';
-import { appendLedger } from '../../lib/ledger.ts';
-import { smsSegments } from '../../lib/text.ts';
-import { latency, useMutation } from '../../lib/toast.tsx';
+import { cx, fmtDateTime } from '../../lib/format.ts';
+import { useDataTick } from '../../lib/hooks.ts';
+import { useMutation } from '../../lib/toast.tsx';
 import { Icon } from '../../ui/icons.tsx';
-import { Badge, Button, Card, Chip, EmptyState, FieldLabel, Input, PageHeader, Segmented, Select, Textarea } from '../../ui/primitives.tsx';
-import { MCA_EVENTS, loadAwardRows } from '../store.ts';
-import * as mca from '../../../dashboards/mca/utils/mcaData.js';
+import { Badge, Button, Card, FieldLabel, PageHeader, Textarea } from '../../ui/primitives.tsx';
+import { Modal } from '../../ui/overlays.tsx';
+import { MCA_EVENTS } from '../store.ts';
 
-interface Inbound {
-  id: string;
-  senderName: string;
-  village: string;
+export interface EscalatedInquiry {
+  incidentSerial: string;
+  constituentName: string;
   phone: string;
-  subject: string;
-  message: string;
-  category: string;
-  forwardedBy: string;
+  location: string;
+  subLocation: string;
+  category: 'Severe Boundary Dispute' | 'Complex Appeal' | 'Special Hardship Intervention';
+  forwardingOfficer: string;
   forwardedAt: string;
-  priority: string;
-  status: string;
-}
-interface Broadcast {
-  id: string;
-  at: string;
-  title: string;
-  audience: string;
-  recipients: number;
-  segments: number;
-  message: string;
-  status: 'Queued' | 'Dispatched';
+  officerNotes: string;
+  chiefDossierRef: string;
+  chiefFindings: string;
+  status: 'Pending MCA Decision' | 'Hardship Quota Authorized' | 'SMS Dispatched';
+  mcaActionNote?: string;
 }
 
-const NOTICES = [
-  { id: 'res', label: 'Bursary results', en: 'NG-CDF Tendeno/Sorget: 2026/2027 bursary results are out. Check your portal account or visit the Ward Office. Appeals close in 14 days.', sw: 'NG-CDF Tendeno/Sorget: matokeo ya bursary 2026/2027 yametoka. Angalia akaunti yako au tembelea Afisi ya Wadi. Rufaa zitafungwa baada ya siku 14.' },
-  { id: 'chq', label: 'Cheque collection', en: 'NG-CDF Tendeno/Sorget: bursary cheques have been issued to schools. Please confirm fee receipts with your institution within 7 days.', sw: 'NG-CDF Tendeno/Sorget: hundi za bursary zimetumwa shuleni. Tafadhali thibitisha risiti za ada na taasisi yako ndani ya siku 7.' },
-  { id: 'bar', label: 'Public baraza', en: 'The Hon. MCA invites all residents to a public baraza at Tendeno Civic Centre on Saturday 10:00 AM. Bursary updates will be presented.', sw: 'Mhe. MCA anawaalika wakazi wote kwenye baraza la umma katika Tendeno Civic Centre Jumamosi saa nne asubuhi. Taarifa za bursary zitawasilishwa.' }
+const INITIAL_ESCALATIONS: EscalatedInquiry[] = [
+  {
+    incidentSerial: 'ESC-2026-081',
+    constituentName: 'Eunice Chepngetich (Guardian to Dennis Kiprotich)',
+    phone: '+254 715 678 123',
+    location: 'Sorget',
+    subLocation: 'Kapchelach',
+    category: 'Special Hardship Intervention',
+    forwardingOfficer: 'Mercy Cherono (Help Desk Lead)',
+    forwardedAt: '2026-10-28 09:30 AM',
+    officerNotes: 'Household faced severe hail damage destroying tea yield; student enrolled at Kericho Boys High with KES 14,000 outstanding fee balance. Standard allocation threshold capped at KES 8,000. Recommend MCA Hardship Quota augmentation.',
+    chiefDossierRef: 'DOS-CHF-SORGET-441',
+    chiefFindings: 'Chief verified single-mother breadwinner with 4 dependents. High Need Score 94/99. Recommend affirmative relief.',
+    status: 'Pending MCA Decision'
+  },
+  {
+    incidentSerial: 'ESC-2026-082',
+    constituentName: 'Elder Kipngetich Sang',
+    phone: '+254 721 776 543',
+    location: 'Tendeno',
+    subLocation: 'Tendeno West',
+    category: 'Severe Boundary Dispute',
+    forwardingOfficer: 'David Langat (Assessment Officer)',
+    forwardedAt: '2026-10-27 02:15 PM',
+    officerNotes: 'Cluster of 14 applicant families reside in Kipkelion Border Village along the river buffer. Automated residency check flagged birthplace as Kipkelion East. Physical homestead and voter registration confirm Tendeno West residency.',
+    chiefDossierRef: 'DOS-CHF-TENDENO-198',
+    chiefFindings: 'Sub-Chief verified residency for 12+ years. Boundary map discrepancy verified at local Baraza.',
+    status: 'Pending MCA Decision'
+  },
+  {
+    incidentSerial: 'ESC-2026-083',
+    constituentName: 'Peter Koech (Parent to Sharon Chepkirui)',
+    phone: '+254 718 223 344',
+    location: 'Sorget',
+    subLocation: 'Sorget Central',
+    category: 'Complex Appeal',
+    forwardingOfficer: 'Clara Chelangat (Help Desk Operations)',
+    forwardedAt: '2026-10-26 11:45 AM',
+    officerNotes: 'Chief initially rejected based on incomplete death certificate of second breadwinner. Auxiliary verification affidavit from Sorget Forest Baraza now provided.',
+    chiefDossierRef: 'DOS-CHF-SORGET-312',
+    chiefFindings: 'Appeal dossier validated by Area Chief. Overturn recommended for secondary boarding bursary.',
+    status: 'Pending MCA Decision'
+  }
 ];
 
 export function MessagesPage() {
   const run = useMutation();
-  const tick = useDataTick([...MCA_EVENTS, 'mcmca_mca_messages_updated']);
-  const [inbox, setInbox] = useState<Inbound[]>(() => mca.getMCAMessages() as unknown as Inbound[]);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [history, setHistory] = useStored<Broadcast[]>('mcmca_ws_mca_broadcasts_v1', []);
+  const tick = useDataTick([...MCA_EVENTS, 'mcmca_escalations_updated']);
 
-  const rows = useMemo(() => loadAwardRows(), [tick]);
-  const subs = useMemo(() => Array.from(new Set(rows.map((r) => r.subLocation))).sort(), [rows]);
+  const [escalations, setEscalations] = useState<EscalatedInquiry[]>(() => {
+    try {
+      const saved = localStorage.getItem('mcmca_mca_escalations_v1');
+      return saved ? JSON.parse(saved) : INITIAL_ESCALATIONS;
+    } catch {
+      return INITIAL_ESCALATIONS;
+    }
+  });
 
-  const [audience, setAudience] = useState('all');
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [lang, setLang] = useState<'en' | 'sw'>('en');
+  const [activeReply, setActiveReply] = useState<EscalatedInquiry | null>(null);
+  const [activeQuota, setActiveQuota] = useState<EscalatedInquiry | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [quotaAmount, setQuotaAmount] = useState('10000');
+  const [quotaJustification, setQuotaJustification] = useState('');
 
-  const recipients = useMemo(() => {
-    const pick = rows.filter((r) => (audience === 'all' ? true : audience === 'awarded' ? r.state === 'approved' || r.state === 'locked' : audience === 'appeal' ? r.state === 'chief_rejected' : r.subLocation === audience.replace('sub:', '')));
-    return new Set(pick.map((r) => r.phone.replace(/\s/g, ''))).size;
-  }, [rows, audience]);
-  const seg = smsSegments(body);
-  const audienceLabel = audience === 'all' ? 'All applicant households' : audience === 'awarded' ? 'Awarded households' : audience === 'appeal' ? 'Households with Chief rejection' : audience.replace('sub:', '');
-  const canSend = title.trim().length >= 3 && body.trim().length >= 10 && recipients > 0;
+  const saveEscalations = (next: EscalatedInquiry[]) => {
+    setEscalations(next);
+    localStorage.setItem('mcmca_mca_escalations_v1', JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent('mcmca_escalations_updated'));
+  };
 
-  const markReviewed = (m: Inbound) => {
-    const prev = inbox;
+  const handleSendDirectSms = () => {
+    if (!activeReply || !replyText.trim()) return;
+
+    const target = activeReply;
+    const prev = escalations;
+    const next = escalations.map((e) =>
+      e.incidentSerial === target.incidentSerial
+        ? { ...e, status: 'SMS Dispatched' as const, mcaActionNote: `Direct SMS sent: "${replyText.trim()}"` }
+        : e
+    );
+
     return run({
-      apply: () => setInbox((l) => l.map((x) => (x.id === m.id ? { ...x, status: 'Reviewed' } : x))),
-      rollback: () => setInbox(prev),
+      apply: () => saveEscalations(next),
+      rollback: () => saveEscalations(prev),
       commit: async () => {
-        await latency(200);
-        const all = mca.getMCAMessages() as unknown as Inbound[];
-        mca.saveMCAMessages(all.map((x) => (x.id === m.id ? { ...x, status: 'Reviewed' } : x)));
+        setActiveReply(null);
+        setReplyText('');
       },
-      success: 'Marked as reviewed',
-      failure: 'Could not update message'
+      success: `Official SMS dispatched to ${target.constituentName} (${target.phone})`,
+      failure: 'Failed to send SMS'
     });
   };
 
-  const send = () => {
-    const entry: Broadcast = { id: `bc-${Date.now().toString(36)}`, at: new Date().toISOString(), title: title.trim(), audience: audienceLabel, recipients, segments: seg.segments, message: body.trim(), status: 'Queued' };
-    const prevHistory = history;
-    const prevForm = { title, body };
+  const handleAuthorizeQuota = () => {
+    if (!activeQuota) return;
+
+    const target = activeQuota;
+    const prev = escalations;
+    const next = escalations.map((e) =>
+      e.incidentSerial === target.incidentSerial
+        ? {
+            ...e,
+            status: 'Hardship Quota Authorized' as const,
+            mcaActionNote: `Special Hardship Quota approved: KES ${Number(quotaAmount).toLocaleString()} (${quotaJustification || 'Special Executive hard-case directive'})`
+          }
+        : e
+    );
+
     return run({
-      apply: () => {
-        setHistory((h) => [entry, ...h]);
-        setTitle('');
-        setBody('');
-      },
-      rollback: () => {
-        setHistory(prevHistory);
-        setTitle(prevForm.title);
-        setBody(prevForm.body);
-      },
+      apply: () => saveEscalations(next),
+      rollback: () => saveEscalations(prev),
       commit: async () => {
-        await latency(500);
-        await appendLedger('mca', { actor: (mca.getMCAProfile() as { fullName: string }).fullName, kind: 'official_notice', target: entry.id, targetLabel: entry.title, detail: `SMS broadcast to ${recipients} recipients (${audienceLabel}), ${seg.segments} segment(s) each = ${recipients * seg.segments} SMS` });
-        setHistory((h) => h.map((x) => (x.id === entry.id ? { ...x, status: 'Dispatched' } : x)));
+        setActiveQuota(null);
+        setQuotaJustification('');
       },
-      success: `Notice queued for ${recipients} recipients`,
-      failure: 'Broadcast failed – draft restored'
+      success: `Hardship Quota of KES ${Number(quotaAmount).toLocaleString()} authorized for ${target.incidentSerial}`,
+      failure: 'Failed to authorize hardship quota'
     });
   };
 
-  const open = inbox.find((m) => m.id === openId) ?? null;
+  const categoryTone = (cat: EscalatedInquiry['category']) =>
+    cat === 'Severe Boundary Dispute' ? 'amber' : cat === 'Special Hardship Intervention' ? 'emerald' : 'cyan';
 
   return (
-    <>
-      <PageHeader eyebrow="Official communications" title="Notices & Correspondence" description="Broadcast official notices to constituents and handle matters forwarded by the Help Desk." />
+    <div className="space-y-6 pb-12">
+      <PageHeader
+        eyebrow="Constituent broadcast & official notices"
+        title="Official Notices"
+        description="Send targeted bulk SMS notices to verified applicant households, and review forwarded community issues."
+      />
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <Card title="Official notice broadcaster" subtitle="Automated SMS dispatch to ward constituents">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">Template</span>
-              {NOTICES.map((n) => (
-                <Chip
-                  key={n.id}
-                  onClick={() => {
-                    setTitle(n.label);
-                    setBody(lang === 'en' ? n.en : n.sw);
-                  }}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Card className="border-amber-500/20">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Active Escalations</span>
+          <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-amber-300">
+            {escalations.filter((e) => e.status === 'Pending MCA Decision').length}
+          </p>
+          <span className="text-[11px] text-slate-200">Awaiting executive intervention</span>
+        </Card>
+        <Card className="border-emerald-500/20">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Hardship Quotas Authorized</span>
+          <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-emerald-300">
+            {escalations.filter((e) => e.status === 'Hardship Quota Authorized').length}
+          </p>
+          <span className="text-[11px] text-slate-200">Affirmative relief deployed</span>
+        </Card>
+        <Card className="border-cyan-500/20">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Direct SMS Responses</span>
+          <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-cyan-300">
+            {escalations.filter((e) => e.status === 'SMS Dispatched').length}
+          </p>
+          <span className="text-[11px] text-slate-200">Constituent communications logged</span>
+        </Card>
+      </div>
+
+      {/* Escalated Inquiries List */}
+      <div className="space-y-4">
+        {escalations.map((item) => (
+          <Card key={item.incidentSerial} className="border-slate-800">
+            <div className="space-y-4">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-sm font-bold text-accent-soft">{item.incidentSerial}</span>
+                  <Badge tone={categoryTone(item.category)}>{item.category}</Badge>
+                  <span className="text-xs text-slate-300">
+                    Forwarded by <strong className="text-white">{item.forwardingOfficer}</strong> ({item.forwardedAt})
+                  </span>
+                </div>
+                <Badge
+                  tone={
+                    item.status === 'Hardship Quota Authorized'
+                      ? 'emerald'
+                      : item.status === 'SMS Dispatched'
+                      ? 'cyan'
+                      : 'amber'
+                  }
                 >
-                  {n.label}
-                </Chip>
-              ))}
-              <span className="ml-auto">
-                <Segmented
-                  label="Template language"
-                  value={lang}
-                  onChange={setLang}
-                  options={[
-                    { key: 'en', label: 'EN' },
-                    { key: 'sw', label: 'SW' }
-                  ]}
-                />
+                  {item.status}
+                </Badge>
+              </div>
+
+              {/* Constituent Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
+                <div>
+                  <span className="text-slate-200 uppercase font-bold text-[10px] block">Constituent Name &amp; Contact</span>
+                  <p className="font-semibold text-white text-sm mt-0.5">{item.constituentName}</p>
+                  <p className="font-mono text-slate-300">{item.phone}</p>
+                  <p className="text-slate-300 mt-1">
+                    Jurisdiction: <strong className="text-white">{item.subLocation}</strong>, {item.location} Location
+                  </p>
+                </div>
+                <div>
+                  <span className="text-slate-200 uppercase font-bold text-[10px] block">Chief's Dossier Reference</span>
+                  <p className="font-mono text-cyan-300 font-semibold text-sm mt-0.5">{item.chiefDossierRef}</p>
+                  <p className="text-slate-300 mt-1 italic">"{item.chiefFindings}"</p>
+                </div>
+              </div>
+
+              {/* Officer Notes */}
+              <div className="text-xs space-y-1">
+                <span className="text-slate-200 font-bold uppercase text-[10px] block">Forwarding Help Desk Officer Notes</span>
+                <p className="text-slate-200 bg-slate-900/80 p-3 rounded-lg border border-slate-800 leading-relaxed">
+                  {item.officerNotes}
+                </p>
+              </div>
+
+              {item.mcaActionNote ? (
+                <div className="rounded-lg bg-emerald-500/10 border border-emerald-400/30 p-2.5 text-xs text-emerald-200">
+                  <strong className="font-bold">Executive Action Executed:</strong> {item.mcaActionNote}
+                </div>
+              ) : null}
+
+              {/* Action Options */}
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-slate-800/80">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setActiveReply(item);
+                    setReplyText(`Hon. MCA Office: Dear ${item.constituentName.split(' ')[0]}, your bursary appeal ref ${item.incidentSerial} has been reviewed and verified for assistance.`);
+                  }}
+                  className="min-h-[44px] text-xs font-semibold"
+                >
+                  <Icon name="mail" size={14} className="mr-1.5" />
+                  Direct SMS Reply
+                </Button>
+
+                <Button
+                  variant="emerald"
+                  onClick={() => {
+                    setActiveQuota(item);
+                    setQuotaAmount('12000');
+                    setQuotaJustification(`Affirmative action under Special Hardship Quota following Chief Dossier ${item.chiefDossierRef}.`);
+                  }}
+                  className="min-h-[44px] text-xs font-semibold"
+                >
+                  <Icon name="shield" size={14} className="mr-1.5" />
+                  Authorize Hardship Quota Review
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Direct SMS Reply Modal */}
+      <Modal
+        open={!!activeReply}
+        onClose={() => setActiveReply(null)}
+        title={activeReply ? `Direct SMS Reply — ${activeReply.constituentName}` : 'SMS Reply'}
+      >
+        {activeReply ? (
+          <div className="space-y-4 text-xs">
+            <p className="text-slate-300">
+              Dispatches an authenticated SMS from the official <strong className="text-white">NG-CDF Tendeno/Sorget</strong> notification gateway to constituent mobile ({activeReply.phone}).
+            </p>
+            <div>
+              <FieldLabel htmlFor="sms-body">Message Body (Official Character Limit: 160)</FieldLabel>
+              <Textarea
+                id="sms-body"
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                rows={4}
+                className="font-mono text-xs"
+              />
+              <span className="text-[11px] text-slate-200 mt-1 block">
+                Length: {replyText.length} characters (1 SMS segment)
               </span>
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <FieldLabel htmlFor="bc-aud">Audience</FieldLabel>
-                <Select id="bc-aud" value={audience} onChange={(e) => setAudience(e.target.value)}>
-                  <option value="all">All applicant households</option>
-                  <option value="awarded">Awarded households</option>
-                  <option value="appeal">Households with Chief rejection</option>
-                  {subs.map((s) => (
-                    <option key={s} value={`sub:${s}`}>
-                      Sub-location: {s}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <FieldLabel htmlFor="bc-title">Notice title (internal)</FieldLabel>
-                <Input id="bc-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Bursary results" />
-              </div>
-            </div>
-            <div>
-              <FieldLabel htmlFor="bc-body">SMS text</FieldLabel>
-              <Textarea id="bc-body" value={body} onChange={(e) => setBody(e.target.value)} className="min-h-[140px]" />
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-700/80 bg-ink-950/40 p-3">
-              <p className="font-mono text-sm tabular-nums text-slate-100" aria-live="polite">
-                {seg.units} chars · <strong className={seg.segments > 2 ? 'text-amber-300' : 'text-emerald-300'}>{seg.segments} SMS</strong> × {num(recipients)} recipients = <strong className="text-white">{num(seg.segments * recipients)}</strong> messages
-              </p>
-              <Button variant="emerald" icon="megaphone" disabled={!canSend} onClick={() => void send()}>
-                Broadcast notice
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <Button variant="ghost" onClick={() => setActiveReply(null)} className="min-h-[44px]">
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSendDirectSms}
+                className="min-h-[44px]"
+              >
+                Send SMS Now
               </Button>
             </div>
           </div>
-        </Card>
+        ) : null}
+      </Modal>
 
-        <div className="space-y-4">
-          <Card title="Forwarded by Help Desk" subtitle={`${inbox.filter((m) => m.status !== 'Reviewed').length} awaiting MCA action`} flush>
-            <ul className="divide-y divide-slate-800/50">
-              {inbox.map((m) => (
-                <li key={m.id}>
-                  <button type="button" aria-expanded={openId === m.id} onClick={() => setOpenId(openId === m.id ? null : m.id)} className="flex min-h-[64px] w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-800/40">
-                    <Badge tone={m.priority === 'Urgent' ? 'red' : m.priority === 'Normal' ? 'amber' : 'neutral'}>{m.priority}</Badge>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-white">{m.subject}</span>
-                      <span className="block text-xs text-slate-200">
-                        {m.senderName} · {m.village} · <span className="font-mono">{m.forwardedAt}</span>
-                      </span>
-                    </span>
-                    {m.status === 'Reviewed' ? <Badge tone="emerald">Reviewed</Badge> : <Badge tone="amber">Pending</Badge>}
-                    <Icon name="chevronDown" size={16} className={cx('mt-1 transition-transform', openId === m.id && 'rotate-180')} />
-                  </button>
-                  {open?.id === m.id ? (
-                    <div className="space-y-3 bg-ink-950/40 px-4 py-3">
-                      <p className="text-sm text-slate-50">{m.message}</p>
-                      <p className="text-xs text-slate-200">
-                        Forwarded by {m.forwardedBy} · <span className="font-mono">{m.phone}</span>
-                      </p>
-                      <div className="flex gap-2">
-                        <Button variant="primary" icon="check" disabled={m.status === 'Reviewed'} onClick={() => void markReviewed(m)}>
-                          Mark reviewed
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          icon="megaphone"
-                          onClick={() => {
-                            setTitle(`Re: ${m.subject}`);
-                            setAudience(`sub:${m.village}`);
-                          }}
-                        >
-                          Notice to {m.village}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-            {inbox.length === 0 ? <EmptyState icon="message" title="Inbox is empty" /> : null}
-          </Card>
-
-          <Card title="Broadcast history" flush>
-            {history.length === 0 ? (
-              <EmptyState icon="megaphone" title="No broadcasts yet" body="Sent notices and their delivery state appear here." />
-            ) : (
-              <ul className="divide-y divide-slate-800/50">
-                {history.map((h) => (
-                  <li key={h.id} className="px-4 py-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-semibold text-white">{h.title}</p>
-                      <Badge tone={h.status === 'Dispatched' ? 'emerald' : 'amber'} pulse={h.status === 'Queued'}>
-                        {h.status}
-                      </Badge>
-                    </div>
-                    <p className="mt-0.5 text-xs text-slate-200">
-                      {h.audience} · <span className="font-mono tabular-nums">{num(h.recipients)}</span> recipients · <span className="font-mono tabular-nums">{h.segments}</span> SMS each · <span className="font-mono tabular-nums">{fmtDateTime(h.at)}</span>
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
-      </div>
-    </>
+      {/* Authorize Hardship Quota Modal */}
+      <Modal
+        open={!!activeQuota}
+        onClose={() => setActiveQuota(null)}
+        title={activeQuota ? `Authorize Special Hardship Quota — ${activeQuota.incidentSerial}` : 'Hardship Quota'}
+      >
+        {activeQuota ? (
+          <div className="space-y-4 text-xs">
+            <div className="rounded-xl bg-amber-500/10 border border-amber-400/30 p-3 text-amber-200 leading-relaxed">
+              <strong>Statutory Quota Governance:</strong> Hardship augmentations are funded via the Ward Hardship Reserve (Cap: KES 1,000,000). Every authorization is immutably stamped in the legislative audit log.
+            </div>
+            <div>
+              <FieldLabel htmlFor="quota-amt">Authorized Relief Amount (KES)</FieldLabel>
+              <input
+                id="quota-amt"
+                type="number"
+                value={quotaAmount}
+                onChange={(e) => setQuotaAmount(e.target.value)}
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white font-mono text-sm"
+              />
+            </div>
+            <div>
+              <FieldLabel htmlFor="quota-just">Executive Justification Note</FieldLabel>
+              <Textarea
+                id="quota-just"
+                value={quotaJustification}
+                onChange={(e) => setQuotaJustification(e.target.value)}
+                rows={3}
+                placeholder="Detail reason for emergency hardship allocation…"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <Button variant="ghost" onClick={() => setActiveQuota(null)} className="min-h-[44px]">
+                Cancel
+              </Button>
+              <Button
+                variant="emerald"
+                onClick={handleAuthorizeQuota}
+                className="min-h-[44px] font-semibold"
+              >
+                Confirm Hardship Authorization
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
+    </div>
   );
 }

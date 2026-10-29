@@ -16,6 +16,7 @@ export function MCARoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="applications" element={<ApplicationsPage />} />
+        <Route path="applications/anomalies" element={<Navigate to="/mca/applications?view=anomalies" replace />} />
         <Route path="disbursements" element={<DisbursementsPage />} />
         <Route path="appeals" element={<AppealsPage />} />
         <Route path="messages" element={<MessagesPage />} />
