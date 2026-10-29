@@ -79,8 +79,8 @@ export function DashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageHeader
           eyebrow={`Cycle ${CYCLE}`}
-          title="Executive Command Center"
-          description="Geopolitical equity, budget tracking and tranche liquidity governance."
+          title="Dashboard"
+          description="Macro statistical overview and budget tranche liquidity for Tendeno / Sorget Ward."
         />
 
         {/* Pinned Quick Action Button */}
@@ -92,7 +92,7 @@ export function DashboardPage() {
             className="w-full sm:w-auto font-semibold min-h-[44px] shadow-lg shadow-emerald-950/40"
           >
             <Icon name="download" size={16} className="mr-2" />
-            {downloading ? 'Compiling Official Roster…' : 'Download Official Beneficiary Allocation Manifest (PDF/Excel)'}
+            {downloading ? 'Compiling List…' : 'Download Applicants List (CSV/PDF)'}
           </Button>
         </div>
       </div>

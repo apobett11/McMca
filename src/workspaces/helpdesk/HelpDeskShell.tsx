@@ -147,21 +147,21 @@ export function HelpDeskShell() {
       brand: { title: 'Operational Support Terminal', division: 'Tendeno/Sorget Division', seal: 'shield' },
       groups: [
         {
-          title: 'Primary Operations',
+          title: 'Navigation',
           items: [
-            { to: '/helpdesk/dashboard', label: 'Triage Dashboard', icon: 'chart', count: stuck, countTone: 'red', end: true },
-            { to: '/helpdesk/documents', label: 'Document Studio', icon: 'fileCheck', count: failedOcr, countTone: 'amber' },
-            { to: '/helpdesk/messages', label: 'Dispatch Tickets', icon: 'message', count: openTickets, countTone: 'accent' }
+            { to: '/helpdesk/dashboard', label: 'Dashboard', icon: 'chart', count: stuck, countTone: 'red', end: true },
+            { to: '/helpdesk/applications', label: 'Applications', icon: 'users' },
+            { to: '/helpdesk/documents', label: 'Documents', icon: 'fileCheck', count: failedOcr, countTone: 'amber' },
+            { to: '/helpdesk/messages', label: 'Messages', icon: 'message', count: openTickets, countTone: 'accent' },
+            { to: '/helpdesk/profile', label: 'Profile', icon: 'pen' }
           ]
-        },
-        { title: 'Secondary Management', items: [{ to: '/helpdesk/applications', label: 'Applicant Registry', icon: 'users' }] },
-        { title: 'Audit & System Config', items: [{ to: '/helpdesk/profile', label: 'Session Console & Signatory', icon: 'pen' }] }
+        }
       ],
       footer: <ShiftCard />,
       banner: <ShiftBanner />,
       shortcuts: [
-        { label: 'Open Document Studio', icon: 'fileCheck', to: '/helpdesk/documents' },
-        { label: 'Compose SMS in Dispatch Tickets', icon: 'send', to: '/helpdesk/messages' }
+        { label: 'Open Documents', icon: 'fileCheck', to: '/helpdesk/documents' },
+        { label: 'Open Messages', icon: 'send', to: '/helpdesk/messages' }
       ],
       user: { name: off.name, role: 'Help Desk Officer' },
       search: searchHelpDesk,

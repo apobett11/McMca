@@ -112,7 +112,7 @@ export function DashboardPage() {
     <>
       <PageHeader
         eyebrow="Operational telemetry"
-        title="Triage Dashboard"
+        title="Dashboard"
         description="Clear registration bottlenecks, failed OCR and SLA breaches before applicants give up."
         actions={
           <Button variant="secondary" icon="refresh" onClick={() => window.dispatchEvent(new CustomEvent('mcmca_helpdesk_steps_updated'))}>

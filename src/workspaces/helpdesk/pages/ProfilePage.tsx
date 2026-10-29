@@ -141,7 +141,7 @@ export function ProfilePage() {
 
   return (
     <>
-      <PageHeader eyebrow="Session console" title="Officer Profile" description="Shift timesheets, signature specimen and your personal override ledger." />
+      <PageHeader eyebrow="Session console" title="Profile" description="Shift timesheets, signature specimen and your personal override ledger." />
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <div className="space-y-4">

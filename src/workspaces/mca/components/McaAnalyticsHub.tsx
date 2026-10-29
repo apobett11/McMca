@@ -9,18 +9,24 @@ import {
   type SubLocationMatrixRow
 } from '../../../data/scalableWardDataset.ts';
 import { Badge, Button, Card, DataTable, PageHeader, Segmented, Td, Th, rowCls, tbodyCls } from '../../ui/primitives.tsx';
+import { TrendChart } from '../../ui/charts.tsx';
 import { Icon } from '../../ui/icons.tsx';
 
 export function McaAnalyticsHub() {
   const [params, setParams] = useSearchParams();
   const activeTab = params.get('view') === 'anomalies' ? 'anomalies' : 'matrix';
-
+  const [chartMode, setChartMode] = useState<'bar' | 'line'>('bar');
   const [downloading, setDownloading] = useState(false);
 
   // Load aggregated datasets
   const matrixData = useMemo(() => getSubLocationMatrixStats(), []);
   const demographicData = useMemo(() => getDemographicAnalytics(), []);
   const anomalyData = useMemo(() => getAuditAnomaliesData(), []);
+
+  // Sub-Location Chart Series
+  const subLabels = matrixData.rows.map((r) => r.subLocation.replace('Tendeno ', 'T. ').replace('Sorget ', 'S. '));
+  const registeredValues = matrixData.rows.map((r) => r.totalRegistered);
+  const clearedValues = matrixData.rows.map((r) => r.clearedCount);
 
   // Export engine for Official Beneficiary Allocation Manifest
   const handleDownloadManifest = () => {
@@ -57,9 +63,9 @@ export function McaAnalyticsHub() {
     <div className="space-y-6 pb-12">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <PageHeader
-          eyebrow="Committee allocation & sign-off"
-          title="Allocation Suite"
-          description="Safe, high-speed allocation decisions with hard budget-cap enforcement."
+          eyebrow="Ward Analytics"
+          title="Applications"
+          description="Aggregated demographic distributions, comparative village matrices, and geopolitical fiscal equity."
         />
 
         {/* Pinned Executive Quick Action Button */}
@@ -76,7 +82,7 @@ export function McaAnalyticsHub() {
         </div>
       </div>
 
-      {/* Primary View Switcher: Comparative Matrix & Demographics vs. Audit Anomalies */}
+      {/* Primary View Switcher: Comparative Matrix & Demographics vs. Document & Ingestion Analytics */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
         <div className="flex items-center gap-2">
           <button
@@ -90,7 +96,7 @@ export function McaAnalyticsHub() {
             )}
           >
             <Icon name="scale" size={16} />
-            Comparative Matrix &amp; Demographics
+            Demographics &amp; Village Matrix
           </button>
           <button
             type="button"
@@ -102,8 +108,8 @@ export function McaAnalyticsHub() {
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
             )}
           >
-            <Icon name="shield" size={16} />
-            Audit &amp; Anomaly Oversight
+            <Icon name="fileCheck" size={16} />
+            Document &amp; Hanged Application Analytics
             <Badge tone="amber" className="ml-1 text-[10px]">
               {anomalyData.flaggedResidencyCount}
             </Badge>
@@ -116,9 +122,49 @@ export function McaAnalyticsHub() {
 
       {activeTab === 'matrix' ? (
         <>
+          {/* Sub-Location Intake & Clearance Chart with realistic axes and vertical grid lines */}
+          <Card
+            title="Sub-Location Intake vs. Clearance Parity"
+            subtitle="Comparing total registered intake volume against Chief verified beneficiaries across all ward sub-locations."
+            actions={
+              <Segmented
+                label="Chart type"
+                value={chartMode}
+                onChange={setChartMode}
+                options={[
+                  { key: 'bar', label: 'Grouped Bar' },
+                  { key: 'line', label: 'Line Trace' }
+                ]}
+              />
+            }
+          >
+            <div className="mt-2">
+              <TrendChart
+                mode={chartMode}
+                labels={subLabels}
+                height={220}
+                ariaLabel="Sub-location intake vs clearance"
+                series={[
+                  { key: 'reg', label: 'Registered Intake', color: '#38bdf8', values: registeredValues },
+                  { key: 'clr', label: 'Cleared Beneficiaries', color: '#34d399', values: clearedValues }
+                ]}
+              />
+              <div className="mt-3 flex items-center justify-center gap-6 text-xs text-slate-300">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#38bdf8]" />
+                  Total Registered Intake
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#34d399]" />
+                  Cleared &amp; Verified Beneficiaries
+                </span>
+              </div>
+            </div>
+          </Card>
+
           {/* SECTION 1: COMPARATIVE VILLAGE & SUB-LOCATION MATRIX */}
           <Card
-            title="Comparative Village & Sub-Location Matrix (Analytical Comparative Table)"
+            title="Comparative Village &amp; Sub-Location Matrix (Analytical Comparative Table)"
             subtitle="Aggregated statistical ledger of intake volumes, clearance efficiency, educational splits, and fiscal parity."
           >
             <div className="overflow-x-auto rounded-xl border border-slate-800">
@@ -371,9 +417,91 @@ export function McaAnalyticsHub() {
             </Card>
           </div>
 
+          {/* Ingestion Funnel Drop-off & Document Quality Analytics */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Hanged Applications Registration Funnel Drop-off */}
+            <Card
+              title="Registration Intake Funnel &amp; Hanged Cases"
+              subtitle="Funnel progress tracking where applicants stall before reaching Chief verification."
+            >
+              <div className="space-y-3.5 mt-2">
+                {[
+                  { step: 'Step 1: Personal Information', pct: 100, count: 1260, drop: 0, status: 'Completed' },
+                  { step: 'Step 2: Guardian & Custody Link', pct: 94.2, count: 1187, drop: 73, status: '73 Awaiting ID Proof' },
+                  { step: 'Step 3: Family & Income Declaration', pct: 89.5, count: 1128, drop: 59, status: '59 Incomplete' },
+                  { step: 'Step 4: Institution & Fee Verification', pct: 84.1, count: 1060, drop: 68, status: '68 Fee Audit' },
+                  { step: 'Step 5: Chief Submission & Baraza', pct: 81.4, count: 1026, drop: 34, status: 'Active Verified' }
+                ].map((item, idx) => (
+                  <div key={item.step} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-100">{item.step}</span>
+                      <span className="font-mono text-slate-300">
+                        {item.count} applicants ({item.pct}%)
+                        {item.drop > 0 ? <span className="text-amber-300 ml-1.5">(-{item.drop} stalled)</span> : null}
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full rounded-full bg-slate-800 overflow-hidden">
+                      <div
+                        className={cx(
+                          'h-full rounded-full transition-all duration-500',
+                          idx === 4 ? 'bg-emerald-400' : idx >= 2 ? 'bg-accent' : 'bg-cyan-400'
+                        )}
+                        style={{ width: `${item.pct}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <p className="text-xs text-slate-300 pt-2 border-t border-slate-800">
+                  Total stalled / hanged sign-ups in progress: <strong className="text-amber-300 font-mono">234 applicants</strong>. Help Desk automated SMS reminders dispatched.
+                </p>
+              </div>
+            </Card>
+
+            {/* Document Quality & Machine-Vision OCR Analytics */}
+            <Card
+              title="Document Upload Quality &amp; OCR Analytics"
+              subtitle="Machine-vision inspection metrics for student birth certificates and fees slips."
+            >
+              <div className="space-y-3 mt-2">
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+                    <span className="text-[10px] uppercase font-bold text-slate-300 block">Total Documents Analyzed</span>
+                    <p className="font-mono text-xl font-bold text-white mt-1">2,480</p>
+                    <span className="text-[11px] text-slate-300">Birth certs &amp; fee structures</span>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/30 bg-slate-950/60 p-3">
+                    <span className="text-[10px] uppercase font-bold text-slate-300 block">Machine Vision Pass</span>
+                    <p className="font-mono text-xl font-bold text-emerald-300 mt-1">91.2%</p>
+                    <span className="text-[11px] text-emerald-400">2,262 Clean scans</span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 space-y-2 text-xs">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200 block">Quality Flag Breakdowns</span>
+                  <div className="flex items-center justify-between text-slate-200">
+                    <span>Blurry / Unreadable Scans</span>
+                    <span className="font-mono text-amber-300 font-bold">142 (5.7%)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-200">
+                    <span>Missing School / Chief Stamp</span>
+                    <span className="font-mono text-amber-300 font-bold">76 (3.1%)</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-200">
+                    <span>NEMIS / ID Text Mismatch</span>
+                    <span className="font-mono text-red-300 font-bold">38 (1.5%)</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-300">
+                  All flagged documents are reviewed by Help Desk via dual-pane canvas with zoom, invert &amp; re-upload requests.
+                </p>
+              </div>
+            </Card>
+          </div>
+
           <Card
-            title="Geographic Anomaly Clusters & Boundary Dispute Telemetry"
-            subtitle="Detected integrity alerts requiring administrative resolution by Area Chief & Ward Registrar."
+            title="Geographic Anomaly Clusters &amp; Boundary Dispute Telemetry"
+            subtitle="Detected integrity alerts requiring administrative resolution by Area Chief &amp; Ward Registrar."
           >
             <div className="space-y-3">
               {anomalyData.clusters.map((cluster) => (

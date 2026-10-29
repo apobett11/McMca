@@ -103,7 +103,7 @@ export function ProfilePage() {
 
   return (
     <>
-      <PageHeader eyebrow="Committee vault" title="Profile & Signatories" description="Multi-signature committee configuration, cryptographic sign-off keys and hard budget limits." />
+      <PageHeader eyebrow="Committee vault" title="Profile" description="Multi-signature committee configuration, cryptographic sign-off keys and hard budget limits." />
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <div className="space-y-4">

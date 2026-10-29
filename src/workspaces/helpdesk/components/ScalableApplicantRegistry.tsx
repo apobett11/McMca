@@ -49,7 +49,7 @@ export function ScalableApplicantRegistry() {
   // Server-side cursor/range pagination & sorting
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<25 | 50>(25);
-  const [sortBy, setSortBy] = useState<'age' | 'submittedAt' | 'village' | 'feeBalance' | 'name' | 'serial'>('submittedAt');
+  const [sortBy, setSortBy] = useState<'age' | 'gender' | 'submittedAt' | 'village' | 'feeBalance' | 'name' | 'serial'>('submittedAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Loading & Inspection
@@ -137,9 +137,9 @@ export function ScalableApplicantRegistry() {
   return (
     <div className="relative pb-24 md:pb-8">
       <PageHeader
-        eyebrow="Registry & dossiers"
-        title="Applicant Registry"
-        description="Instant applicant lookup and family custody verification."
+        eyebrow="Registry"
+        title="Applications"
+        description="Administrative boundary ingestion funnel and scalable applicant ledger (Tendeno & Sorget Ward)."
       />
 
       {/* Telemetry KPI Strip */}
@@ -408,6 +408,16 @@ export function ScalableApplicantRegistry() {
                   )}
                 >
                   Age {sortBy === 'age' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggleSort('gender')}
+                  className={cx(
+                    'rounded px-2 py-1 font-medium transition-colors',
+                    sortBy === 'gender' ? 'bg-accent/20 text-accent-soft' : 'text-slate-300 hover:text-white'
+                  )}
+                >
+                  Gender {sortBy === 'gender' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                 </button>
                 <button
                   type="button"

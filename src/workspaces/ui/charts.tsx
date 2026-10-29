@@ -40,6 +40,20 @@ export function TrendChart({
   return (
     <div>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={ariaLabel} onMouseLeave={() => setHover(null)}>
+        {/* Vertical grid lines & Axis structure */}
+        {labels.map((_, i) => (
+          <line
+            key={`vgrid-${i}`}
+            x1={x(i)}
+            x2={x(i)}
+            y1={pad.t}
+            y2={H - pad.b}
+            stroke="#1e293b"
+            strokeDasharray="2 3"
+            opacity="0.7"
+          />
+        ))}
+
         {ticks.map((t) => (
           <g key={t}>
             <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="#1e293b" strokeDasharray={t === 0 ? undefined : '3 4'} />
@@ -48,6 +62,11 @@ export function TrendChart({
             </text>
           </g>
         ))}
+
+        {/* X and Y Axis solid boundary lines */}
+        <line x1={pad.l} x2={W - pad.r} y1={H - pad.b} y2={H - pad.b} stroke="#334155" strokeWidth="1.2" />
+        <line x1={pad.l} x2={pad.l} y1={pad.t} y2={H - pad.b} stroke="#334155" strokeWidth="1.2" />
+
         {labels.map((l, i) => (
           <text key={l} x={x(i)} y={H - 8} textAnchor="middle" className="fill-slate-300" fontSize="10.5">
             {l}

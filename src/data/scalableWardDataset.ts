@@ -257,7 +257,7 @@ export interface FetchApplicantsQuery {
   village?: string;
   page?: number;
   pageSize?: number;
-  sortBy?: 'age' | 'submittedAt' | 'village' | 'feeBalance' | 'name' | 'serial';
+  sortBy?: 'age' | 'submittedAt' | 'village' | 'gender' | 'feeBalance' | 'name' | 'serial';
   sortOrder?: 'asc' | 'desc';
   onlyVerifiedPool?: boolean;
 }
@@ -358,6 +358,7 @@ export function fetchScalableApplicants(query: FetchApplicantsQuery): FetchAppli
   rows.sort((a, b) => {
     let cmp = 0;
     if (sortBy === 'age') cmp = a.age - b.age;
+    else if (sortBy === 'gender') cmp = a.gender.localeCompare(b.gender);
     else if (sortBy === 'feeBalance') cmp = a.feeBalance - b.feeBalance;
     else if (sortBy === 'village') cmp = a.village.localeCompare(b.village);
     else if (sortBy === 'name') cmp = a.fullName.localeCompare(b.fullName);

@@ -149,9 +149,9 @@ export function MessagesPage() {
   return (
     <div className="space-y-6 pb-12">
       <PageHeader
-        eyebrow="Constituent broadcast & official notices"
-        title="Official Notices"
-        description="Send targeted bulk SMS notices to verified applicant households, and review forwarded community issues."
+        eyebrow="Help Desk Escalations"
+        title="Messages"
+        description="Inquiries, boundary disputes and hardship cases escalated directly from Help Desk officers."
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

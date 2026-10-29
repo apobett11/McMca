@@ -251,7 +251,7 @@ export function DocumentsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Quality control" title="Document Quality Studio" description="Inspect, validate and resolve flagged uploads without leaving the queue." />
+      <PageHeader eyebrow="Quality control" title="Documents" description="Inspect, validate and resolve flagged uploads without leaving the queue." />
 
       <div className="grid min-h-[640px] grid-cols-1 gap-4 lg:h-[calc(100vh-190px)] lg:grid-cols-[35%_minmax(0,1fr)]">
         {/* Left queue */}

@@ -108,7 +108,7 @@ export function MessagesPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Dispatch" title="Ticket Console" description="Reply to families, escalate to the MCA, and stay inside the 2-hour SLA." />
+      <PageHeader eyebrow="Dispatch" title="Messages" description="Reply to families, escalate to the MCA, and stay inside the 2-hour SLA." />
 
       <div className="grid min-h-[620px] grid-cols-1 gap-4 lg:h-[calc(100vh-190px)] lg:grid-cols-[320px_minmax(0,1fr)_320px]">
         {/* Threads */}

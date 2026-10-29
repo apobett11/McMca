@@ -78,26 +78,21 @@ export function MCAShell() {
       brand: { title: 'Legislative Emerald Suite', division: 'Tendeno/Sorget Division', seal: 'bank' },
       groups: [
         {
-          title: 'Primary Operations',
+          title: 'Navigation',
           items: [
-            { to: '/mca/dashboard', label: 'Command Center', icon: 'chart', end: true },
-            { to: '/mca/applications', label: 'Allocation Suite', icon: 'scale', count: awaiting, countTone: 'accent' },
-            { to: '/mca/appeals', label: 'Appeals Bench', icon: 'shield', count: appeals, countTone: 'amber' }
-          ]
-        },
-        {
-          title: 'Secondary Management',
-          items: [
+            { to: '/mca/dashboard', label: 'Dashboard', icon: 'chart', end: true },
+            { to: '/mca/applications', label: 'Applications', icon: 'scale' },
+            { to: '/mca/messages', label: 'Messages', icon: 'megaphone' },
             { to: '/mca/disbursements', label: 'Disbursements', icon: 'cheque', count: drafts, countTone: 'amber' },
-            { to: '/mca/messages', label: 'Official Notices', icon: 'megaphone' }
+            { to: '/mca/appeals', label: 'Appeals', icon: 'shield', count: appeals, countTone: 'amber' },
+            { to: '/mca/profile', label: 'Profile', icon: 'key' }
           ]
-        },
-        { title: 'Audit & System Config', items: [{ to: '/mca/profile', label: 'Committee Vault', icon: 'key' }] }
+        }
       ],
       footer: <TrancheMeter committedPct={pct} remaining={remaining} warn={pct >= t.warn_threshold_pct} />,
       banner: <QuorumBanner />,
       shortcuts: [
-        { label: 'Open Allocation Suite', icon: 'scale', to: '/mca/applications' },
+        { label: 'Open Applications', icon: 'scale', to: '/mca/applications' },
         { label: 'Open Disbursements', icon: 'cheque', to: '/mca/disbursements' }
       ],
       user: { name: prof.fullName, role: 'Member of County Assembly' },
