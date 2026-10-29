@@ -1,5 +1,4 @@
 import React from 'react';
-import { Icon } from '../../../components/Icon.jsx';
 
 export function TableSubpage({
   title,
@@ -21,47 +20,75 @@ export function TableSubpage({
         boxShadow: '0 12px 36px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(221, 187, 106, 0.1)',
         borderRadius: 16,
         padding: 0,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        position: 'relative'
       }}
     >
-      {/* Top Header of the Whole Popup Card */}
+      {/* Top Header: Title, Category & Strictly Pinned Top-Right Close Button */}
       <div
         className="table-subpage__header"
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 12,
-          padding: '16px 22px',
+          gap: 16,
+          padding: '16px 20px',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          background: 'rgba(255, 255, 255, 0.02)'
+          background: 'rgba(255, 255, 255, 0.02)',
+          position: 'relative'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: '#94a3b8' }}>
-            <span>{category}</span>
-            <span>/</span>
-            <span style={{ color: 'var(--gold-champagne, #ddbb6a)', fontWeight: 600 }}>{title}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0, flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.76rem', color: '#94a3b8' }}>
+              <span>{category}</span>
+              <span>/</span>
+              <span style={{ color: 'var(--gold-champagne, #ddbb6a)', fontWeight: 600 }}>{title}</span>
+            </div>
+            {badgeText && (
+              <span className={`stitch-status-badge stitch-status-badge--${badgeTone}`} style={{ fontSize: '0.72rem' }}>
+                {badgeText}
+              </span>
+            )}
           </div>
-          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#fff' }}>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: '1.2rem',
+              fontWeight: 700,
+              color: '#ffffff',
+              letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
             {title}
           </h2>
-          {badgeText && (
-            <span className={`stitch-status-badge stitch-status-badge--${badgeTone}`} style={{ fontSize: '0.74rem' }}>
-              {badgeText}
-            </span>
+          {subtitle && (
+            <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.35 }}>
+              {subtitle}
+            </p>
           )}
         </div>
 
-        {/* Action (only if need be) & Small Icon Close Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Top-Right Action Controls & Close Button */}
+        <div
+          className="table-subpage__top-actions"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            marginLeft: 'auto',
+            flexShrink: 0
+          }}
+        >
           {action}
           <button
             type="button"
             onClick={onClose}
             className="hd-close-icon-btn"
-            aria-label="Close sub-page table and return to overview"
+            aria-label="Close table view and return to overview"
             title="Close"
           >
             ✕
@@ -69,32 +96,33 @@ export function TableSubpage({
         </div>
       </div>
 
-      {/* Inner Card within Popup: Table heads and sorts below it */}
+      {/* Inner Card Section for Toolbar and Table Content */}
       <div
+        className="table-subpage__body"
         style={{
-          margin: '18px 20px',
+          margin: '14px 16px',
           background: '#0b1422',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           borderRadius: 12,
           overflow: 'hidden'
         }}
       >
-        {/* Toolbar / Sorts Bar */}
+        {/* Consolidated Inline Toolbar at the Top of the Table */}
         {toolbar && (
           <div
             className="table-subpage__toolbar"
             style={{
-              padding: '14px 18px',
+              padding: '12px 16px',
               borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-              background: 'rgba(255, 255, 255, 0.02)'
+              background: 'rgba(255, 255, 255, 0.015)'
             }}
           >
             {toolbar}
           </div>
         )}
 
-        {/* Table Content */}
-        <div className="table-subpage__content" style={{ padding: 16 }}>
+        {/* Table Content: flush with container */}
+        <div className="table-subpage__content" style={{ padding: 0 }}>
           {children}
         </div>
       </div>

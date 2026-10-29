@@ -1,0 +1,227 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Scoped reset (replaces Tailwind preflight, which is disabled so legacy portals
+ * keep rendering). `:where()` gives zero specificity: every utility class wins.
+ */
+:where(.ws),
+:where(.ws) *,
+:where(.ws) *::before,
+:where(.ws) *::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: #1e293b;
+}
+
+:where(.ws) {
+  --ws-accent: 34 211 238;
+  --ws-accent-soft: 103 232 249;
+  --ws-accent-deep: 6 182 212;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Help Desk: Tactical Cyan */
+.ws-helpdesk {
+  --ws-accent: 34 211 238; /* cyan-400 : solid fills with navy text (AAA) */
+  --ws-accent-soft: 103 232 249; /* cyan-300 : text on navy (AAA) */
+  --ws-accent-deep: 6 182 212; /* #06b6d4 */
+}
+
+/* MCA: Legislative Emerald */
+.ws-mca {
+  --ws-accent: 52 211 153; /* emerald-400 */
+  --ws-accent-soft: 110 231 183; /* emerald-300 */
+  --ws-accent-deep: 5 150 105; /* #059669 */
+}
+
+:where(.ws) h1,
+:where(.ws) h2,
+:where(.ws) h3,
+:where(.ws) h4,
+:where(.ws) h5,
+:where(.ws) h6,
+:where(.ws) p,
+:where(.ws) figure,
+:where(.ws) dl,
+:where(.ws) dd,
+:where(.ws) blockquote {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+:where(.ws) ul,
+:where(.ws) ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:where(.ws) a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:where(.ws) table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  text-indent: 0;
+}
+
+:where(.ws) button,
+:where(.ws) input,
+:where(.ws) select,
+:where(.ws) textarea {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  background-image: none;
+  border-radius: 0;
+  box-shadow: none;
+  text-transform: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+:where(.ws) button {
+  cursor: pointer;
+  text-align: inherit;
+}
+
+:where(.ws) button:disabled {
+  cursor: not-allowed;
+}
+
+:where(.ws) select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23cbd5e1'%3E%3Cpath d='M5.5 7.5 10 12l4.5-4.5'  stroke='%23cbd5e1' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1.1rem;
+  padding-right: 2rem !important;
+}
+
+:where(.ws) img,
+:where(.ws) svg,
+:where(.ws) canvas {
+  display: block;
+  vertical-align: middle;
+}
+
+:where(.ws) ::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+/* Legacy styles.css defines a global `.block { margin-bottom }` that collides with
+   Tailwind's `block` utility – neutralise it inside workspaces only. */
+.ws .block {
+  margin-bottom: 0;
+}
+
+/* Range slider (appearance is reset above, so the track/thumb are drawn explicitly) */
+.ws input[type='range'] {
+  height: 24px;
+  background: transparent;
+}
+.ws input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #334155;
+}
+.ws input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #334155;
+}
+.ws input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  border-radius: 999px;
+  background: #fbbf24;
+  border: 2px solid #030712;
+  box-shadow: 0 0 0 1px #fbbf24;
+}
+.ws input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fbbf24;
+  border: 2px solid #030712;
+}
+
+/* Pin the action column so it is always reachable in wide data grids */
+.ws td.ws-stick-r,
+.ws th.ws-stick-r {
+  position: sticky;
+  right: 0;
+  background-color: #0b1329;
+  box-shadow: -14px 0 14px -14px rgba(0, 0, 0, 0.7);
+}
+.ws td.ws-stick-r {
+  z-index: 1;
+}
+.ws th.ws-stick-r {
+  z-index: 3;
+}
+
+/* Accessible, always-visible keyboard focus (WCAG 2.4.7 / 2.4.11) */
+.ws :focus-visible {
+  outline: 2px solid rgb(var(--ws-accent-soft));
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.ws input:focus-visible,
+.ws select:focus-visible,
+.ws textarea:focus-visible {
+  outline-offset: 0;
+}
+
+.ws ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.ws ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.ws ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Sticky-header tables need a stable stacking context */
+.ws .ws-sticky-head thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws *,
+  .ws *::before,
+  .ws *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media print {
+  .ws-noprint {
+    display: none !important;
+  }
+}

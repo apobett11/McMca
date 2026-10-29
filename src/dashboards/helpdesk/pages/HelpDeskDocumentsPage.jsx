@@ -267,65 +267,77 @@ export function HelpDeskDocumentsPage() {
             badgeText={`${filteredSteps.length} Applicants`}
             badgeTone="review"
             toolbar={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                    {/* Pre-determined Location Select */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <label htmlFor="step-loc-sel" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)' }}>Location:</label>
-                      <select
-                        id="step-loc-sel"
-                        value={stepLocation}
-                        onChange={(e) => setStepLocation(e.target.value)}
-                        className="select-filter"
-                        style={{ padding: '6px 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                      >
-                        <option value="all">All Locations</option>
-                        {PREDETERMINED_LOCATIONS.map((loc) => (
-                          <option key={loc} value={loc}>{loc}</option>
-                        ))}
-                      </select>
-                    </div>
+              <div className="hd-table-toolbar">
+                {/* Search input with icon */}
+                <div className="hd-table-toolbar__search-group">
+                  <span className="hd-table-search-icon" aria-hidden="true">
+                    <Icon name="search" size={16} />
+                  </span>
+                  <input
+                    type="text"
+                    value={stepSearch}
+                    onChange={(e) => setStepSearch(e.target.value)}
+                    placeholder="Search applicant name, ID, phone, school..."
+                    className="hd-table-search-input"
+                  />
+                </div>
 
-                    {/* Step Status Filter */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <label htmlFor="step-status-sel" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)' }}>Step Status:</label>
-                      <select
-                        id="step-status-sel"
-                        value={stepStatusFilter}
-                        onChange={(e) => setStepStatusFilter(e.target.value)}
-                        style={{ padding: '6px 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                      >
-                        <option value="all">All Statuses</option>
-                        <option value="incomplete">Hanging / Incomplete (&lt;5)</option>
-                        <option value="complete">Fully Completed (5/5)</option>
-                      </select>
-                    </div>
+                {/* Consolidated Grouped Dropdowns: Inline at top of table */}
+                <div className="hd-table-toolbar__filters">
+                  {/* Step Status Dropdown Group */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="step-status-sel" className="hd-filter-label">Status:</label>
+                    <select
+                      id="step-status-sel"
+                      value={stepStatusFilter}
+                      onChange={(e) => setStepStatusFilter(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="incomplete">Incomplete / Hanging (&lt;5)</option>
+                      <option value="complete">Fully Completed (5/5)</option>
+                    </select>
+                  </div>
 
-                    {/* Sort Field Selector */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <label htmlFor="step-sort-sel" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)' }}>Sort By:</label>
-                      <select
-                        id="step-sort-sel"
-                        value={stepSortField}
-                        onChange={(e) => setStepSortField(e.target.value)}
-                        style={{ padding: '6px 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                      >
-                        <option value="stepsCount">Level Reached (Steps Covered)</option>
-                        <option value="totalDocuments">Total Documents Attached</option>
-                        <option value="applicantName">Applicant Name</option>
-                        <option value="lastActiveDate">Last Active Date</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => setStepSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
-                        className="btn btn--secondary"
-                        style={{ padding: '6px 10px', fontSize: '0.8rem' }}
-                        title="Toggle Ascending/Descending"
-                      >
-                        {stepSortOrder === 'asc' ? '▲ Asc' : '▼ Desc'}
-                      </button>
-                    </div>
+                  {/* Location Dropdown Group */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="step-loc-sel" className="hd-filter-label">Location:</label>
+                    <select
+                      id="step-loc-sel"
+                      value={stepLocation}
+                      onChange={(e) => setStepLocation(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="all">All Locations</option>
+                      {PREDETERMINED_LOCATIONS.map((loc) => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Sort Dropdown Group with Inline Direction Toggle */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="step-sort-sel" className="hd-filter-label">Sort:</label>
+                    <select
+                      id="step-sort-sel"
+                      value={stepSortField}
+                      onChange={(e) => setStepSortField(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="stepsCount">Level Reached (Steps)</option>
+                      <option value="totalDocuments">Documents Attached</option>
+                      <option value="applicantName">Applicant Name</option>
+                      <option value="lastActiveDate">Last Active Date</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setStepSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
+                      className="hd-sort-direction-btn"
+                      title={stepSortOrder === 'asc' ? 'Ascending (Click for Descending)' : 'Descending (Click for Ascending)'}
+                      aria-label="Toggle sort order"
+                    >
+                      {stepSortOrder === 'asc' ? '▲ Asc' : '▼ Desc'}
+                    </button>
                   </div>
 
                   {/* Mass Broadcast Shortcut from Subpage */}
@@ -333,51 +345,39 @@ export function HelpDeskDocumentsPage() {
                     type="button"
                     onClick={() => setMassModalOpen(true)}
                     className="btn btn--primary"
-                    style={{ padding: '8px 14px', fontSize: '0.85rem' }}
+                    style={{ padding: '6px 12px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
                   >
-                    <Icon name="support" size={16} />
-                    Send Mass Reminder
+                    <Icon name="support" size={14} />
+                    Mass Reminder
                   </button>
-                </div>
-
-                {/* Search Bar */}
-                <div>
-                  <input
-                    type="text"
-                    value={stepSearch}
-                    onChange={(e) => setStepSearch(e.target.value)}
-                    placeholder="Search applicant name, national ID, phone, or school..."
-                    style={{
-                      width: '100%',
-                      padding: '8px 14px',
-                      borderRadius: 8,
-                      background: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text)',
-                      fontSize: '0.9rem'
-                    }}
-                  />
                 </div>
               </div>
             }
           >
             <div className="data-table-wrap">
               <table className="data-table" aria-label="Applicant step completion queue">
+                <colgroup>
+                  <col style={{ width: '24%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '20%' }} />
+                  <col style={{ width: '18%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '14%' }} />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th scope="col">Applicant Name &amp; ID</th>
+                    <th scope="col">Applicant &amp; ID</th>
                     <th scope="col">Location</th>
                     <th scope="col">Steps Covered (Level Reached)</th>
                     <th scope="col">Hanging Steps Left</th>
                     <th scope="col">Docs Attached</th>
-                    <th scope="col">Registration Status</th>
-                    <th scope="col">Action</th>
+                    <th scope="col" style={{ textAlign: 'right' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredSteps.length === 0 ? (
                     <tr>
-                      <td colSpan="7" style={{ textAlign: 'center', padding: 32, color: 'var(--text-2)' }}>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: 32, color: 'var(--text-2)' }}>
                         No applicants found matching the selected filters.
                       </td>
                     </tr>
@@ -388,11 +388,15 @@ export function HelpDeskDocumentsPage() {
                       return (
                         <tr key={row.id} className={!isComplete ? 'data-table__row--attention' : ''}>
                           <td>
-                            <strong>{row.applicantName}</strong>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--text-2)' }}>
-                              ID: {row.nationalId} &bull; Tel: {row.phone}
+                            <div className="hd-cell-primary" title={row.applicantName}>
+                              {row.applicantName}
                             </div>
-                            <div style={{ fontSize: '0.76rem', color: 'var(--text-2)' }}>
+                            <div className="hd-cell-sub">
+                              <code className="hd-code-sub">ID: {row.nationalId}</code>
+                              <span>&bull;</span>
+                              <span title={row.phone}>{row.phone}</span>
+                            </div>
+                            <div className="hd-cell-sub" title={row.school}>
                               {row.school}
                             </div>
                           </td>
@@ -403,11 +407,12 @@ export function HelpDeskDocumentsPage() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                               <div
                                 style={{
-                                  width: 90,
-                                  height: 8,
+                                  width: 80,
+                                  height: 6,
                                   borderRadius: 999,
                                   background: 'rgba(148, 163, 184, 0.2)',
-                                  overflow: 'hidden'
+                                  overflow: 'hidden',
+                                  flexShrink: 0
                                 }}
                               >
                                 <div
@@ -419,37 +424,35 @@ export function HelpDeskDocumentsPage() {
                                   }}
                                 />
                               </div>
-                              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                                {row.stepsCount} / {row.totalSteps} ({pct}%)
+                              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f8fafc', fontFamily: 'var(--font-mono)' }}>
+                                {row.stepsCount}/{row.totalSteps} ({pct}%)
                               </span>
                             </div>
                           </td>
                           <td>
                             {row.hangingSteps.length === 0 ? (
-                              <span style={{ color: '#22C55E', fontSize: '0.82rem', fontWeight: 600 }}>
-                                None &bull; Ready
+                              <span style={{ color: '#22C55E', fontSize: '0.78rem', fontWeight: 600 }}>
+                                Complete &bull; Ready
                               </span>
                             ) : (
-                              <span style={{ color: '#F87171', fontSize: '0.82rem' }}>
-                                {row.hangingSteps.map(k => k.replace(/_/g, ' ')).join(', ')}
+                              <span
+                                className="hd-reason-tag"
+                                title={row.hangingSteps.map(k => k.replace(/_/g, ' ')).join(', ')}
+                              >
+                                {row.hangingSteps.length} Steps Left
                               </span>
                             )}
                           </td>
                           <td>
-                            <span className="badge badge--neutral">
+                            <span className="badge badge--neutral" style={{ fontFamily: 'var(--font-mono)' }}>
                               {row.totalDocuments} / 4 docs
                             </span>
                           </td>
-                          <td>
-                            <span className={`stitch-status-badge ${isComplete ? 'stitch-status-badge--admitted' : 'stitch-status-badge--review'}`}>
-                              {row.registrationStatus}
-                            </span>
-                          </td>
-                          <td>
+                          <td style={{ textAlign: 'right' }}>
                             {isComplete ? (
-                              <span style={{ color: 'var(--text-2)', fontSize: '0.8rem' }}>On file</span>
+                              <span style={{ color: '#22c55e', fontSize: '0.78rem', fontWeight: 600 }}>Ready</span>
                             ) : row.reminded ? (
-                              <span className="badge badge--info" style={{ fontSize: '0.75rem' }}>
+                              <span className="badge badge--info" style={{ fontSize: '0.74rem' }}>
                                 Reminded
                               </span>
                             ) : (
@@ -457,7 +460,7 @@ export function HelpDeskDocumentsPage() {
                                 type="button"
                                 onClick={() => handleIndividualReminder(row.id, row.applicantName)}
                                 className="btn btn--secondary"
-                                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                                style={{ padding: '3px 8px', fontSize: '0.74rem', whiteSpace: 'nowrap' }}
                               >
                                 Remind
                               </button>
@@ -485,99 +488,104 @@ export function HelpDeskDocumentsPage() {
             badgeText={`${filteredUploads.length} Failed Uploads`}
             badgeTone="declined"
             toolbar={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                    {/* Pre-determined Location Select */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <label htmlFor="upload-loc-sel" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)' }}>Location:</label>
-                      <select
-                        id="upload-loc-sel"
-                        value={uploadLocation}
-                        onChange={(e) => setUploadLocation(e.target.value)}
-                        style={{ padding: '6px 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                      >
-                        <option value="all">All Locations</option>
-                        {PREDETERMINED_LOCATIONS.map((loc) => (
-                          <option key={loc} value={loc}>{loc}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Document Type Filter */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <label htmlFor="upload-type-sel" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)' }}>Doc Type:</label>
-                      <select
-                        id="upload-type-sel"
-                        value={uploadDocType}
-                        onChange={(e) => setUploadDocType(e.target.value)}
-                        style={{ padding: '6px 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                      >
-                        <option value="all">All Document Types</option>
-                        <option value="Fee Structure">Fee Structure</option>
-                        <option value="Student ID / Birth Certificate">Student ID / Birth Cert</option>
-                        <option value="Admission Letter">Admission Letter</option>
-                        <option value="Guardian Death / Disability Cert">Death / Disability Cert</option>
-                        <option value="Guardian Consent Form">Guardian Consent Form</option>
-                      </select>
-                    </div>
-
-                    {/* Sort Selector */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <label htmlFor="upload-sort-sel" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-2)' }}>Sort:</label>
-                      <select
-                        id="upload-sort-sel"
-                        value={uploadSortField}
-                        onChange={(e) => setUploadSortField(e.target.value)}
-                        style={{ padding: '6px 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
-                      >
-                        <option value="uploadDate">Upload Date</option>
-                        <option value="applicantName">Applicant Name</option>
-                        <option value="documentType">Document Type</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => setUploadSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
-                        className="btn btn--secondary"
-                        style={{ padding: '6px 10px', fontSize: '0.8rem' }}
-                      >
-                        {uploadSortOrder === 'asc' ? '▲' : '▼'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
+              <div className="hd-table-toolbar">
+                {/* Search input with icon */}
+                <div className="hd-table-toolbar__search-group">
+                  <span className="hd-table-search-icon" aria-hidden="true">
+                    <Icon name="search" size={16} />
+                  </span>
                   <input
                     type="text"
                     value={uploadSearch}
                     onChange={(e) => setUploadSearch(e.target.value)}
                     placeholder="Search applicant name, failure reason, or file name..."
-                    style={{
-                      width: '100%',
-                      padding: '8px 14px',
-                      borderRadius: 8,
-                      background: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text)',
-                      fontSize: '0.9rem'
-                    }}
+                    className="hd-table-search-input"
                   />
+                </div>
+
+                {/* Consolidated Grouped Dropdowns: Inline at top of table */}
+                <div className="hd-table-toolbar__filters">
+                  {/* Location Dropdown Group */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="upload-loc-sel" className="hd-filter-label">Location:</label>
+                    <select
+                      id="upload-loc-sel"
+                      value={uploadLocation}
+                      onChange={(e) => setUploadLocation(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="all">All Locations</option>
+                      {PREDETERMINED_LOCATIONS.map((loc) => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Document Type Dropdown Group */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="upload-type-sel" className="hd-filter-label">Doc Type:</label>
+                    <select
+                      id="upload-type-sel"
+                      value={uploadDocType}
+                      onChange={(e) => setUploadDocType(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="all">All Document Types</option>
+                      <option value="Fee Structure">Fee Structure</option>
+                      <option value="Student ID / Birth Certificate">Student ID / Birth Cert</option>
+                      <option value="Admission Letter">Admission Letter</option>
+                      <option value="Guardian Death / Disability Cert">Death / Disability Cert</option>
+                      <option value="Guardian Consent Form">Guardian Consent Form</option>
+                    </select>
+                  </div>
+
+                  {/* Sort Dropdown Group with Inline Direction Toggle */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="upload-sort-sel" className="hd-filter-label">Sort:</label>
+                    <select
+                      id="upload-sort-sel"
+                      value={uploadSortField}
+                      onChange={(e) => setUploadSortField(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="uploadDate">Upload Date</option>
+                      <option value="applicantName">Applicant Name</option>
+                      <option value="documentType">Document Type</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setUploadSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
+                      className="hd-sort-direction-btn"
+                      title={uploadSortOrder === 'asc' ? 'Ascending (Click for Descending)' : 'Descending (Click for Ascending)'}
+                      aria-label="Toggle sort order"
+                    >
+                      {uploadSortOrder === 'asc' ? '▲ Asc' : '▼ Desc'}
+                    </button>
+                  </div>
                 </div>
               </div>
             }
           >
             <div className="data-table-wrap">
               <table className="data-table" aria-label="Failed uploads table">
+                <colgroup>
+                  <col style={{ width: '20%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '16%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '19%' }} />
+                  <col style={{ width: '8%' }} />
+                  <col style={{ width: '10%' }} />
+                </colgroup>
                 <thead>
                   <tr>
                     <th scope="col">Applicant &amp; Phone</th>
                     <th scope="col">Location</th>
                     <th scope="col">Document Type</th>
                     <th scope="col">File Info</th>
-                    <th scope="col">Reason for Upload Failure</th>
+                    <th scope="col">Reason for Failure</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Action</th>
+                    <th scope="col" style={{ textAlign: 'right' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -591,34 +599,47 @@ export function HelpDeskDocumentsPage() {
                     filteredUploads.map((row) => (
                       <tr key={row.id} className="data-table__row--attention">
                         <td>
-                          <strong>{row.applicantName}</strong>
-                          <div style={{ fontSize: '0.78rem', color: 'var(--text-2)' }}>
-                            ID: {row.nationalId} &bull; Tel: {row.phone}
+                          <div className="hd-cell-primary" title={row.applicantName}>
+                            {row.applicantName}
+                          </div>
+                          <div className="hd-cell-sub">
+                            <code className="hd-code-sub">ID: {row.nationalId}</code>
+                            <span>&bull;</span>
+                            <span title={row.phone}>{row.phone}</span>
                           </div>
                         </td>
                         <td>
                           <span className="badge badge--neutral">{row.location}</span>
                         </td>
                         <td>
-                          <span className="badge badge--warning">{row.documentType}</span>
+                          <span className="badge badge--warning" style={{ fontSize: '0.74rem' }}>{row.documentType}</span>
                         </td>
                         <td>
-                          <div style={{ fontSize: '0.82rem' }}>{row.fileName}</div>
-                          <div style={{ fontSize: '0.74rem', color: 'var(--text-2)' }}>{row.fileSize}</div>
-                        </td>
-                        <td>
-                          <div style={{ color: '#F87171', fontSize: '0.84rem', lineHeight: 1.4, maxWidth: 360 }}>
-                            {row.failureReason}
+                          <div className="hd-cell-primary" style={{ fontSize: '0.8rem' }} title={row.fileName}>
+                            {row.fileName}
+                          </div>
+                          <div className="hd-cell-sub">
+                            <code className="hd-code-sub">{row.fileSize}</code>
                           </div>
                         </td>
                         <td>
-                          <span className="stitch-status-badge stitch-status-badge--declined">
+                          <div title={row.failureReason}>
+                            <span className="hd-reason-tag">
+                              <Icon name="alert" size={12} />
+                              {row.failureReason.length > 28
+                                ? `${row.failureReason.slice(0, 26)}…`
+                                : row.failureReason}
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="stitch-status-badge stitch-status-badge--declined" style={{ fontSize: '0.72rem' }}>
                             {row.status}
                           </span>
                         </td>
-                        <td>
+                        <td style={{ textAlign: 'right' }}>
                           {row.reuploadRequested ? (
-                            <span className="badge badge--info" style={{ fontSize: '0.75rem' }}>
+                            <span className="badge badge--info" style={{ fontSize: '0.74rem' }}>
                               Requested
                             </span>
                           ) : (
@@ -626,9 +647,9 @@ export function HelpDeskDocumentsPage() {
                               type="button"
                               onClick={() => handleRequestReupload(row.id, row.applicantName)}
                               className="btn btn--secondary"
-                              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                              style={{ padding: '3px 8px', fontSize: '0.74rem', whiteSpace: 'nowrap' }}
                             >
-                              Request Re-upload
+                              Re-upload
                             </button>
                           )}
                         </td>
@@ -642,9 +663,6 @@ export function HelpDeskDocumentsPage() {
         )}
 
         {/* ========================================================= */}
-        {/* DEFAULT OVERVIEW VIEW (When NO subpage is loaded) */}
-        {/* ========================================================= */}
-        {/* ========================================================= */}
         {/* SUBPAGE 3: REJECTED APPLICATIONS TABLE (When opened from Documents page) */}
         {/* ========================================================= */}
         {activeSubpage === 'rejected' && (
@@ -657,37 +675,55 @@ export function HelpDeskDocumentsPage() {
           >
             <div className="data-table-wrap">
               <table className="data-table" aria-label="Rejected applications table">
+                <colgroup>
+                  <col style={{ width: '25%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '32%' }} />
+                  <col style={{ width: '13%' }} />
+                </colgroup>
                 <thead>
                   <tr>
                     <th scope="col">Applicant &amp; Serial</th>
                     <th scope="col">Location</th>
                     <th scope="col">Requested</th>
                     <th scope="col">Chief Rejection Flag</th>
-                    <th scope="col">Status</th>
+                    <th scope="col" style={{ textAlign: 'right' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {applications.filter(a => a.applicationStatus === 'Rejected').map((row) => (
                     <tr key={row.id}>
                       <td>
-                        <strong>{row.fullName}</strong>
-                        <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-                          {row.serial} &bull; {row.institution}
+                        <div className="hd-cell-primary" title={row.fullName}>
+                          {row.fullName}
+                        </div>
+                        <div className="hd-cell-sub">
+                          <code className="hd-code">{row.serial}</code>
+                          <span>&bull;</span>
+                          <span title={row.institution}>{row.institution}</span>
                         </div>
                       </td>
                       <td>
                         <span className="badge badge--neutral">{row.location}</span>
                       </td>
                       <td>
-                        <strong>{row.amountRequested}</strong>
+                        <strong style={{ fontSize: '0.84rem', color: '#f8fafc', fontFamily: 'var(--font-mono)' }}>
+                          {row.amountRequested}
+                        </strong>
                       </td>
                       <td>
-                        <span style={{ color: '#F87171', fontSize: '0.84rem' }}>
-                          {row.chiefReasonForFail || 'Flagged during residency verification.'}
-                        </span>
+                        <div title={row.chiefReasonForFail || 'Flagged during residency verification.'}>
+                          <span className="hd-reason-tag">
+                            <Icon name="alert" size={12} />
+                            {(row.chiefReasonForFail || 'Flagged during residency verification.').length > 36
+                              ? `${(row.chiefReasonForFail || 'Flagged during residency verification.').slice(0, 34)}…`
+                              : (row.chiefReasonForFail || 'Flagged during residency verification.')}
+                          </span>
+                        </div>
                       </td>
-                      <td>
-                        <span className="stitch-status-badge stitch-status-badge--declined">
+                      <td style={{ textAlign: 'right' }}>
+                        <span className="stitch-status-badge stitch-status-badge--declined" style={{ fontSize: '0.72rem' }}>
                           {row.applicationStatus}
                         </span>
                       </td>

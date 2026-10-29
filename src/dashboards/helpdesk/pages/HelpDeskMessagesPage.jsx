@@ -266,85 +266,80 @@ export function HelpDeskMessagesPage() {
             badgeText={`${filteredMessages.length} Messages`}
             badgeTone="review"
             toolbar={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {/* Inline Row 1: Filters & Sort */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    {/* Destination Office Selector */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <label htmlFor="msg-office-sel" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#94a3b8' }}>Office:</label>
-                      <select
-                        id="msg-office-sel"
-                        value={selectedOffice}
-                        onChange={(e) => setSelectedOffice(e.target.value)}
-                        style={{ padding: '6px 12px', borderRadius: 8, background: '#0b1422', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#fff', fontSize: '0.84rem' }}
-                      >
-                        <option value="all">All Destinations ({messages.length})</option>
-                        <option value="helpdesk">Help Desk ({helpdeskStats.total})</option>
-                        <option value="mca">MCA Office ({mcaStats.total})</option>
-                        <option value="chief">Area Chiefs ({chiefStats.total})</option>
-                      </select>
-                    </div>
-
-                    {/* Pre-determined Location Select */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <label htmlFor="msg-loc-sel" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#94a3b8' }}>Location:</label>
-                      <select
-                        id="msg-loc-sel"
-                        value={selectedLocation}
-                        onChange={(e) => setSelectedLocation(e.target.value)}
-                        style={{ padding: '6px 12px', borderRadius: 8, background: '#0b1422', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#fff', fontSize: '0.84rem' }}
-                      >
-                        <option value="all">All Locations</option>
-                        {PREDETERMINED_LOCATIONS.map((loc) => (
-                          <option key={loc} value={loc}>{loc}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Status Select */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <label htmlFor="msg-status-sel" style={{ fontSize: '0.82rem', fontWeight: 600, color: '#94a3b8' }}>Status:</label>
-                      <select
-                        id="msg-status-sel"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        style={{ padding: '6px 12px', borderRadius: 8, background: '#0b1422', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#fff', fontSize: '0.84rem' }}
-                      >
-                        <option value="all">All Statuses</option>
-                        <option value="to_be_replied">Pending ({overallStats.pending})</option>
-                        <option value="replied">Replied ({overallStats.replied})</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : 'desc')}
-                    className="btn btn--secondary"
-                    style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                  >
-                    {sortOrder === 'desc' ? '▼ Newest' : '▲ Oldest'}
-                  </button>
-                </div>
-
-                {/* Inline Row 2: Search */}
-                <div>
+              <div className="hd-table-toolbar">
+                {/* Search input with icon */}
+                <div className="hd-table-toolbar__search-group">
+                  <span className="hd-table-search-icon" aria-hidden="true">
+                    <Icon name="search" size={16} />
+                  </span>
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by sender, student, or subject keywords..."
-                    style={{
-                      width: '100%',
-                      padding: '8px 14px',
-                      borderRadius: 8,
-                      background: '#0b1422',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#fff',
-                      fontSize: '0.86rem'
-                    }}
+                    placeholder="Search by sender, student, subject keywords..."
+                    className="hd-table-search-input"
                   />
+                </div>
+
+                {/* Consolidated Grouped Dropdowns: Inline at top of table */}
+                <div className="hd-table-toolbar__filters">
+                  {/* Destination Office Dropdown Group */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="msg-office-sel" className="hd-filter-label">Office:</label>
+                    <select
+                      id="msg-office-sel"
+                      value={selectedOffice}
+                      onChange={(e) => setSelectedOffice(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="all">All Destinations ({messages.length})</option>
+                      <option value="helpdesk">Help Desk ({helpdeskStats.total})</option>
+                      <option value="mca">MCA Office ({mcaStats.total})</option>
+                      <option value="chief">Area Chiefs ({chiefStats.total})</option>
+                    </select>
+                  </div>
+
+                  {/* Location Dropdown Group */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="msg-loc-sel" className="hd-filter-label">Location:</label>
+                    <select
+                      id="msg-loc-sel"
+                      value={selectedLocation}
+                      onChange={(e) => setSelectedLocation(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="all">All Locations</option>
+                      {PREDETERMINED_LOCATIONS.map((loc) => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Status Dropdown Group */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="msg-status-sel" className="hd-filter-label">Status:</label>
+                    <select
+                      id="msg-status-sel"
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="to_be_replied">Pending ({overallStats.pending})</option>
+                      <option value="replied">Replied ({overallStats.replied})</option>
+                    </select>
+                  </div>
+
+                  {/* Sort Direction Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : 'desc')}
+                    className="hd-sort-direction-btn"
+                    title={sortOrder === 'desc' ? 'Newest first (Click for Oldest)' : 'Oldest first (Click for Newest)'}
+                    aria-label="Toggle sort order"
+                  >
+                    {sortOrder === 'desc' ? '▼ Newest' : '▲ Oldest'}
+                  </button>
                 </div>
               </div>
             }
@@ -659,77 +654,91 @@ export function HelpDeskMessagesPage() {
             badgeText={`${overallStats.rate}% Overall Reply Rate`}
             badgeTone="review"
             toolbar={
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <label htmlFor="analytics-sort-sel" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#94a3b8' }}>Sort By:</label>
-                  <select
-                    id="analytics-sort-sel"
-                    value={tableSortField}
-                    onChange={(e) => setTableSortField(e.target.value)}
-                    style={{ padding: '6px 12px', borderRadius: 8, background: '#0b1422', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#fff', fontSize: '0.84rem' }}
-                  >
-                    <option value="rate">Reply Rate (%)</option>
-                    <option value="total">Total Messages Sent</option>
-                    <option value="location">Location</option>
-                    <option value="office">Destination Office</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => setTableSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-                    className="btn btn--secondary"
-                    style={{ padding: '6px 10px', fontSize: '0.8rem' }}
-                  >
-                    {tableSortDir === 'asc' ? '▲ Asc' : '▼ Desc'}
-                  </button>
+              <div className="hd-table-toolbar">
+                {/* Consolidated Sort Dropdown Group */}
+                <div className="hd-table-toolbar__filters">
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="analytics-sort-sel" className="hd-filter-label">Sort By:</label>
+                    <select
+                      id="analytics-sort-sel"
+                      value={tableSortField}
+                      onChange={(e) => setTableSortField(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="rate">Reply Rate (%)</option>
+                      <option value="total">Total Messages</option>
+                      <option value="location">Location</option>
+                      <option value="office">Destination Office</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setTableSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+                      className="hd-sort-direction-btn"
+                      title={tableSortDir === 'asc' ? 'Ascending (Click for Descending)' : 'Descending (Click for Ascending)'}
+                      aria-label="Toggle sort direction"
+                    >
+                      {tableSortDir === 'asc' ? '▲ Asc' : '▼ Desc'}
+                    </button>
+                  </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => openSubpage('desk')}
                   className="btn btn--primary"
-                  style={{ fontSize: '0.85rem' }}
+                  style={{ padding: '6px 12px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
                 >
-                  <Icon name="support" size={16} />
-                  Open Message Management Desk
+                  <Icon name="support" size={14} />
+                  Management Desk
                 </button>
               </div>
             }
           >
             <div className="data-table-wrap">
               <table className="data-table" aria-label="Messages analytics table">
+                <colgroup>
+                  <col style={{ width: '22%' }} />
+                  <col style={{ width: '18%' }} />
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '17%' }} />
+                </colgroup>
                 <thead>
                   <tr>
                     <th scope="col">Location</th>
                     <th scope="col">Destination Office</th>
                     <th scope="col">Total Sent</th>
-                    <th scope="col">Replies Sent (Replied)</th>
-                    <th scope="col">Pending Replies</th>
-                    <th scope="col">Reply Rate (%)</th>
+                    <th scope="col">Replies Sent</th>
+                    <th scope="col">Pending</th>
+                    <th scope="col" style={{ textAlign: 'right' }}>Reply Rate (%)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {granularAnalyticsRows.map((row) => (
                     <tr key={row.id}>
                       <td>
-                        <strong style={{ color: '#fff' }}>{row.location}</strong>
+                        <strong className="hd-cell-primary">{row.location}</strong>
                       </td>
                       <td>
-                        <span className={`badge ${row.officeId === 'mca' ? 'badge--info' : 'badge--neutral'}`}>
+                        <span className={`badge ${row.officeId === 'mca' ? 'badge--info' : 'badge--neutral'}`} style={{ fontSize: '0.74rem' }}>
                           {row.office}
                         </span>
                       </td>
                       <td>
-                        <strong style={{ color: '#fff' }}>{row.total}</strong>
+                        <strong style={{ color: '#fff', fontFamily: 'var(--font-mono)' }}>{row.total}</strong>
                       </td>
                       <td>
-                        <span style={{ color: '#22C55E', fontWeight: 600 }}>{row.replied}</span>
+                        <span style={{ color: '#22C55E', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{row.replied}</span>
                       </td>
                       <td>
-                        <span style={{ color: row.pending > 0 ? '#F87171' : '#94a3b8' }}>{row.pending}</span>
+                        <span style={{ color: row.pending > 0 ? '#F87171' : '#94a3b8', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                          {row.pending}
+                        </span>
                       </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{ width: 80, height: 6, borderRadius: 999, background: 'rgba(255, 255, 255, 0.1)', overflow: 'hidden' }}>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10 }}>
+                          <div style={{ width: 70, height: 6, borderRadius: 999, background: 'rgba(255, 255, 255, 0.1)', overflow: 'hidden', flexShrink: 0 }}>
                             <div
                               style={{
                                 height: '100%',
@@ -739,7 +748,9 @@ export function HelpDeskMessagesPage() {
                               }}
                             />
                           </div>
-                          <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#fff' }}>{row.rate}%</span>
+                          <span style={{ fontWeight: 600, fontSize: '0.84rem', color: '#fff', fontFamily: 'var(--font-mono)' }}>
+                            {row.rate}%
+                          </span>
                         </div>
                       </td>
                     </tr>

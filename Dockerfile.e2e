@@ -1,0 +1,22 @@
+# Playwright Container Environment for McMCA Bursary Dashboards E2E Tests
+FROM mcr.microsoft.com/playwright:v1.49.1-noble
+
+WORKDIR /app
+
+# Install dependencies with cached package specs
+COPY package*.json ./
+RUN npm ci
+
+# Copy full application codebase and configs
+COPY . .
+
+# Environment variables
+ENV CI=true
+ENV NODE_ENV=test
+ENV BASE_URL=http://localhost:5173
+
+# Expose Vite development and preview ports
+EXPOSE 5173
+
+# Run Playwright tests
+CMD ["npx", "playwright", "test"]

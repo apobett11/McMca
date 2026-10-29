@@ -211,73 +211,48 @@ export function HelpDeskApplicationsPage() {
             badgeText={`${filteredApps.length} Applications`}
             badgeTone={selectedStatus === 'Rejected' ? 'declined' : 'review'}
             toolbar={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {/* Line 1: Search Query + Quick Status Filter Badges */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-                  <div style={{ flex: 1, minWidth: 260 }}>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search applicant name, serial number, ID, or school..."
-                      style={{
-                        width: '100%',
-                        padding: '8px 14px',
-                        borderRadius: 8,
-                        background: '#0b1422',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: '#fff',
-                        fontSize: '0.88rem'
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStatus('all')}
-                      className={`btn ${selectedStatus === 'all' ? 'btn--primary' : 'btn--secondary'}`}
-                      style={{ padding: '6px 12px', fontSize: '0.78rem' }}
-                    >
-                      All ({totalApps})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStatus('Rejected')}
-                      className={`btn ${selectedStatus === 'Rejected' ? 'btn--primary' : 'btn--secondary'}`}
-                      style={{ padding: '6px 12px', fontSize: '0.78rem' }}
-                    >
-                      Filter Failed ({failedApps})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStatus('Approved')}
-                      className={`btn ${selectedStatus === 'Approved' ? 'btn--primary' : 'btn--secondary'}`}
-                      style={{ padding: '6px 12px', fontSize: '0.78rem' }}
-                    >
-                      Filter Passed ({passedApps})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStatus('Proceeded to MCA Direct')}
-                      className={`btn ${selectedStatus === 'Proceeded to MCA Direct' ? 'btn--primary' : 'btn--secondary'}`}
-                      style={{ padding: '6px 12px', fontSize: '0.78rem' }}
-                    >
-                      Filter Proceeded ({mcaDirectApps})
-                    </button>
-                  </div>
+              <div className="hd-table-toolbar">
+                {/* Search input with icon */}
+                <div className="hd-table-toolbar__search-group">
+                  <span className="hd-table-search-icon" aria-hidden="true">
+                    <Icon name="search" size={16} />
+                  </span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search applicant name, serial, ID, school..."
+                    className="hd-table-search-input"
+                  />
                 </div>
 
-                {/* Line 2: Inline Dropdowns: Location, Status, Sort Field, Sort Order */}
-                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, paddingTop: 6, borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                  {/* Location Selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <label htmlFor="app-loc-sel" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Location:</label>
+                {/* Consolidated Grouped Dropdowns: Inline at top of table */}
+                <div className="hd-table-toolbar__filters">
+                  {/* Status Dropdown Group */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="app-status-sel" className="hd-filter-label">Status:</label>
+                    <select
+                      id="app-status-sel"
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="hd-select-control"
+                    >
+                      <option value="all">All Statuses ({totalApps})</option>
+                      <option value="Rejected">Failed / Flagged ({failedApps})</option>
+                      <option value="Approved">Passed / Successful ({passedApps})</option>
+                      <option value="Under Review">Under Review ({underReviewApps})</option>
+                      <option value="Proceeded to MCA Direct">Proceeded to MCA ({mcaDirectApps})</option>
+                    </select>
+                  </div>
+
+                  {/* Location Dropdown Group */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="app-loc-sel" className="hd-filter-label">Location:</label>
                     <select
                       id="app-loc-sel"
                       value={selectedLocation}
                       onChange={(e) => setSelectedLocation(e.target.value)}
-                      style={{ padding: '6px 10px', borderRadius: 8, background: '#0b1422', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#fff', fontSize: '0.82rem' }}
+                      className="hd-select-control"
                     >
                       <option value="all">All Locations</option>
                       {PREDETERMINED_LOCATIONS.map((loc) => (
@@ -286,31 +261,14 @@ export function HelpDeskApplicationsPage() {
                     </select>
                   </div>
 
-                  {/* Status Selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <label htmlFor="app-status-sel" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Status:</label>
-                    <select
-                      id="app-status-sel"
-                      value={selectedStatus}
-                      onChange={(e) => setSelectedStatus(e.target.value)}
-                      style={{ padding: '6px 10px', borderRadius: 8, background: '#0b1422', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#fff', fontSize: '0.82rem' }}
-                    >
-                      <option value="all">All Applications ({totalApps})</option>
-                      <option value="Rejected">Failed / Rejected ({failedApps})</option>
-                      <option value="Approved">Passed / Successful ({passedApps})</option>
-                      <option value="Under Review">Under Review ({underReviewApps})</option>
-                      <option value="Proceeded to MCA Direct">Proceeded to MCA Direct ({mcaDirectApps})</option>
-                    </select>
-                  </div>
-
-                  {/* Sort Field Selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <label htmlFor="app-sort-sel" style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Sort:</label>
+                  {/* Sort Dropdown Group with Inline Direction Toggle */}
+                  <div className="hd-filter-dropdown-group">
+                    <label htmlFor="app-sort-sel" className="hd-filter-label">Sort:</label>
                     <select
                       id="app-sort-sel"
                       value={sortField}
                       onChange={(e) => setSortField(e.target.value)}
-                      style={{ padding: '6px 10px', borderRadius: 8, background: '#0b1422', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#fff', fontSize: '0.82rem' }}
+                      className="hd-select-control"
                     >
                       <option value="submittedDate">Date Submitted</option>
                       <option value="fullName">Applicant Name</option>
@@ -321,10 +279,11 @@ export function HelpDeskApplicationsPage() {
                     <button
                       type="button"
                       onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
-                      className="btn btn--secondary"
-                      style={{ padding: '5px 8px', fontSize: '0.78rem' }}
+                      className="hd-sort-direction-btn"
+                      title={sortOrder === 'asc' ? 'Ascending (Click for Descending)' : 'Descending (Click for Ascending)'}
+                      aria-label="Toggle sort order"
                     >
-                      {sortOrder === 'asc' ? '▲' : '▼'}
+                      {sortOrder === 'asc' ? '▲ Asc' : '▼ Desc'}
                     </button>
                   </div>
                 </div>
@@ -333,6 +292,15 @@ export function HelpDeskApplicationsPage() {
           >
             <div className="data-table-wrap">
               <table className="data-table" aria-label="Applications assessment table">
+                <colgroup>
+                  <col style={{ width: '22%' }} />
+                  <col style={{ width: '18%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '13%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '10%' }} />
+                </colgroup>
                 <thead>
                   <tr>
                     <th scope="col">Serial &amp; Applicant</th>
@@ -340,8 +308,8 @@ export function HelpDeskApplicationsPage() {
                     <th scope="col">Location</th>
                     <th scope="col">App Status</th>
                     <th scope="col">Amount</th>
-                    <th scope="col">Chief Dashboard Failure Reason</th>
-                    <th scope="col">Help Desk Actions</th>
+                    <th scope="col">Failure Flag / Notes</th>
+                    <th scope="col" style={{ textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -360,23 +328,27 @@ export function HelpDeskApplicationsPage() {
                       return (
                         <tr key={row.id} className={isRejected ? 'data-table__row--attention' : ''}>
                           <td>
-                            <strong>{row.fullName}</strong>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--gold-champagne, #ddbb6a)', fontWeight: 600 }}>
-                              {row.serial}
+                            <div className="hd-cell-primary" title={row.fullName}>
+                              {row.fullName}
                             </div>
-                            <div style={{ fontSize: '0.74rem', color: 'var(--text-2)' }}>
-                              ID: {row.nationalId}
+                            <div className="hd-cell-sub">
+                              <code className="hd-code">{row.serial}</code>
+                              <span className="hd-code-sub">ID: {row.nationalId}</span>
                             </div>
                           </td>
                           <td>
-                            <div style={{ fontSize: '0.85rem' }}>{row.school}</div>
-                            <div style={{ fontSize: '0.76rem', color: 'var(--text-2)' }}>
-                              {row.educationLevel} &bull; {row.grade}
+                            <div className="hd-cell-primary" title={row.school}>
+                              {row.school}
+                            </div>
+                            <div className="hd-cell-sub">
+                              <span>{row.educationLevel}</span>
+                              <span>&bull;</span>
+                              <span>{row.grade}</span>
                             </div>
                           </td>
                           <td>
                             <span className="badge badge--neutral">{row.location}</span>
-                            <div style={{ fontSize: '0.74rem', color: 'var(--text-2)', marginTop: 2 }}>
+                            <div className="hd-cell-sub" title={row.subLocation}>
                               {row.subLocation}
                             </div>
                           </td>
@@ -396,27 +368,35 @@ export function HelpDeskApplicationsPage() {
                             </span>
                           </td>
                           <td>
-                            <strong style={{ fontSize: '0.88rem' }}>{row.amountRequested}</strong>
+                            <strong style={{ fontSize: '0.84rem', color: '#f8fafc', fontFamily: 'var(--font-mono, monospace)' }}>
+                              {row.amountRequested}
+                            </strong>
                           </td>
                           <td>
                             {row.chiefReasonForFail ? (
-                              <div style={{ color: '#F87171', fontSize: '0.82rem', lineHeight: 1.4, maxWidth: 320 }}>
-                                <span style={{ fontWeight: 600 }}>Chief Flag: </span>
-                                {row.chiefReasonForFail}
+                              <div title={row.chiefReasonForFail}>
+                                <span className="hd-reason-tag">
+                                  <Icon name="alert" size={12} />
+                                  {row.chiefReasonForFail.length > 26
+                                    ? `${row.chiefReasonForFail.slice(0, 24)}…`
+                                    : row.chiefReasonForFail}
+                                </span>
+                                {row.mcaOverrideReason && (
+                                  <div className="hd-cell-sub" style={{ color: '#60A5FA' }} title={row.mcaOverrideReason}>
+                                    MCA: {row.mcaOverrideReason}
+                                  </div>
+                                )}
+                              </div>
+                            ) : row.mcaOverrideReason ? (
+                              <div className="hd-cell-sub" style={{ color: '#60A5FA' }} title={row.mcaOverrideReason}>
+                                MCA: {row.mcaOverrideReason}
                               </div>
                             ) : (
-                              <span style={{ color: 'var(--text-2)', fontSize: '0.82rem' }}>
-                                &mdash; Clean
-                              </span>
-                            )}
-                            {row.mcaOverrideReason && (
-                              <div style={{ color: '#60A5FA', fontSize: '0.78rem', marginTop: 4 }}>
-                                <strong>MCA Proceed Note:</strong> {row.mcaOverrideReason}
-                              </div>
+                              <span style={{ color: '#64748b', fontSize: '0.78rem' }}>&mdash; Clean</span>
                             )}
                           </td>
-                          <td>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
+                          <td style={{ textAlign: 'right' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                               {/* If failed, can proceed to MCA direct */}
                               {isRejected && (
                                 <button
@@ -426,9 +406,10 @@ export function HelpDeskApplicationsPage() {
                                     setProceedNotes(`Assessed by Help Desk. Supporting documents confirmed for ${row.fullName}. Proceeded to MCA Direct.`);
                                   }}
                                   className="btn btn--primary"
-                                  style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                                  style={{ padding: '3px 8px', fontSize: '0.74rem', whiteSpace: 'nowrap' }}
+                                  title="Proceed to MCA Direct"
                                 >
-                                  Proceed to MCA Direct
+                                  MCA Direct
                                 </button>
                               )}
 
@@ -438,21 +419,23 @@ export function HelpDeskApplicationsPage() {
                                 onClick={() => {
                                   setContactModalApp(row);
                                   setContactRecipient('Parent');
+                                  setContactPhone(row.phone || '0712345678');
                                   setContactText(
                                     isRejected
-                                      ? `Dear ${row.parentName}, regards ${row.fullName}'s bursary application (${row.serial}): The application was flagged due to "${row.chiefReasonForFail}". Please contact Help Desk or provide clarification before the appeal cutoff.`
-                                      : `Dear ${row.parentName}, update regarding ${row.fullName}'s application (${row.serial}): It is currently ${row.applicationStatus}.`
+                                      ? `Dear ${row.parentName || row.fullName}, regards ${row.fullName}'s bursary application (${row.serial}): The application was flagged due to "${row.chiefReasonForFail}". Please contact Help Desk or provide clarification before the appeal cutoff.`
+                                      : `Dear ${row.parentName || row.fullName}, update regarding ${row.fullName}'s application (${row.serial}): It is currently ${row.applicationStatus}.`
                                   );
                                 }}
                                 className="btn btn--secondary"
-                                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                                style={{ padding: '3px 8px', fontSize: '0.74rem', whiteSpace: 'nowrap' }}
+                                title="Contact Applicant / Parent"
                               >
-                                Contact Parent/Student
+                                Contact
                               </button>
 
                               {isMcaDirect && (
-                                <span className="badge badge--success" style={{ fontSize: '0.75rem', textAlign: 'center' }}>
-                                  Forwarded to MCA
+                                <span className="badge badge--success" style={{ fontSize: '0.72rem', textAlign: 'center' }}>
+                                  MCA Direct
                                 </span>
                               )}
                             </div>

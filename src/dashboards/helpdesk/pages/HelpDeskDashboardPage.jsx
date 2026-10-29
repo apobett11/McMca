@@ -459,11 +459,12 @@ export function HelpDeskDashboardPage() {
                 </h2>
                 <button
                   type="button"
-                  className="modal-panel__close"
+                  className="modal-panel__close hd-close-icon-btn"
                   onClick={() => setVisualModal(null)}
                   aria-label="Close dialog"
+                  title="Close"
                 >
-                  ×
+                  ✕
                 </button>
               </header>
 

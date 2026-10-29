@@ -1,28 +1,26 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { HelpDeskDashboardPage } from '../pages/HelpDeskDashboardPage.jsx';
-import { HelpDeskDocumentsPage } from '../pages/HelpDeskDocumentsPage.jsx';
-import { HelpDeskApplicationsPage } from '../pages/HelpDeskApplicationsPage.jsx';
-import { HelpDeskMessagesPage } from '../pages/HelpDeskMessagesPage.jsx';
-import { HelpDeskProfilePage } from '../pages/HelpDeskProfilePage.jsx';
+// Redesigned Help Desk workspace (Tailwind + TypeScript) – see src/workspaces/helpdesk
+import { HelpDeskShell } from '../../../workspaces/helpdesk/HelpDeskShell.tsx';
+import { DashboardPage } from '../../../workspaces/helpdesk/pages/DashboardPage.tsx';
+import { DocumentsPage } from '../../../workspaces/helpdesk/pages/DocumentsPage.tsx';
+import { ApplicationsPage } from '../../../workspaces/helpdesk/pages/ApplicationsPage.tsx';
+import { MessagesPage } from '../../../workspaces/helpdesk/pages/MessagesPage.tsx';
+import { ProfilePage } from '../../../workspaces/helpdesk/pages/ProfilePage.tsx';
 
 export function HelpDeskRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/helpdesk/dashboard" replace />} />
-      <Route path="dashboard" element={<HelpDeskDashboardPage />} />
-      <Route path="documents" element={<HelpDeskDocumentsPage />} />
-      <Route path="applications" element={<HelpDeskApplicationsPage />} />
-      <Route path="institutions" element={<Navigate to="/helpdesk/applications" replace />} />
-      <Route path="messages" element={<HelpDeskMessagesPage />} />
-      <Route path="profile" element={<HelpDeskProfilePage />} />
-      <Route path="/helpdesk/dashboard" element={<HelpDeskDashboardPage />} />
-      <Route path="/helpdesk/documents" element={<HelpDeskDocumentsPage />} />
-      <Route path="/helpdesk/applications" element={<HelpDeskApplicationsPage />} />
-      <Route path="/helpdesk/institutions" element={<Navigate to="/helpdesk/applications" replace />} />
-      <Route path="/helpdesk/messages" element={<HelpDeskMessagesPage />} />
-      <Route path="/helpdesk/profile" element={<HelpDeskProfilePage />} />
-      <Route path="*" element={<Navigate to="/helpdesk/dashboard" replace />} />
+      <Route element={<HelpDeskShell />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="documents" element={<DocumentsPage />} />
+        <Route path="applications" element={<ApplicationsPage />} />
+        <Route path="messages" element={<MessagesPage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="institutions" element={<Navigate to="/helpdesk/applications" replace />} />
+        <Route path="*" element={<Navigate to="/helpdesk/dashboard" replace />} />
+      </Route>
     </Routes>
   );
 }
