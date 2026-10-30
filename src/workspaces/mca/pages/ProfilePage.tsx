@@ -114,59 +114,63 @@ export function ProfilePage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="pb-12">
-      {/* HERO BANNER (CHIEF STYLING - EXECUTIVE PROFILE) */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, animation: 'ws-fade-in 0.2s ease-out' }} className="pb-12">
+      {/* HERO BANNER (MCA EXECUTIVE STYLING - ASSEMBLY BLUE THEME) */}
       <section
         className="dash-single-card"
         style={{
           padding: '24px 28px',
-          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, var(--surface-elevated, #101c38) 100%)',
+          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(11, 19, 41, 0.95) 100%)',
           border: '1px solid rgba(59, 130, 246, 0.25)',
-          boxShadow: '0 4px 20px rgba(59, 130, 246, 0.08)'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+          borderRadius: 16,
+          backdropFilter: 'blur(16px)'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 260 }}>
             <div
               style={{
                 width: 52,
                 height: 52,
-                borderRadius: 12,
-                background: 'rgba(59, 130, 246, 0.18)',
+                borderRadius: 14,
+                background: 'rgba(59, 130, 246, 0.16)',
+                border: '1px solid rgba(59, 130, 246, 0.35)',
                 color: '#60a5fa',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 16px rgba(59, 130, 246, 0.25)'
+                boxShadow: '0 0 20px rgba(59, 130, 246, 0.25)',
+                flexShrink: 0
               }}
             >
               <Icon name="profile" size={26} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span
                   style={{
-                    fontSize: '0.72rem',
+                    fontSize: '0.68rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
                     padding: '2px 8px',
-                    borderRadius: 4,
-                    background: 'rgba(59, 130, 246, 0.2)',
+                    borderRadius: 6,
+                    background: 'rgba(59, 130, 246, 0.18)',
                     color: '#60a5fa',
                     border: '1px solid rgba(59, 130, 246, 0.35)'
                   }}
                 >
                   Ward Assembly Credentials
                 </span>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
                   Tendeno / Sorget Ward &bull; Kericho County
                 </span>
               </div>
-              <h1 style={{ margin: '4px 0 0', fontSize: '1.45rem', color: 'var(--text, #fff)', fontWeight: 800 }}>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.4rem', color: '#ffffff', fontWeight: 800, letterSpacing: '-0.02em' }}>
                 Executive Profile &amp; Committee Vault
               </h1>
-              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
+              <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '0.86rem' }}>
                 Multi-signature committee configuration, cryptographic sign-off keys and hard budget limits.
               </p>
             </div>

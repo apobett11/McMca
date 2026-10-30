@@ -107,10 +107,88 @@ export function MessagesPage() {
   };
 
   return (
-    <>
-      <PageHeader eyebrow="Dispatch" title="Messages" description="Reply to families, escalate to the MCA, and stay inside the 2-hour SLA." />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, animation: 'ws-fade-in 0.2s ease-out' }} className="pb-12">
+      {/* HERO BANNER (HELPDESK DISPATCH & TICKET OPERATIONS THEME) */}
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '22px 26px',
+          background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(13, 21, 39, 0.95) 100%)',
+          border: '1px solid rgba(6, 182, 212, 0.25)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+          borderRadius: 16,
+          backdropFilter: 'blur(16px)'
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 260 }}>
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                background: 'linear-gradient(135deg, #0891b2, #06b6d4)',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 16px rgba(6, 182, 212, 0.35)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                flexShrink: 0
+              }}
+            >
+              <Icon name="support" size={24} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    background: 'rgba(6, 182, 212, 0.18)',
+                    color: '#22d3ee',
+                    border: '1px solid rgba(6, 182, 212, 0.35)'
+                  }}
+                >
+                  Help Desk Dispatch
+                </span>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                  2-Hour SLA Queue &bull; SMS Gateway
+                </span>
+              </div>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.35rem', color: '#ffffff', fontWeight: 800, letterSpacing: '-0.02em' }}>
+                Constituent Inquiries &amp; Messages
+              </h1>
+              <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '0.84rem' }}>
+                Reply to families, escalate complex boundary and hardship cases to the MCA, and manage SLA adherence.
+              </p>
+            </div>
+          </div>
 
-      <div className="grid min-h-[620px] grid-cols-1 gap-4 lg:h-[calc(100vh-190px)] lg:grid-cols-[320px_minmax(0,1fr)_320px]">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontSize: '0.74rem',
+                padding: '5px 12px',
+                borderRadius: 999,
+                background: 'rgba(245, 158, 11, 0.15)',
+                color: '#fbbf24',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                fontWeight: 600,
+                fontFamily: 'monospace'
+              }}
+            >
+              {all.filter(isOpenTicket).length} Open &bull; {all.filter((m) => isSlaBreach(m, now)).length} Breached
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid min-h-[620px] grid-cols-1 gap-4 lg:h-[calc(100vh-250px)] lg:grid-cols-[320px_minmax(0,1fr)_320px]">
         {/* Threads */}
         <Card flush className="flex min-h-[320px] flex-col overflow-hidden" aria-label="Ticket threads">
           <div className="flex flex-wrap gap-2 border-b border-slate-800/60 p-3">
@@ -281,6 +359,6 @@ export function MessagesPage() {
         </FieldLabel>
         <Textarea id="fwd-note" data-autofocus value={fwdNote} onChange={(e) => setFwdNote(e.target.value)} placeholder="Why does this need the Honourable’s attention?" />
       </Modal>
-    </>
+    </div>
   );
 }

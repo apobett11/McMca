@@ -147,59 +147,63 @@ export function MessagesPage() {
     cat === 'Severe Boundary Dispute' ? 'amber' : cat === 'Special Hardship Intervention' ? 'emerald' : 'cyan';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="pb-12">
-      {/* HERO BANNER (CHIEF STYLING - AMBER THEME) */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, animation: 'ws-fade-in 0.2s ease-out' }} className="pb-12">
+      {/* HERO BANNER (MCA EXECUTIVE STYLING - AMBER THEME) */}
       <section
         className="dash-single-card"
         style={{
           padding: '24px 28px',
-          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, var(--surface-elevated, #101c38) 100%)',
+          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(11, 19, 41, 0.95) 100%)',
           border: '1px solid rgba(245, 158, 11, 0.25)',
-          boxShadow: '0 4px 20px rgba(245, 158, 11, 0.08)'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+          borderRadius: 16,
+          backdropFilter: 'blur(16px)'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 260 }}>
             <div
               style={{
                 width: 52,
                 height: 52,
-                borderRadius: 12,
-                background: 'rgba(245, 158, 11, 0.18)',
+                borderRadius: 14,
+                background: 'rgba(245, 158, 11, 0.16)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
                 color: '#f59e0b',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 16px rgba(245, 158, 11, 0.25)'
+                boxShadow: '0 0 20px rgba(245, 158, 11, 0.25)',
+                flexShrink: 0
               }}
             >
               <Icon name="megaphone" size={26} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span
                   style={{
-                    fontSize: '0.72rem',
+                    fontSize: '0.68rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
                     padding: '2px 8px',
-                    borderRadius: 4,
-                    background: 'rgba(245, 158, 11, 0.2)',
-                    color: '#f59e0b',
+                    borderRadius: 6,
+                    background: 'rgba(245, 158, 11, 0.18)',
+                    color: '#fbbf24',
                     border: '1px solid rgba(245, 158, 11, 0.35)'
                   }}
                 >
                   Help Desk Direct Escalations
                 </span>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                  Tendeno / Sorget Constituents
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                  Tendeno / Sorget Constituents &bull; Executive Queue
                 </span>
               </div>
-              <h1 style={{ margin: '4px 0 0', fontSize: '1.45rem', color: 'var(--text, #fff)', fontWeight: 800 }}>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.4rem', color: '#ffffff', fontWeight: 800, letterSpacing: '-0.02em' }}>
                 Constituent Inquiries &amp; Help Desk Escalations
               </h1>
-              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
+              <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '0.86rem' }}>
                 Direct constituent hardship petitions, border dispute inquiries, and special quota directives.
               </p>
             </div>
@@ -207,28 +211,55 @@ export function MessagesPage() {
         </div>
       </section>
 
+      {/* 3 METRIC TILES */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card className="border-amber-500/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Active Escalations</span>
-          <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-amber-300">
+        <div
+          style={{
+            padding: '18px 20px',
+            borderRadius: 14,
+            background: 'rgba(13, 21, 39, 0.75)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#fbbf24' }}>Active Escalations</span>
+          <p style={{ margin: '6px 0 2px', fontFamily: 'monospace', fontSize: '1.75rem', fontWeight: 800, color: '#fbbf24' }}>
             {escalations.filter((e) => e.status === 'Pending MCA Decision').length}
           </p>
-          <span className="text-[11px] text-slate-200">Awaiting executive intervention</span>
-        </Card>
-        <Card className="border-emerald-500/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Hardship Quotas Authorized</span>
-          <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-emerald-300">
+          <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>Awaiting executive intervention</span>
+        </div>
+
+        <div
+          style={{
+            padding: '18px 20px',
+            borderRadius: 14,
+            background: 'rgba(13, 21, 39, 0.75)',
+            border: '1px solid rgba(52, 211, 153, 0.25)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#34d399' }}>Hardship Quotas Authorized</span>
+          <p style={{ margin: '6px 0 2px', fontFamily: 'monospace', fontSize: '1.75rem', fontWeight: 800, color: '#34d399' }}>
             {escalations.filter((e) => e.status === 'Hardship Quota Authorized').length}
           </p>
-          <span className="text-[11px] text-slate-200">Affirmative relief deployed</span>
-        </Card>
-        <Card className="border-cyan-500/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Direct SMS Responses</span>
-          <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-cyan-300">
+          <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>Affirmative relief deployed</span>
+        </div>
+
+        <div
+          style={{
+            padding: '18px 20px',
+            borderRadius: 14,
+            background: 'rgba(13, 21, 39, 0.75)',
+            border: '1px solid rgba(34, 211, 238, 0.25)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#22d3ee' }}>Direct SMS Responses</span>
+          <p style={{ margin: '6px 0 2px', fontFamily: 'monospace', fontSize: '1.75rem', fontWeight: 800, color: '#22d3ee' }}>
             {escalations.filter((e) => e.status === 'SMS Dispatched').length}
           </p>
-          <span className="text-[11px] text-slate-200">Constituent communications logged</span>
-        </Card>
+          <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>Constituent communications logged</span>
+        </div>
       </div>
 
       {/* Escalated Inquiries List */}

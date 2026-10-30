@@ -100,8 +100,8 @@ function SignaturePad() {
         </Button>
         {saved ? (
           <span className="ml-auto flex items-center gap-3 text-xs text-slate-100">
-            <img src={saved.png} alt="Saved signature specimen" className="h-10 rounded border border-slate-600 bg-ink-950 px-2" />
-            <span className="font-mono tabular-nums">{fmtDateTime(saved.at)}</span>
+            <img src={saved.png} alt="Saved signature specimen" className="h-10 rounded border border-cyan-500/30 bg-ink-950 px-2 shadow-inner" />
+            <span className="font-mono tabular-nums text-slate-300">{fmtDateTime(saved.at)}</span>
           </span>
         ) : null}
       </div>
@@ -174,8 +174,86 @@ export function ProfilePage() {
   };
 
   return (
-    <>
-      <PageHeader eyebrow="Session console" title="Profile" description="Shift timesheets, signature specimen and your personal override ledger." />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, animation: 'ws-fade-in 0.2s ease-out' }} className="pb-12">
+      {/* HERO BANNER (HELPDESK OPERATIONS / CYAN THEME) */}
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '24px 28px',
+          background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(11, 19, 41, 0.95) 100%)',
+          border: '1px solid rgba(6, 182, 212, 0.25)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+          borderRadius: 16,
+          backdropFilter: 'blur(16px)'
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 260 }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                background: 'rgba(6, 182, 212, 0.16)',
+                border: '1px solid rgba(6, 182, 212, 0.35)',
+                color: '#22d3ee',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 20px rgba(6, 182, 212, 0.25)',
+                flexShrink: 0
+              }}
+            >
+              <Icon name="profile" size={26} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    background: 'rgba(6, 182, 212, 0.18)',
+                    color: '#22d3ee',
+                    border: '1px solid rgba(6, 182, 212, 0.35)'
+                  }}
+                >
+                  Help Desk Officer Console
+                </span>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                  Verification &amp; Appeals Desk &bull; {profile.assignedLocations.join(' & ')}
+                </span>
+              </div>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.4rem', color: '#ffffff', fontWeight: 800, letterSpacing: '-0.02em' }}>
+                Officer Profile &amp; Audit Vault
+              </h1>
+              <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '0.86rem' }}>
+                Shift timesheets, signature specimen, and SHA-256 chained personal override ledger.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span
+              style={{
+                fontSize: '0.74rem',
+                padding: '5px 12px',
+                borderRadius: 999,
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: '#34d399',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                fontWeight: 600,
+                fontFamily: 'monospace'
+              }}
+            >
+              On Duty &bull; {hours.shiftAdherenceRate}% Adherence
+            </span>
+          </div>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <div className="space-y-4">
@@ -315,6 +393,6 @@ export function ProfilePage() {
           </Card>
         </div>
       </div>
-    </>
+    </div>
   );
 }

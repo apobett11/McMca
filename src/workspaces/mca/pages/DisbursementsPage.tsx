@@ -103,59 +103,63 @@ export function DisbursementsPage() {
   const members = getMembers();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="pb-12">
-      {/* HERO BANNER (CHIEF STYLING - EMERALD THEME) */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, animation: 'ws-fade-in 0.2s ease-out' }} className="pb-12">
+      {/* HERO BANNER (MCA EXECUTIVE STYLING - LEGISLATIVE EMERALD THEME) */}
       <section
         className="dash-single-card"
         style={{
           padding: '24px 28px',
-          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--surface-elevated, #101c38) 100%)',
-          border: '1px solid rgba(16, 185, 129, 0.25)',
-          boxShadow: '0 4px 20px rgba(16, 185, 129, 0.08)'
+          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(11, 19, 41, 0.95) 100%)',
+          border: '1px solid rgba(52, 211, 153, 0.25)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+          borderRadius: 16,
+          backdropFilter: 'blur(16px)'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 260 }}>
             <div
               style={{
                 width: 52,
                 height: 52,
-                borderRadius: 12,
-                background: 'rgba(16, 185, 129, 0.18)',
-                color: '#10b981',
+                borderRadius: 14,
+                background: 'rgba(52, 211, 153, 0.16)',
+                border: '1px solid rgba(52, 211, 153, 0.35)',
+                color: '#34d399',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 16px rgba(16, 185, 129, 0.25)'
+                boxShadow: '0 0 20px rgba(52, 211, 153, 0.25)',
+                flexShrink: 0
               }}
             >
               <Icon name="cheque" size={26} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span
                   style={{
-                    fontSize: '0.72rem',
+                    fontSize: '0.68rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
                     padding: '2px 8px',
-                    borderRadius: 4,
-                    background: 'rgba(16, 185, 129, 0.2)',
+                    borderRadius: 6,
+                    background: 'rgba(16, 185, 129, 0.18)',
                     color: '#34d399',
                     border: '1px solid rgba(16, 185, 129, 0.35)'
                   }}
                 >
                   Cheque Manifest &amp; EFT Engine
                 </span>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                  Tendeno / Sorget Bursary Fund
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                  Tendeno / Sorget Bursary Fund &bull; Cycle {CYCLE}
                 </span>
               </div>
-              <h1 style={{ margin: '4px 0 0', fontSize: '1.45rem', color: 'var(--text, #fff)', fontWeight: 800 }}>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.4rem', color: '#ffffff', fontWeight: 800, letterSpacing: '-0.02em' }}>
                 Institutional Disbursements
               </h1>
-              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
+              <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '0.86rem' }}>
                 Awards grouped by verified learning institutions into print-ready schedules and automated bank EFT files.
               </p>
             </div>
@@ -163,17 +167,31 @@ export function DisbursementsPage() {
         </div>
       </section>
 
-      <div className="mb-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
+      {/* 4 METRIC TILES (LINEAR/STRIPE CARDS) */}
+      <div className="mb-2 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
-          ['Total payable', kes(totals.payable), 'text-amber-200'],
+          ['Total payable', kes(totals.payable), 'text-amber-300'],
           ['Institutions', `${payables.length}`, 'text-white'],
           ['Beneficiaries', `${totals.beneficiaries}`, 'text-white'],
-          ['Draft · Cheque · EFT', `${totals.draft} · ${totals.cheque} · ${totals.eft}`, 'text-white']
+          ['Draft · Cheque · EFT', `${totals.draft} · ${totals.cheque} · ${totals.eft}`, 'text-emerald-300']
         ].map(([l, v, c]) => (
-          <Card key={l}>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-200">{l}</p>
-            <p className={cx('mt-1 break-words font-mono text-xl font-bold tabular-nums', c)}>{v}</p>
-          </Card>
+          <div
+            key={l}
+            style={{
+              padding: '18px 20px',
+              borderRadius: 14,
+              background: 'rgba(13, 21, 39, 0.75)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+            }}
+          >
+            <p style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94a3b8', margin: 0 }}>
+              {l}
+            </p>
+            <p className={cx('mt-1.5 break-words font-mono text-xl font-bold tabular-nums', c)} style={{ margin: '6px 0 0' }}>
+              {v}
+            </p>
+          </div>
         ))}
       </div>
       {totals.payable > tranche.committed_amount ? (
