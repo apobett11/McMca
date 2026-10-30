@@ -51,44 +51,48 @@ export function DocumentsPage() {
     : 11;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* HERO BANNER (CHIEF STYLING - VIOLET THEME) */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, animation: 'ws-fade-in 0.2s ease-out' }}>
+      {/* HERO BANNER (VIOLET ACCENT & DOCUMENT VERIFICATION THEME) */}
       <section
         className="dash-single-card"
         style={{
-          padding: '22px 26px',
-          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, var(--surface-elevated) 100%)',
+          padding: '24px 28px',
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(13, 21, 39, 0.95) 100%)',
           border: '1px solid rgba(139, 92, 246, 0.25)',
-          boxShadow: '0 4px 20px rgba(139, 92, 246, 0.08)'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+          borderRadius: 16,
+          backdropFilter: 'blur(16px)'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 260 }}>
             <div
               style={{
-                width: 48,
-                height: 48,
+                width: 50,
+                height: 50,
                 borderRadius: 12,
                 background: 'rgba(139, 92, 246, 0.18)',
-                color: '#a855f7',
+                color: '#c084fc',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 16px rgba(139, 92, 246, 0.25)'
+                boxShadow: '0 0 16px rgba(139, 92, 246, 0.25)',
+                border: '1px solid rgba(139, 92, 246, 0.35)',
+                flexShrink: 0
               }}
             >
               <Icon name="documents" size={24} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span
                   style={{
-                    fontSize: '0.72rem',
+                    fontSize: '0.68rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
                     padding: '2px 8px',
-                    borderRadius: 4,
+                    borderRadius: 6,
                     background: 'rgba(139, 92, 246, 0.2)',
                     color: '#c084fc',
                     border: '1px solid rgba(139, 92, 246, 0.35)'
@@ -97,31 +101,34 @@ export function DocumentsPage() {
                   Document Verification Pipeline
                 </span>
               </div>
-              <h1 style={{ margin: '4px 0 0', fontSize: '1.35rem', color: 'var(--text)', fontWeight: 700 }}>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.4rem', color: '#ffffff', fontWeight: 800, letterSpacing: '-0.02em' }}>
                 Document Stages &amp; Registration Progress
               </h1>
-              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
-                Live database verification of incomplete student registrations (all types: independent, delegated, custody) and incomplete parents.
+              <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '0.86rem' }}>
+                Live database verification of incomplete student registrations (independent, delegated, custody) and incomplete parents.
               </p>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <RefreshButton busy={refreshing} onClick={handleRefresh} />
             <button
               type="button"
               className="btn btn--primary"
               onClick={() => openModal('total')}
               style={{
-                padding: '8px 18px',
+                padding: '9px 18px',
                 fontSize: '0.82rem',
                 borderRadius: 8,
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
                 background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-                border: 'none',
-                boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)'
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                boxShadow: '0 4px 14px rgba(139, 92, 246, 0.35)',
+                fontWeight: 700,
+                cursor: 'pointer'
               }}
             >
               <Icon name="mapPin" size={16} />
@@ -131,8 +138,16 @@ export function DocumentsPage() {
         </div>
       </section>
 
-      {/* CHIEF-STYLE STRIP CARDS WITH VIOLET THEME & CLEAR HIERARCHY */}
-      <div className="dash-analytics-strips" style={{ margin: 0 }}>
+      {/* CHIEF-STYLE STRIP CARDS WITH VIOLET THEME & RESPONSIVE GRID */}
+      <div
+        className="dash-analytics-strips"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 16,
+          margin: 0
+        }}
+      >
         {/* Card 1: Completed Document Sets - PRIMARY FOCUS */}
         <ChiefStripCard
           title="Document Pipeline"
@@ -195,11 +210,21 @@ export function DocumentsPage() {
       </div>
 
       {/* INFORMATIVE SECTION (CHIEF STYLING) */}
-      <section className="dash-single-card" style={{ padding: '20px 24px', background: 'var(--surface-elevated)' }}>
-        <h3 className="stitch-section-title" style={{ margin: '0 0 12px', fontSize: '1.05rem' }}>
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '20px 24px',
+          background: 'rgba(13, 21, 39, 0.75)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderLeft: '4px solid #a855f7',
+          borderRadius: 12,
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)'
+        }}
+      >
+        <h3 className="stitch-section-title" style={{ margin: '0 0 8px', fontSize: '1rem', fontWeight: 700, color: '#c084fc' }}>
           Document Verification &amp; In-Place Dropdowns
         </h3>
-        <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.6 }}>
+        <p style={{ margin: 0, fontSize: '0.84rem', color: '#94a3b8', lineHeight: 1.6 }}>
           Click any card above to view the location breakdown. In the location popup, click &quot;View Villages List&quot; inside any sub-location card to expand its villages in place.
           Clicking a village reveals the table with sorts for Completed, Incomplete, and All records.
         </p>

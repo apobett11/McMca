@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { HelpDeskHeader } from './HelpDeskHeader.jsx';
 import { HelpDeskFooter } from './HelpDeskFooter.jsx';
 import { HelpDeskDesktopSidebar } from './HelpDeskDesktopSidebar.jsx';
+import { HelpDeskBottomNav } from './HelpDeskBottomNav.jsx';
 import { HelpDeskSlideMenu } from './HelpDeskSlideMenu.jsx';
 import { NotificationModal } from '../../../components/NotificationModal.jsx';
 import './helpdesk.css';
@@ -28,7 +29,7 @@ export function HelpDeskLayout({
         : 'main';
 
   return (
-    <div className="portal portal--chief portal--helpdesk portal--no-nav">
+    <div className="portal portal--chief portal--helpdesk">
       <HelpDeskHeader
         pageTitle={pageTitle}
         officerName={officerName}
@@ -47,16 +48,17 @@ export function HelpDeskLayout({
             flex: '1',
             minWidth: 0,
             width: '100%',
-            maxWidth: layout === 'dashboard' ? '1280px' : '820px',
+            maxWidth: layout === 'dashboard' ? '1480px' : '960px',
             margin: '0 auto',
-            padding: '0 24px'
+            padding: '0 16px'
           }}
         >
-          <div className="main__content" style={{ padding: '24px 0 64px' }}>
+          <div className="main__content" style={{ padding: '20px 0 88px' }}>
             {children}
           </div>
         </main>
       </div>
+      <HelpDeskBottomNav />
       {showFooter ? <HelpDeskFooter /> : null}
       <HelpDeskSlideMenu
         open={menuOpen}

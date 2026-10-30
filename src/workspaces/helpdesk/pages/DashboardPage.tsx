@@ -49,73 +49,100 @@ export function DashboardPage() {
         display: 'flex',
         flexDirection: 'column',
         gap: 24,
-        animation: 'emilPageFade 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+        animation: 'ws-fade-in 0.2s ease-out'
       }}
     >
-      {/* HOMEPAGE HERO BANNER (THEME: EXECUTIVE WARM GOLD) */}
+      {/* HOMEPAGE HERO BANNER (THEME: TACTICAL CYAN & WARM GOLD OPERATIONS TERMINAL) */}
       <section
         className="dash-single-card"
         style={{
           padding: '24px 28px',
-          background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, var(--surface-elevated, #1a2234) 60%)',
-          border: '1px solid rgba(217, 119, 6, 0.25)',
-          boxShadow: '0 8px 30px rgba(217, 119, 6, 0.08)'
+          background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.09) 0%, rgba(13, 21, 39, 0.95) 100%)',
+          border: '1px solid rgba(6, 182, 212, 0.22)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+          borderRadius: 16,
+          backdropFilter: 'blur(16px)'
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 260 }}>
             <div
               style={{
                 width: 52,
                 height: 52,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #d97706, #f59e0b)',
-                color: '#fff',
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #0891b2, #06b6d4)',
+                color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '1.25rem',
-                boxShadow: '0 4px 14px rgba(217, 119, 6, 0.35)'
+                fontWeight: 800,
+                fontSize: '1.2rem',
+                boxShadow: '0 4px 16px rgba(6, 182, 212, 0.35)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                flexShrink: 0
               }}
             >
               HD
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <h1 style={{ margin: 0, fontSize: '1.45rem', color: 'var(--text)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <h1 style={{ margin: 0, fontSize: '1.4rem', color: '#ffffff', fontWeight: 800, letterSpacing: '-0.02em' }}>
                   {greeting}, {off?.name || 'Clara Chelangat'}.
                 </h1>
                 <span
                   style={{
-                    fontSize: '0.72rem',
+                    fontSize: '0.68rem',
                     padding: '2px 8px',
                     borderRadius: 999,
-                    background: 'rgba(217, 119, 6, 0.2)',
-                    color: '#f59e0b',
+                    background: 'rgba(6, 182, 212, 0.16)',
+                    color: '#22d3ee',
                     fontWeight: 700,
-                    border: '1px solid rgba(217, 119, 6, 0.4)'
+                    border: '1px solid rgba(6, 182, 212, 0.35)'
                   }}
                 >
-                  Operations Hub
+                  Operations Terminal
                 </span>
               </div>
-              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.9rem' }}>
-                Tendeno / Sorget Ward · Operations Terminal · Assessment, Verification &amp; Appeals Desk
+              <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '0.86rem' }}>
+                Tendeno / Sorget Ward &bull; Live Intake Triage &bull; Verification, Inquiries &amp; Appeals Desk
               </p>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <RefreshButton busy={refreshing} onClick={handleRefresh} />
-            <span className="badge badge--success" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
-              ● Ward Active
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 999,
+                background: 'rgba(52, 211, 153, 0.12)',
+                border: '1px solid rgba(52, 211, 153, 0.3)',
+                color: '#34d399',
+                fontSize: '0.76rem',
+                fontWeight: 600
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399' }} />
+              Live &bull; Ward Active
             </span>
             <button
               type="button"
               className="btn btn--secondary"
               onClick={() => navigate('/helpdesk/profile')}
-              style={{ fontSize: '0.82rem', padding: '6px 12px' }}
+              style={{
+                fontSize: '0.8rem',
+                padding: '7px 14px',
+                borderRadius: 8,
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                color: '#e2e8f0',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
             >
               Officer Profile
             </button>
@@ -123,15 +150,23 @@ export function DashboardPage() {
         </div>
       </section>
 
-      {/* CHIEF-STYLE ANALYTICS STRIPS (CLEAN HIERARCHY WITH ONE FOCUS THING) */}
-      <div className="dash-analytics-strips" style={{ margin: 0 }}>
+      {/* CHIEF-STYLE ANALYTICS STRIPS (RESPONSIVE GRID FOR DESKTOP / TABLET / MOBILE) */}
+      <div
+        className="dash-analytics-strips"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: 16,
+          margin: 0
+        }}
+      >
         {/* ONE FOCUS CARD: WARD APPLICATIONS (ELEVATED HIERARCHY) */}
         <ChiefStripCard
           title="Ward Applications"
           value={`${analytics.totalApplications.toLocaleString()} Total Applications`}
           statusBadge={`${approvalPct}% Cleared`}
           statusTone="admitted"
-          themeTone="gold"
+          themeTone="cyan"
           isFocus={true}
           pct={approvalPct}
           footInfo={`${analytics.successfulApplications.toLocaleString()} Approved · ${analytics.flaggedApplications.toLocaleString()} In Review`}
@@ -183,43 +218,67 @@ export function DashboardPage() {
       </div>
 
       {/* STRUCTURED ANALYTICS SECTIONS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 20 }}>
         {/* Section 1: Processing Telemetry */}
-        <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
-          <h3 className="stitch-section-title" style={{ margin: '0 0 16px', fontSize: '1.1rem' }}>
-            Processing Telemetry
-          </h3>
+        <section
+          className="dash-single-card"
+          style={{
+            padding: 24,
+            background: 'rgba(13, 21, 39, 0.75)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: 14,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#ffffff' }}>
+              Processing Telemetry
+            </h3>
+            <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: 4, background: 'rgba(255,255,255,0.05)', color: '#94a3b8' }}>
+              Triage Health
+            </span>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Approval Rate</span>
-              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#10b981', marginTop: 4 }}>{approvalPct}%</div>
+            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em' }}>Approval Rate</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#10b981', marginTop: 4, fontFamily: 'monospace' }}>{approvalPct}%</div>
               <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{analytics.successfulApplications.toLocaleString()} of {analytics.totalApplications.toLocaleString()}</span>
             </div>
 
-            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Flagged Cases</span>
-              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f59e0b', marginTop: 4 }}>{analytics.flaggedApplications.toLocaleString()}</div>
+            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em' }}>Flagged Cases</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f59e0b', marginTop: 4, fontFamily: 'monospace' }}>{analytics.flaggedApplications.toLocaleString()}</div>
               <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Individual appeal/residency review</span>
             </div>
 
-            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Incomplete Students</span>
-              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#eab308', marginTop: 4 }}>{analytics.incompleteStudentRegistrations}</div>
+            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em' }}>Incomplete Students</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#eab308', marginTop: 4, fontFamily: 'monospace' }}>{analytics.incompleteStudentRegistrations}</div>
               <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Hanging registration steps</span>
             </div>
 
-            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Incomplete Parents</span>
-              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#8b5cf6', marginTop: 4 }}>{analytics.incompleteParentRegistrations}</div>
+            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em' }}>Incomplete Parents</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#a855f7', marginTop: 4, fontFamily: 'monospace' }}>{analytics.incompleteParentRegistrations}</div>
               <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Pending guardian verification</span>
             </div>
           </div>
         </section>
 
         {/* Section 2: Administrative Jurisdiction & Geographic Breakdown */}
-        <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
+        <section
+          className="dash-single-card"
+          style={{
+            padding: 24,
+            background: 'rgba(13, 21, 39, 0.75)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: 14,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.1rem' }}>
+            <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#ffffff' }}>
               Ward Jurisdiction Breakdown
             </h3>
             <button
@@ -229,7 +288,16 @@ export function DashboardPage() {
                 setModalMetric('total');
                 setModalOpen(true);
               }}
-              style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+              style={{
+                padding: '5px 12px',
+                fontSize: '0.75rem',
+                borderRadius: 6,
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                color: '#cbd5e1',
+                cursor: 'pointer',
+                fontWeight: 600
+              }}
             >
               Explore Locations
             </button>
@@ -242,23 +310,29 @@ export function DashboardPage() {
                 : 50;
 
               return (
-                <div key={loc.location} style={{ padding: 12, borderRadius: 8, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
+                <div key={loc.location} style={{ padding: 14, borderRadius: 10, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#ffffff' }}>
                       {loc.location} Location
                     </span>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#d97706' }}>
+                    <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#22d3ee', fontFamily: 'monospace' }}>
                       {loc.total.toLocaleString()} ({locPct}%)
                     </span>
                   </div>
-                  <div className="dash-strip-card__track" style={{ height: 6 }}>
+                  <div className="dash-strip-card__track" style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 999, overflow: 'hidden' }}>
                     <div
-                      className="dash-strip-card__fill dash-strip-card__fill--gold"
-                      style={{ width: `${locPct}%` }}
+                      className="dash-strip-card__fill"
+                      style={{
+                        width: `${locPct}%`,
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #0891b2, #22d3ee)',
+                        borderRadius: 999,
+                        transition: 'width 0.4s ease'
+                      }}
                     />
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: '0.75rem', color: '#94a3b8' }}>
-                    <span>{loc.successful} Approved · {loc.flagged} Flagged</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: '0.74rem', color: '#94a3b8' }}>
+                    <span>{loc.successful} Approved &bull; {loc.flagged} Flagged</span>
                     <span>4 Sub-Locations</span>
                   </div>
                 </div>

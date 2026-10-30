@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MCAHeader } from './MCAHeader.jsx';
 import { MCAFooter } from './MCAFooter.jsx';
 import { MCADesktopSidebar } from './MCADesktopSidebar.jsx';
+import { MCABottomNav } from './MCABottomNav.jsx';
 import { MCASlideMenu } from './MCASlideMenu.jsx';
 import { NotificationModal } from '../../../components/NotificationModal.jsx';
 import '../styles/mca.css';
@@ -28,7 +29,7 @@ export function MCALayout({
         : 'main';
 
   return (
-    <div className="portal portal--chief portal--mca portal--no-nav">
+    <div className="portal portal--chief portal--mca">
       <MCAHeader
         pageTitle={pageTitle}
         mcaName={mcaName}
@@ -47,16 +48,17 @@ export function MCALayout({
             flex: '1',
             minWidth: 0,
             width: '100%',
-            maxWidth: layout === 'dashboard' ? '1280px' : '820px',
+            maxWidth: layout === 'dashboard' ? '1480px' : '960px',
             margin: '0 auto',
-            padding: '0 24px'
+            padding: '0 16px'
           }}
         >
-          <div className="main__content" style={{ padding: '24px 0 64px' }}>
+          <div className="main__content" style={{ padding: '20px 0 88px' }}>
             {children}
           </div>
         </main>
       </div>
+      <MCABottomNav />
       {showFooter ? <MCAFooter /> : null}
       <MCASlideMenu
         open={menuOpen}

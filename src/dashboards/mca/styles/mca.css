@@ -1080,7 +1080,16 @@
 
 @media (min-width: 1024px) {
   .mca-bottom-nav {
-    display: none;
+    display: none !important;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .mca-portal-body .main {
+    padding-bottom: 84px !important;
+  }
+  .mca-desktop-sidebar {
+    display: none !important;
   }
 }
 

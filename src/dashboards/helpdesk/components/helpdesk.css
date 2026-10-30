@@ -735,3 +735,26 @@
   margin-top: 2px;
 }
 
+/* ==========================================================================
+   HELPDESK MOBILE & TABLET BOTTOM NAVIGATION & VIEWPORT RESPONSIVENESS
+   ========================================================================== */
+.helpdesk-bottom-nav {
+  display: flex;
+}
+
+@media (min-width: 1024px) {
+  .helpdesk-bottom-nav {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .helpdesk-portal-body .main {
+    padding-bottom: 84px !important;
+  }
+  .helpdesk-desktop-sidebar {
+    display: none !important;
+  }
+}
+
+
