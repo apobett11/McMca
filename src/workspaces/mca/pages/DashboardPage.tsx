@@ -314,27 +314,6 @@ export function DashboardPage() {
             <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>Payables &amp; cheque manifests</p>
           </div>
         </Link>
-
-        <Link
-          to="/mca/appeals"
-          className="dash-single-card"
-          style={{
-            padding: '18px 20px',
-            textDecoration: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
-        >
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name="shield" size={20} />
-          </div>
-          <div>
-            <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text, #fff)', fontWeight: 600 }}>Appeals</h4>
-            <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>{appealsResolved} resolved / {appealsRejected} rejected</p>
-          </div>
-        </Link>
       </div>
 
       {/* MACRO DISTRIBUTION & GEOGRAPHIC PARITY */}

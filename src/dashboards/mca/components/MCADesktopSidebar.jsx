@@ -3,14 +3,13 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Icon } from '../../../components/Icon.jsx';
 import { useAuth } from '../../../context/AuthContext.jsx';
 import { getMCAMessages, getMCAApplications } from '../utils/mcaData.js';
-import { loadPayables, loadAwardRows, getAppealDecisions } from '../../../workspaces/mca/store.ts';
+import { loadPayables } from '../../../workspaces/mca/store.ts';
 
 const MCA_NAV_ITEMS = [
   { label: 'Home', path: '/mca/dashboard', icon: 'home', key: 'home' },
   { label: 'Applications', path: '/mca/applications', icon: 'applications', key: 'applications' },
   { label: 'Documents', path: '/mca/documents', icon: 'documents', key: 'documents' },
   { label: 'Disbursements', path: '/mca/disbursements', icon: 'cheque', key: 'disbursements' },
-  { label: 'Appeals', path: '/mca/appeals', icon: 'shield', key: 'appeals' },
   { label: 'Messages', path: '/mca/messages', icon: 'support', key: 'messages' },
   { label: 'Profile', path: '/mca/profile', icon: 'profile', key: 'profile' }
 ];
@@ -18,7 +17,7 @@ const MCA_NAV_ITEMS = [
 export function MCADesktopSidebar({ mcaName = 'Hon. Hillary Kiprotich Bett' }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const [counts, setCounts] = useState({ messages: 0, applications: 0, disbursements: 0, appeals: 0 });
+  const [counts, setCounts] = useState({ messages: 0, applications: 0, disbursements: 0 });
 
   useEffect(() => {
     function refreshCounts() {
@@ -34,19 +33,14 @@ export function MCADesktopSidebar({ mcaName = 'Hon. Hillary Kiprotich Bett' }) {
           : 0;
 
         let drafts = 0;
-        let pendingAppeals = 0;
         try {
           drafts = loadPayables().filter((p) => p.status === 'Draft').length;
-          const rows = loadAwardRows();
-          const decided = getAppealDecisions();
-          pendingAppeals = rows.filter((r) => r.state === 'chief_rejected' && !decided[r.id]).length;
         } catch {}
 
         setCounts({
           messages: pendingMsgs,
           applications: pendingApps,
-          disbursements: drafts,
-          appeals: pendingAppeals
+          disbursements: drafts
         });
       } catch (err) {
         console.error('Error refreshing MCA sidebar counts:', err);
@@ -133,7 +127,6 @@ export function MCADesktopSidebar({ mcaName = 'Hon. Hillary Kiprotich Bett' }) {
           if (item.key === 'messages' && counts.messages > 0) count = counts.messages;
           if (item.key === 'applications' && counts.applications > 0) count = counts.applications;
           if (item.key === 'disbursements' && counts.disbursements > 0) count = counts.disbursements;
-          if (item.key === 'appeals' && counts.appeals > 0) count = counts.appeals;
 
           return (
             <NavLink

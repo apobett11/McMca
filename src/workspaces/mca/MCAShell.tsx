@@ -11,7 +11,6 @@ export function MCAShell() {
     if (p.includes('/applications')) return 'Applications';
     if (p.includes('/documents')) return 'Documents';
     if (p.includes('/disbursements')) return 'Disbursements';
-    if (p.includes('/appeals')) return 'Appeals';
     if (p.includes('/messages')) return 'Messages';
     if (p.includes('/profile')) return 'Profile';
     return 'Home';

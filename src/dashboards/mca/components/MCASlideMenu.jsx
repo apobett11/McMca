@@ -8,7 +8,6 @@ const MCA_ITEMS = [
   { label: 'Applications', path: '/mca/applications', icon: 'applications' },
   { label: 'Documents', path: '/mca/documents', icon: 'documents' },
   { label: 'Disbursements', path: '/mca/disbursements', icon: 'cheque' },
-  { label: 'Appeals', path: '/mca/appeals', icon: 'shield' },
   { label: 'Messages', path: '/mca/messages', icon: 'support' },
   { label: 'Profile', path: '/mca/profile', icon: 'profile' }
 ];
