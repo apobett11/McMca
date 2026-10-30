@@ -5,15 +5,10 @@ import { useAuth } from '../../../context/AuthContext.jsx';
 
 const HELPDESK_ITEMS = [
   { label: 'Home', path: '/helpdesk/dashboard', icon: 'home' },
-  { label: 'Documents', path: '/helpdesk/documents', icon: 'documents' },
   { label: 'Applications', path: '/helpdesk/applications', icon: 'applications' },
+  { label: 'Documents', path: '/helpdesk/documents', icon: 'documents' },
   { label: 'Messages', path: '/helpdesk/messages', icon: 'support' },
   { label: 'Profile', path: '/helpdesk/profile', icon: 'profile' }
-];
-
-const CROSS_DESK_ITEMS = [
-  { label: 'MCA Portal', path: '/mca/dashboard', icon: 'review' },
-  { label: 'Chief Portal', path: '/chief/dashboard', icon: 'shield' }
 ];
 
 export function HelpDeskSlideMenu({ open, onClose }) {
@@ -39,7 +34,7 @@ export function HelpDeskSlideMenu({ open, onClose }) {
   async function handleLogout() {
     onClose();
     try {
-      await signOut();
+      if (signOut) await signOut();
       navigate('/login');
     } catch (err) {
       console.error('Logout error:', err);
@@ -59,11 +54,20 @@ export function HelpDeskSlideMenu({ open, onClose }) {
         aria-label="Help desk menu"
       >
         <div className="slide-menu__header">
-          <span className="slide-menu__title">Help Desk Menu</span>
-          <button type="button" className="slide-menu__close" onClick={onClose} aria-label="Close menu">
-            ×
+          <div className="slide-menu__branding">
+            <span className="brand__mark brand__mark--chief">HD</span>
+            <span className="brand__text">Help Desk Workspace</span>
+          </div>
+          <button
+            type="button"
+            className="slide-menu__close"
+            onClick={onClose}
+            aria-label="Close navigation menu"
+          >
+            <Icon name="close" size={24} />
           </button>
         </div>
+
         <nav className="slide-menu__nav">
           {HELPDESK_ITEMS.map((item) => (
             <NavLink
@@ -75,31 +79,19 @@ export function HelpDeskSlideMenu({ open, onClose }) {
               }
               onClick={onClose}
             >
-              <Icon name={item.icon} size={22} />
-              {item.label}
+              <Icon name={item.icon} size={20} />
+              <span>{item.label}</span>
             </NavLink>
           ))}
 
-          <div style={{ margin: '12px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
-          <div style={{ padding: '0 18px 6px', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#94a3b8', fontWeight: 600 }}>
-            Cross-Desk Portals
-          </div>
-          {CROSS_DESK_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className="slide-menu__link"
-              onClick={onClose}
-            >
-              <Icon name={item.icon} size={22} />
-              {item.label}
-            </NavLink>
-          ))}
-
-          <div style={{ margin: '12px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }} />
-          <button type="button" className="slide-menu__link slide-menu__link--logout" onClick={handleLogout}>
-            <Icon name="logout" size={22} />
-            Logout
+          <button
+            type="button"
+            className="slide-menu__link slide-menu__link--logout"
+            onClick={handleLogout}
+            style={{ marginTop: 24, color: '#ef4444' }}
+          >
+            <Icon name="logout" size={20} />
+            <span>Sign Out</span>
           </button>
         </nav>
       </aside>

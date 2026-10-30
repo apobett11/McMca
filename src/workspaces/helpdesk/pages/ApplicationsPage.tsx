@@ -1,101 +1,151 @@
-import { useEffect, useState } from 'react';
-import { PageHeader, Badge, Button, SearchInput } from '../../ui/primitives.tsx';
-import { Icon } from '../../ui/icons.tsx';
-import { HierarchyMetricCard } from '../components/HierarchyMetricCard.tsx';
-import { LocationDrilldownModal, type DrilldownMetricType } from '../components/LocationDrilldownModal.tsx';
-import { fetchHelpDeskAnalytics, getCachedAnalytics, type HelpDeskAnalyticsSummary } from '../services/helpDeskService.ts';
+import React, { useState, useEffect } from 'react';
+import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
+import { ChiefStripCard } from '../../../dashboards/helpdesk/components/ChiefStripCard.jsx';
+import { ChiefLocationModal } from '../../../dashboards/helpdesk/components/ChiefLocationModal.jsx';
+import {
+  fetchHelpDeskAnalytics,
+  getCachedAnalytics,
+  type HelpDeskAnalyticsSummary
+} from '../services/helpDeskService.ts';
 
 export function ApplicationsPage() {
   const [analytics, setAnalytics] = useState<HelpDeskAnalyticsSummary>(getCachedAnalytics());
+  const [refreshing, setRefreshing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedMetric, setSelectedMetric] = useState<DrilldownMetricType>('total');
+  const [modalMetric, setModalMetric] = useState<'total' | 'successful' | 'flagged'>('total');
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      const data = await fetchHelpDeskAnalytics();
+      setAnalytics(data);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   useEffect(() => {
     fetchHelpDeskAnalytics().then(setAnalytics).catch(() => {});
   }, []);
 
-  const openDrilldown = (metric: DrilldownMetricType) => {
-    setSelectedMetric(metric);
+  const openModal = (metric: 'total' | 'successful' | 'flagged') => {
+    setModalMetric(metric);
     setModalOpen(true);
   };
 
+  const approvalPct = analytics.totalApplications > 0
+    ? Math.round((analytics.successfulApplications / analytics.totalApplications) * 100)
+    : 73;
+
+  const flaggedPct = analytics.totalApplications > 0
+    ? Math.round((analytics.flaggedApplications / analytics.totalApplications) * 100)
+    : 27;
+
   return (
-    <div className="space-y-6">
-      {/* PAGE HEADER */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-500/40 bg-cyan-950/40 text-cyan-400">
-              <Icon name="users" size={18} />
-            </span>
-            <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
-              Applications Registry
-            </h1>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* HERO BANNER (CHIEF STYLING) */}
+      <section className="dash-single-card" style={{ padding: '22px 26px', background: 'var(--surface-elevated)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div
+              style={{
+                width: 46,
+                height: 46,
+                borderRadius: 10,
+                background: 'rgba(217, 119, 6, 0.15)',
+                color: '#d97706',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Icon name="applications" size={24} />
+            </div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '1.35rem', color: 'var(--text)', fontWeight: 700 }}>
+                Applications Registry
+              </h1>
+              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
+                Tendeno / Sorget Ward bursary ingestion funnels, geographic breakdowns &amp; village allocations.
+              </p>
+            </div>
           </div>
-          <p className="mt-1 text-xs text-slate-300 sm:text-sm">
-            Tendeno / Sorget Ward bursary ingestion funnels, geographic breakdowns & village allocations.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <Badge tone="cyan" dot>
-            Bursary Cycle 2026/2027
-          </Badge>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon="mapPin"
-            onClick={() => openDrilldown('total')}
-          >
-            Explore Ward Locations
-          </Button>
-        </div>
-      </div>
-
-      {/* SUMMARY HIERARCHY CARDS (NO CARD TITLE, JUST NUMBER + WHAT IT REPRESENTS + ACTION BUTTON) */}
-      <section aria-label="Applications key metrics" className="space-y-3">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {/* TOTAL APPLICATIONS (PRIMARY - LARGE) */}
-          <HierarchyMetricCard
-            value={analytics.totalApplications.toLocaleString()}
-            label={`${analytics.totalApplications.toLocaleString()} applications submitted across ward`}
-            buttonText="View Location Distribution"
-            tone="cyan"
-            size="lg"
-            icon="users"
-            onClick={() => openDrilldown('total')}
-          />
-
-          {/* SUCCESSFUL APPLICATIONS (MEDIUM - EMERALD) */}
-          <HierarchyMetricCard
-            value={analytics.successfulApplications.toLocaleString()}
-            label={`${analytics.successfulApplications.toLocaleString()} successful applications cleared & approved`}
-            buttonText="Inspect Cleared by Location"
-            tone="emerald"
-            size="md"
-            icon="check"
-            onClick={() => openDrilldown('successful')}
-          />
-
-          {/* FLAGGED APPLICATIONS (MEDIUM - AMBER) */}
-          <HierarchyMetricCard
-            value={analytics.flaggedApplications.toLocaleString()}
-            label={`${analytics.flaggedApplications.toLocaleString()} flagged applications requiring review or appeal`}
-            buttonText="Inspect Flagged by Location"
-            tone="amber"
-            size="md"
-            icon="alertTriangle"
-            onClick={() => openDrilldown('flagged')}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <RefreshButton busy={refreshing} onClick={handleRefresh} />
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => openModal('total')}
+              style={{ padding: '8px 18px', fontSize: '0.82rem', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <Icon name="mapPin" size={16} />
+              <span>Explore Ward Locations</span>
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* DETAILED DRILLDOWN MODAL */}
-      <LocationDrilldownModal
+      {/* CHIEF-STYLE STRIP CARDS WITH TITLES */}
+      <div className="dash-analytics-strips" style={{ margin: 0 }}>
+        {/* Card 1: Total Applications */}
+        <ChiefStripCard
+          title="Ward Applications"
+          value={`${analytics.totalApplications.toLocaleString()} Total Applications`}
+          statusBadge="All Ingested"
+          statusTone="admitted"
+          pct={100}
+          footInfo="Submitted across Tendeno & Sorget Ward"
+          actionText="View Location Distribution"
+          onAction={() => openModal('total')}
+        />
+
+        {/* Card 2: Successful Applications */}
+        <ChiefStripCard
+          title="Successful Applications"
+          value={`${analytics.successfulApplications.toLocaleString()} Approved Applications`}
+          statusBadge={`${approvalPct}% Cleared`}
+          statusTone="admitted"
+          pct={approvalPct}
+          footInfo="Cleared by Area Chief & Bursary Committee"
+          actionText="Inspect Cleared"
+          onAction={() => openModal('successful')}
+        />
+
+        {/* Card 3: Flagged Applications */}
+        <ChiefStripCard
+          title="Flagged Applications"
+          value={`${analytics.flaggedApplications.toLocaleString()} Flagged Cases`}
+          statusBadge={`${flaggedPct}% In Review`}
+          statusTone="declined"
+          pct={flaggedPct}
+          fillGradient="linear-gradient(90deg, #f59e0b, #ef4444)"
+          footInfo="Pending residency cross-check or appeals"
+          actionText="Inspect Flagged"
+          onAction={() => openModal('flagged')}
+          hasUpdate={analytics.flaggedApplications > 0}
+        />
+      </div>
+
+      {/* INFORMATIVE SECTION (CHIEF STYLING) */}
+      <section className="dash-single-card" style={{ padding: '20px 24px', background: 'var(--surface-elevated)' }}>
+        <h3 className="stitch-section-title" style={{ margin: '0 0 12px', fontSize: '1.05rem' }}>
+          Geographic Distribution Workflow
+        </h3>
+        <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.6 }}>
+          Click any card above or &quot;Explore Ward Locations&quot; to inspect sub-locations and villages.
+          Inside each sub-location card, click &quot;View Villages List&quot; to dropdown the villages directly in place without extra popups.
+          Selecting any village will display its full application ledger with table-head filters for Successful, Failed, and All records.
+        </p>
+      </section>
+
+      {/* LOCATION DRILLDOWN MODAL */}
+      <ChiefLocationModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         mode="applications"
-        metricType={selectedMetric}
+        metricType={modalMetric}
         analytics={analytics}
       />
     </div>

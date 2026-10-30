@@ -1,148 +1,246 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Badge, Button } from '../../ui/primitives.tsx';
-import { Icon } from '../../ui/icons.tsx';
-import { HierarchyMetricCard } from '../components/HierarchyMetricCard.tsx';
-import { fetchHelpDeskAnalytics, getCachedAnalytics, type HelpDeskAnalyticsSummary } from '../services/helpDeskService.ts';
+import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
+import { getTimeGreeting } from '../../../utils/greeting.js';
+import { ChiefStripCard } from '../../../dashboards/helpdesk/components/ChiefStripCard.jsx';
+import { ChiefLocationModal } from '../../../dashboards/helpdesk/components/ChiefLocationModal.jsx';
+import {
+  fetchHelpDeskAnalytics,
+  getCachedAnalytics,
+  type HelpDeskAnalyticsSummary
+} from '../services/helpDeskService.ts';
 import { officer } from '../data.ts';
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const [analytics, setAnalytics] = useState<HelpDeskAnalyticsSummary>(getCachedAnalytics());
+  const greeting = getTimeGreeting();
   const off = useMemo(() => officer(), []);
+  const [analytics, setAnalytics] = useState<HelpDeskAnalyticsSummary>(getCachedAnalytics());
+  const [refreshing, setRefreshing] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMetric, setModalMetric] = useState<'total' | 'successful' | 'flagged'>('total');
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      const data = await fetchHelpDeskAnalytics();
+      setAnalytics(data);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   useEffect(() => {
     fetchHelpDeskAnalytics().then(setAnalytics).catch(() => {});
   }, []);
 
+  const approvalPct = analytics.totalApplications > 0
+    ? Math.round((analytics.successfulApplications / analytics.totalApplications) * 100)
+    : 73;
+
+  const docCompletedPct = analytics.totalRegistrations > 0
+    ? Math.round((analytics.completedRegistrations / analytics.totalRegistrations) * 100)
+    : 67;
+
   return (
-    <div className="space-y-8">
-      {/* HOMEPAGE HERO STRIP */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-950/40 text-cyan-400 shadow-md">
-              <Icon name="shield" size={20} />
-            </span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* HERO BANNER (MATCHING CHIEF DASHBOARD EXACTLY) */}
+      <section className="dash-single-card" style={{ padding: '24px 28px', background: 'var(--surface-elevated)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #d97706, #f59e0b)',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: '1.25rem',
+                boxShadow: '0 4px 14px rgba(217, 119, 6, 0.3)'
+              }}
+            >
+              HD
+            </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                Help Desk Operations Overview
+              <h1 style={{ margin: 0, fontSize: '1.45rem', color: 'var(--text)' }}>
+                {greeting}, {off?.name || 'Clara Chelangat'}.
               </h1>
-              <p className="text-xs text-slate-300 sm:text-sm">
-                Tendeno / Sorget Ward NG-CDF Bursary Administration · Operations Terminal
+              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.9rem' }}>
+                Tendeno / Sorget Ward · Operations Terminal · Assessment, Verification &amp; Appeals Desk
               </p>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <Badge tone="cyan" dot pulse>
-            Live Terminal
-          </Badge>
-          <div className="rounded-lg border border-slate-700/80 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300">
-            Officer on duty: <span className="font-semibold text-white">{off.name}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <RefreshButton busy={refreshing} onClick={handleRefresh} />
+            <span className="badge badge--success" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+              ● Ward Active
+            </span>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => navigate('/helpdesk/profile')}
+              style={{ fontSize: '0.82rem', padding: '6px 12px' }}
+            >
+              Officer Profile
+            </button>
           </div>
         </div>
+      </section>
+
+      {/* CHIEF-STYLE THIN RANGES (DASH-STRIP-CARD) WITH TITLES & PROGRESS BARS */}
+      <div className="dash-analytics-strips" style={{ margin: 0 }}>
+        {/* Applications Strip Card */}
+        <ChiefStripCard
+          title="Ward Applications"
+          value={`${analytics.totalApplications.toLocaleString()} Total Applications`}
+          statusBadge={`${approvalPct}% Cleared`}
+          statusTone="admitted"
+          pct={approvalPct}
+          footInfo={`${analytics.successfulApplications.toLocaleString()} Approved · ${analytics.flaggedApplications.toLocaleString()} In Review`}
+          actionText="View Applications"
+          onAction={() => navigate('/helpdesk/applications')}
+          hasUpdate={analytics.flaggedApplications > 0}
+        />
+
+        {/* Documents Strip Card */}
+        <ChiefStripCard
+          title="Document Pipeline"
+          value={`${analytics.completedRegistrations.toLocaleString()} Completed Sets`}
+          statusBadge={`${analytics.incompleteStudentRegistrations} Incomplete`}
+          statusTone={analytics.incompleteStudentRegistrations > 0 ? 'review' : 'admitted'}
+          pct={docCompletedPct}
+          footInfo={`${analytics.incompleteStudentRegistrations} Students · ${analytics.incompleteParentRegistrations} Parents Hanging`}
+          actionText="View Documents"
+          onAction={() => navigate('/helpdesk/documents')}
+          hasUpdate={analytics.incompleteStudentRegistrations > 0}
+        />
+
+        {/* Messages Strip Card */}
+        <ChiefStripCard
+          title="Inquiries & Messages"
+          value={`${analytics.openMessages} Open Tickets`}
+          statusBadge="Action Queue"
+          statusTone="review"
+          pct={75}
+          footInfo="4 Escalations to MCA / Chief Desk"
+          actionText="View Messages"
+          onAction={() => navigate('/helpdesk/messages')}
+          hasUpdate={analytics.openMessages > 0}
+        />
+
+        {/* Profile / Shift Strip Card */}
+        <ChiefStripCard
+          title="Operations Terminal"
+          value="Day Shift (08:00 - 17:00)"
+          statusBadge="On Duty"
+          statusTone="admitted"
+          pct={100}
+          footInfo="Assigned: Tendeno & Sorget Locations"
+          actionText="View Profile"
+          onAction={() => navigate('/helpdesk/profile')}
+        />
       </div>
 
-      {/* OVERVIEW CARDS WITH STRICT HIERARCHY (NO CARD TITLE, JUST NUMBER + WHAT IT REPRESENTS + ACTION BUTTON) */}
-      <section aria-label="Module overview cards" className="space-y-4">
-        <div>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-            Operations & Pages Overview
-          </h2>
-          <p className="text-xs text-slate-300">
-            Click any card to reveal and navigate to its dedicated workspace page.
-          </p>
-        </div>
+      {/* STRUCTURED ANALYTICS CAREFULLY CRAFTED INTO SECTIONS (CHIEF STYLE) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+        {/* Section 1: Processing Telemetry */}
+        <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
+          <h3 className="stitch-section-title" style={{ margin: '0 0 16px', fontSize: '1.1rem' }}>
+            Processing Telemetry
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Approval Rate</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#10b981', marginTop: 4 }}>{approvalPct}%</div>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{analytics.successfulApplications.toLocaleString()} of {analytics.totalApplications.toLocaleString()}</span>
+            </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          {/* APPLICATIONS PAGE OVERVIEW CARD */}
-          <HierarchyMetricCard
-            value={analytics.totalApplications.toLocaleString()}
-            label={`${analytics.totalApplications.toLocaleString()} applications submitted in ward · ${analytics.successfulApplications.toLocaleString()} successful & ${analytics.flaggedApplications.toLocaleString()} flagged`}
-            buttonText="Open Applications Page"
-            tone="cyan"
-            size="lg"
-            icon="users"
-            onClick={() => navigate('/helpdesk/applications')}
-          />
+            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Flagged Cases</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f59e0b', marginTop: 4 }}>{analytics.flaggedApplications.toLocaleString()}</div>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Individual appeal/residency review</span>
+            </div>
 
-          {/* DOCUMENTS PAGE OVERVIEW CARD */}
-          <HierarchyMetricCard
-            value={analytics.incompleteStudentRegistrations.toLocaleString()}
-            label={`${analytics.incompleteStudentRegistrations.toLocaleString()} incomplete student registrations hanging · ${analytics.incompleteParentRegistrations.toLocaleString()} incomplete parents & ${analytics.completedRegistrations.toLocaleString()} completed sets`}
-            buttonText="Open Document Stages"
-            tone="amber"
-            size="lg"
-            icon="fileCheck"
-            onClick={() => navigate('/helpdesk/documents')}
-          />
+            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Incomplete Students</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#eab308', marginTop: 4 }}>{analytics.incompleteStudentRegistrations}</div>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Hanging registration steps</span>
+            </div>
 
-          {/* MESSAGES PAGE OVERVIEW CARD */}
-          <HierarchyMetricCard
-            value={analytics.openMessages.toLocaleString()}
-            label={`${analytics.openMessages.toLocaleString()} open tickets & resident inquiries pending response or escalation`}
-            buttonText="Open Messages Desk"
-            tone="emerald"
-            size="md"
-            icon="message"
-            onClick={() => navigate('/helpdesk/messages')}
-          />
+            <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Incomplete Parents</span>
+              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#8b5cf6', marginTop: 4 }}>{analytics.incompleteParentRegistrations}</div>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Pending guardian verification</span>
+            </div>
+          </div>
+        </section>
 
-          {/* PROFILE PAGE OVERVIEW CARD */}
-          <HierarchyMetricCard
-            value="1"
-            label="Active officer session · Day Shift (08:00 - 17:00) · Tendeno/Sorget assigned jurisdiction"
-            buttonText="View Officer Profile"
-            tone="violet"
-            size="md"
-            icon="pen"
-            onClick={() => navigate('/helpdesk/profile')}
-          />
-        </div>
-      </section>
+        {/* Section 2: Administrative Jurisdiction & Geographic Breakdown */}
+        <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.1rem' }}>
+              Ward Jurisdiction Breakdown
+            </h3>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={() => {
+                setModalMetric('total');
+                setModalOpen(true);
+              }}
+              style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+            >
+              Explore Locations
+            </button>
+          </div>
 
-      {/* QUICK WORKSPACE DIRECT JUMP SECTION */}
-      <section aria-label="Direct module access" className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-          Quick Direct Navigation
-        </h2>
-        <p className="mt-0.5 text-xs text-slate-300">
-          Instant jump to specific operational sections
-        </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {analytics.locations.map((loc) => {
+              const locPct = analytics.totalApplications > 0
+                ? Math.round((loc.total / analytics.totalApplications) * 100)
+                : 50;
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Button
-            variant="secondary"
-            icon="users"
-            onClick={() => navigate('/helpdesk/applications')}
-          >
-            Applications Page
-          </Button>
-          <Button
-            variant="secondary"
-            icon="fileCheck"
-            onClick={() => navigate('/helpdesk/documents')}
-          >
-            Documents Page
-          </Button>
-          <Button
-            variant="secondary"
-            icon="message"
-            onClick={() => navigate('/helpdesk/messages')}
-          >
-            Messages Desk
-          </Button>
-          <Button
-            variant="secondary"
-            icon="pen"
-            onClick={() => navigate('/helpdesk/profile')}
-          >
-            Profile & Settings
-          </Button>
-        </div>
-      </section>
+              return (
+                <div key={loc.location} style={{ padding: 12, borderRadius: 8, background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
+                      {loc.location} Location
+                    </span>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#d97706' }}>
+                      {loc.total.toLocaleString()} ({locPct}%)
+                    </span>
+                  </div>
+                  <div className="dash-strip-card__track" style={{ height: 6 }}>
+                    <div
+                      className="dash-strip-card__fill dash-strip-card__fill--gold"
+                      style={{ width: `${locPct}%` }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: '0.75rem', color: '#94a3b8' }}>
+                    <span>{loc.successful} Approved · {loc.flagged} Flagged</span>
+                    <span>4 Sub-Locations</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      {/* LOCATION DRILLDOWN MODAL WITH IN-PLACE VILLAGE DROPDOWN */}
+      <ChiefLocationModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        mode="applications"
+        metricType={modalMetric}
+        analytics={analytics}
+      />
     </div>
   );
 }

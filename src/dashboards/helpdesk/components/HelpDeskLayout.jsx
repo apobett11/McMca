@@ -8,14 +8,14 @@ import './helpdesk.css';
 
 export function HelpDeskLayout({
   pageTitle,
-  officerName = 'Help Desk Officer',
+  officerName = 'Clara Chelangat',
   children,
   showFooter = true,
   showNotifications = true,
   showProfile = true,
   notificationBadge = false,
   notificationItems = [],
-  layout = 'default'
+  layout = 'dashboard'
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -28,7 +28,7 @@ export function HelpDeskLayout({
         : 'main';
 
   return (
-    <div className="portal portal--student portal--helpdesk portal--no-nav">
+    <div className="portal portal--chief portal--helpdesk portal--no-nav">
       <HelpDeskHeader
         pageTitle={pageTitle}
         officerName={officerName}
@@ -38,7 +38,7 @@ export function HelpDeskLayout({
         onMenuOpen={() => setMenuOpen(true)}
         onNotificationsOpen={() => setNotificationsOpen(true)}
       />
-      <div className="helpdesk-portal-body">
+      <div className="chief-portal-body helpdesk-portal-body">
         <HelpDeskDesktopSidebar officerName={officerName} />
         <main
           className={mainClass}
@@ -52,7 +52,9 @@ export function HelpDeskLayout({
             padding: '0 24px'
           }}
         >
-          <div className="main__content">{children}</div>
+          <div className="main__content" style={{ padding: '24px 0 64px' }}>
+            {children}
+          </div>
         </main>
       </div>
       {showFooter ? <HelpDeskFooter /> : null}
