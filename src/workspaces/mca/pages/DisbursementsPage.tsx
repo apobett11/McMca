@@ -103,8 +103,65 @@ export function DisbursementsPage() {
   const members = getMembers();
 
   return (
-    <>
-      <PageHeader eyebrow="Cheque manifest & EFT engine" title="Disbursements" description="Awards grouped by institution into print-ready schedules and bank EFT files." />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="pb-12">
+      {/* HERO BANNER (CHIEF STYLING - EMERALD THEME) */}
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '24px 28px',
+          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--surface-elevated, #101c38) 100%)',
+          border: '1px solid rgba(16, 185, 129, 0.25)',
+          boxShadow: '0 4px 20px rgba(16, 185, 129, 0.08)'
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 12,
+                background: 'rgba(16, 185, 129, 0.18)',
+                color: '#10b981',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 16px rgba(16, 185, 129, 0.25)'
+              }}
+            >
+              <Icon name="cheque" size={26} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: 'rgba(16, 185, 129, 0.2)',
+                    color: '#34d399',
+                    border: '1px solid rgba(16, 185, 129, 0.35)'
+                  }}
+                >
+                  Cheque Manifest &amp; EFT Engine
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                  Tendeno / Sorget Bursary Fund
+                </span>
+              </div>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.45rem', color: 'var(--text, #fff)', fontWeight: 800 }}>
+                Institutional Disbursements
+              </h1>
+              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
+                Awards grouped by verified learning institutions into print-ready schedules and automated bank EFT files.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="mb-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
         {[
@@ -259,6 +316,6 @@ export function DisbursementsPage() {
         </tbody>
       </DataTable>
       {payables.length === 0 ? <EmptyState icon="cheque" title="Nothing to disburse yet" body="Approve awards in the Allocation Suite and they will appear here grouped by institution." /> : null}
-    </>
+    </div>
   );
 }

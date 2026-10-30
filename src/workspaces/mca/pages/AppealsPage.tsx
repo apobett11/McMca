@@ -95,8 +95,65 @@ export function AppealsPage() {
   };
 
   return (
-    <>
-      <PageHeader eyebrow="Tribunal bench" title="Appeals" description="Review petitions arising from Chief rejections and allocate from the ward pool or the Special Hardship Emergency Reserve." />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="pb-12">
+      {/* HERO BANNER (CHIEF STYLING - AMBER THEME) */}
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '24px 28px',
+          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, var(--surface-elevated, #101c38) 100%)',
+          border: '1px solid rgba(245, 158, 11, 0.25)',
+          boxShadow: '0 4px 20px rgba(245, 158, 11, 0.08)'
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 12,
+                background: 'rgba(245, 158, 11, 0.18)',
+                color: '#f59e0b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 16px rgba(245, 158, 11, 0.25)'
+              }}
+            >
+              <Icon name="shield" size={26} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: 'rgba(245, 158, 11, 0.2)',
+                    color: '#f59e0b',
+                    border: '1px solid rgba(245, 158, 11, 0.35)'
+                  }}
+                >
+                  Legislative Tribunal Bench
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                  Tendeno / Sorget Ward
+                </span>
+              </div>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.45rem', color: 'var(--text, #fff)', fontWeight: 800 }}>
+                Constituent Bursary Appeals
+              </h1>
+              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
+                Review petitions arising from Chief rejections and allocate from the ward pool or the Special Hardship Emergency Reserve.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="grid min-h-[560px] grid-cols-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
         <Card flush className="flex flex-col overflow-hidden" aria-label="Petitions">
@@ -233,6 +290,6 @@ export function AppealsPage() {
           </Card>
         )}
       </div>
-    </>
+    </div>
   );
 }

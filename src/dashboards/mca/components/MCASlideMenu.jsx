@@ -6,7 +6,10 @@ import { useAuth } from '../../../context/AuthContext.jsx';
 const MCA_ITEMS = [
   { label: 'Home', path: '/mca/dashboard', icon: 'home' },
   { label: 'Applications', path: '/mca/applications', icon: 'applications' },
-  { label: 'Help Desk Messages', path: '/mca/messages', icon: 'bell' },
+  { label: 'Documents', path: '/mca/documents', icon: 'documents' },
+  { label: 'Disbursements', path: '/mca/disbursements', icon: 'cheque' },
+  { label: 'Appeals', path: '/mca/appeals', icon: 'shield' },
+  { label: 'Messages', path: '/mca/messages', icon: 'support' },
   { label: 'Profile', path: '/mca/profile', icon: 'profile' }
 ];
 
@@ -34,10 +37,10 @@ export function MCASlideMenu({ open, onClose }) {
     onClose();
     try {
       if (signOut) await signOut();
-    } catch {
-      // fallback
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout error:', err);
     }
-    navigate('/login');
   }
 
   return (
@@ -48,19 +51,25 @@ export function MCASlideMenu({ open, onClose }) {
         aria-hidden="true"
       />
       <aside
-        className={`slide-menu slide-menu--mca ${open ? 'slide-menu--open' : ''}`}
+        className={`slide-menu slide-menu--chief ${open ? 'slide-menu--open' : ''}`}
         aria-hidden={!open}
-        aria-label="MCA menu"
+        aria-label="MCA navigation menu"
       >
         <div className="slide-menu__header">
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span className="slide-menu__title" style={{ fontWeight: 700 }}>MCA Portal</span>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Tendeno / Sorget Ward</span>
+          <div className="slide-menu__branding">
+            <span className="brand__mark brand__mark--chief">MCA</span>
+            <span className="brand__text">Tendeno/Sorget Legislative</span>
           </div>
-          <button type="button" className="slide-menu__close" onClick={onClose} aria-label="Close menu">
-            ×
+          <button
+            type="button"
+            className="slide-menu__close"
+            onClick={onClose}
+            aria-label="Close navigation menu"
+          >
+            <Icon name="close" size={24} />
           </button>
         </div>
+
         <nav className="slide-menu__nav">
           {MCA_ITEMS.map((item) => (
             <NavLink
@@ -72,22 +81,19 @@ export function MCASlideMenu({ open, onClose }) {
               }
               onClick={onClose}
             >
-              <Icon name={item.icon} size={22} />
-              {item.label}
+              <Icon name={item.icon} size={20} />
+              <span>{item.label}</span>
             </NavLink>
           ))}
-          <NavLink
-            to="/helpdesk/dashboard"
-            className="slide-menu__link"
-            onClick={onClose}
-            style={{ color: '#fbbf24', borderTop: '1px solid var(--border-subtle, rgba(255,255,255,0.08))', marginTop: 8 }}
+
+          <button
+            type="button"
+            className="slide-menu__link slide-menu__link--logout"
+            onClick={handleLogout}
+            style={{ marginTop: 24, color: '#ef4444' }}
           >
-            <Icon name="support" size={22} />
-            Help Desk Portal
-          </NavLink>
-          <button type="button" className="slide-menu__link slide-menu__link--logout" onClick={handleLogout}>
-            <Icon name="logout" size={22} />
-            Sign Out / Login
+            <Icon name="logout" size={20} />
+            <span>Sign Out</span>
           </button>
         </nav>
       </aside>

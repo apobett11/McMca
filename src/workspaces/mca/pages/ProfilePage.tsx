@@ -23,7 +23,19 @@ interface Prof {
 export function ProfilePage() {
   const run = useMutation();
   const tick = useDataTick([...MCA_EVENTS, LEDGER_EVENT]);
-  const prof = mca.getMCAProfile() as Prof;
+  const rawProf = (mca.getMCAProfile ? mca.getMCAProfile() : null) as Partial<Prof> | null;
+  const prof: Prof = {
+    fullName: rawProf?.fullName || 'Hon. Hillary Kiprotich Bett',
+    title: rawProf?.title || 'Member of County Assembly (MCA)',
+    ward: rawProf?.ward || 'Tendeno / Sorget Ward',
+    constituency: rawProf?.constituency || 'Kipkelion East',
+    county: rawProf?.county || 'Kericho County',
+    term: rawProf?.term || '2022 - 2027',
+    phone: rawProf?.phone || '+254 722 000 000',
+    email: rawProf?.email || 'mca.tendeno.sorget@kerichoassembly.go.ke',
+    officeLocation: rawProf?.officeLocation || 'Ward Office, Tendeno Centre',
+    ...rawProf
+  };
   const actor = prof.fullName;
 
   const [members, setMembers] = useState<Member[]>(() => getMembers());
@@ -102,8 +114,65 @@ export function ProfilePage() {
   };
 
   return (
-    <>
-      <PageHeader eyebrow="Committee vault" title="Profile" description="Multi-signature committee configuration, cryptographic sign-off keys and hard budget limits." />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="pb-12">
+      {/* HERO BANNER (CHIEF STYLING - EXECUTIVE PROFILE) */}
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '24px 28px',
+          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, var(--surface-elevated, #101c38) 100%)',
+          border: '1px solid rgba(59, 130, 246, 0.25)',
+          boxShadow: '0 4px 20px rgba(59, 130, 246, 0.08)'
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 12,
+                background: 'rgba(59, 130, 246, 0.18)',
+                color: '#60a5fa',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 16px rgba(59, 130, 246, 0.25)'
+              }}
+            >
+              <Icon name="profile" size={26} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: 'rgba(59, 130, 246, 0.2)',
+                    color: '#60a5fa',
+                    border: '1px solid rgba(59, 130, 246, 0.35)'
+                  }}
+                >
+                  Ward Assembly Credentials
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                  Tendeno / Sorget Ward &bull; Kericho County
+                </span>
+              </div>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.45rem', color: 'var(--text, #fff)', fontWeight: 800 }}>
+                Executive Profile &amp; Committee Vault
+              </h1>
+              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
+                Multi-signature committee configuration, cryptographic sign-off keys and hard budget limits.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
         <div className="space-y-4">
@@ -269,6 +338,6 @@ export function ProfilePage() {
           </Card>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,16 +1,20 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cx, kes, num, pct } from '../../lib/format.ts';
 import { useDataTick } from '../../lib/hooks.ts';
 import { TrendChart } from '../../ui/charts.tsx';
-import { Icon } from '../../ui/icons.tsx';
-import { Badge, Button, Card, PageHeader, StackedBar } from '../../ui/primitives.tsx';
+import { Icon } from '../../../components/Icon.jsx';
+import { RefreshButton } from '../../../components/RefreshButton.jsx';
+import { ChiefStripCard } from '../../../dashboards/helpdesk/components/ChiefStripCard.jsx';
+import { ChiefLocationModal } from '../../../dashboards/helpdesk/components/ChiefLocationModal.jsx';
 import { CYCLE, MCA_EVENTS, getTranche } from '../store.ts';
 import { getFullApplicantPool, getAuditAnomaliesData } from '../../../data/scalableWardDataset.ts';
 
 export function DashboardPage() {
   const tick = useDataTick(MCA_EVENTS);
   const [downloading, setDownloading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMetric, setModalMetric] = useState<'total' | 'successful' | 'flagged'>('total');
 
   const t = useMemo(() => getTranche(), [tick]);
   const pool = useMemo(() => getFullApplicantPool(), [tick]);
@@ -42,6 +46,11 @@ export function DashboardPage() {
   const intakeTrajectory = [180, 420, 750, 980, 1150, 1260];
   const clearanceCurve = [120, 310, 580, 810, 990, verifiedAndCleared];
 
+  const openDrilldown = (metric: 'total' | 'successful' | 'flagged') => {
+    setModalMetric(metric);
+    setModalOpen(true);
+  };
+
   // Pinned Manifest Download Action
   const handleDownloadManifest = () => {
     setDownloading(true);
@@ -56,7 +65,12 @@ export function DashboardPage() {
         )
         .join('\n');
 
-      const manifestContent = `OFFICIAL BENEFICIARY ALLOCATION MANIFEST — TENDENO / SORGET WARD\nACADEMIC CYCLE: ${CYCLE}\nTOTAL VERIFIED RECIPIENTS: ${verified.length}\nTOTAL ALLOCATED: KES ${committedAmount.toLocaleString()}\nVERIFICATION SEAL: MCA-EXECUTIVE-BI-2026-CERTIFIED\n\n` +
+      const manifestContent =
+        `OFFICIAL BENEFICIARY ALLOCATION MANIFEST — TENDENO / SORGET WARD\n` +
+        `ACADEMIC CYCLE: ${CYCLE}\n` +
+        `TOTAL VERIFIED RECIPIENTS: ${verified.length}\n` +
+        `TOTAL ALLOCATED: KES ${committedAmount.toLocaleString()}\n` +
+        `VERIFICATION SEAL: MCA-EXECUTIVE-BI-2026-CERTIFIED\n\n` +
         csvHeader +
         csvRows;
 
@@ -74,117 +88,266 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Executive Command Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <PageHeader
-          eyebrow={`Cycle ${CYCLE}`}
-          title="Dashboard"
-          description="Macro statistical overview and budget tranche liquidity for Tendeno / Sorget Ward."
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* HERO BANNER (CHIEF STYLING - GOLD / AMBER THEME) */}
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '24px 28px',
+          background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, var(--surface-elevated, #101c38) 100%)',
+          border: '1px solid rgba(217, 119, 6, 0.25)',
+          boxShadow: '0 4px 20px rgba(217, 119, 6, 0.08)'
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 12,
+                background: 'rgba(217, 119, 6, 0.18)',
+                color: '#f59e0b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 16px rgba(217, 119, 6, 0.25)'
+              }}
+            >
+              <Icon name="home" size={26} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: 'rgba(217, 119, 6, 0.2)',
+                    color: '#fbbf24',
+                    border: '1px solid rgba(217, 119, 6, 0.35)'
+                  }}
+                >
+                  Legislative Oversight &amp; Executive Suite
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                  Cycle {CYCLE} &bull; Tendeno / Sorget Ward
+                </span>
+              </div>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.45rem', color: 'var(--text, #fff)', fontWeight: 800 }}>
+                MCA Ward Executive Overview
+              </h1>
+              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
+                Macro statistical oversight, bursary budget tranche liquidity, and cross-division equity monitoring.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={handleDownloadManifest}
+              disabled={downloading}
+              style={{
+                padding: '9px 16px',
+                fontSize: '0.82rem',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontWeight: 600
+              }}
+            >
+              <Icon name="download" size={16} />
+              <span>{downloading ? 'Compiling Roster…' : 'Download Manifest (CSV)'}</span>
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => openDrilldown('total')}
+              style={{
+                padding: '9px 18px',
+                fontSize: '0.82rem',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'linear-gradient(135deg, #d97706, #f59e0b)',
+                border: 'none',
+                boxShadow: '0 4px 14px rgba(217, 119, 6, 0.3)',
+                fontWeight: 600
+              }}
+            >
+              <Icon name="mapPin" size={16} />
+              <span>Explore Ward Locations</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* CHIEF-STYLE STRIP CARDS (GOLD THEME WITH CLEAR HIERARCHY) */}
+      <div className="dash-analytics-strips" style={{ margin: 0 }}>
+        {/* Card 1: Ward Applications Pool - PRIMARY FOCUS */}
+        <ChiefStripCard
+          title="Ward Applications"
+          value={`${num(totalSubmissions)} Total Intake`}
+          statusBadge="100% Ward Reach"
+          statusTone="admitted"
+          themeTone="gold"
+          isFocus={true}
+          pct={100}
+          footInfo="Complete intake across Tendeno & Sorget divisions"
+          actionText="Explore Distribution"
+          onAction={() => openDrilldown('total')}
         />
 
-        {/* Pinned Quick Action Button */}
-        <div className="shrink-0">
-          <Button
-            variant="emerald"
-            onClick={handleDownloadManifest}
-            disabled={downloading}
-            className="w-full sm:w-auto font-semibold min-h-[44px] shadow-lg shadow-emerald-950/40"
-          >
-            <Icon name="download" size={16} className="mr-2" />
-            {downloading ? 'Compiling List…' : 'Download Applicants List (CSV/PDF)'}
-          </Button>
-        </div>
+        {/* Card 2: Verified & Cleared - SECONDARY HIERARCHY */}
+        <ChiefStripCard
+          title="Verified & Cleared"
+          value={`${num(verifiedAndCleared)} Master Verified`}
+          statusBadge={`${((verifiedAndCleared / totalSubmissions) * 100).toFixed(1)}% Cleared`}
+          statusTone="admitted"
+          themeTone="gold"
+          isFocus={false}
+          pct={Math.round((verifiedAndCleared / totalSubmissions) * 100)}
+          footInfo="Passed Chief residency & vetting protocols"
+          actionText="Inspect Cleared"
+          onAction={() => openDrilldown('successful')}
+        />
+
+        {/* Card 3: Flagged / In Triage */}
+        <ChiefStripCard
+          title="Flagged / In Triage"
+          value={`${num(flaggedInTriage)} Under Review`}
+          statusBadge="Field Triage"
+          statusTone="declined"
+          themeTone="gold"
+          isFocus={false}
+          pct={Math.round((flaggedInTriage / totalSubmissions) * 100)}
+          fillGradient="linear-gradient(90deg, #f59e0b, #ef4444)"
+          footInfo="Residency anomalies or under Chief field review"
+          actionText="Inspect Flagged"
+          onAction={() => openDrilldown('flagged')}
+          hasUpdate={flaggedInTriage > 0}
+        />
+
+        {/* Card 4: Tranche Liquidity */}
+        <ChiefStripCard
+          title="Tranche Liquidity"
+          value={`${kes(committedAmount)} Committed`}
+          statusBadge={`${committedPct.toFixed(1)}% Consumed`}
+          statusTone="review"
+          themeTone="gold"
+          isFocus={false}
+          pct={Math.round(committedPct)}
+          footInfo={`Remaining: ${kes(remaining)} of 15M cap`}
+          actionText="View Disbursements"
+          onAction={() => window.location.assign('/mca/disbursements')}
+        />
       </div>
 
-      {/* TOP 5 EXECUTIVE STAT CARDS (NO TABLES) */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {/* 1. Total Submissions Pool */}
-        <Card className="border-cyan-500/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Total Submissions Pool</span>
-          <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-white">
-            {num(totalSubmissions)}
-          </p>
-          <p className="mt-1 text-xs text-slate-200">Raw intake across ward</p>
-          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-cyan-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-            100% Ward registration reach
-          </div>
-        </Card>
-
-        {/* 2. Verified & Cleared */}
-        <Card className="border-emerald-500/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Verified &amp; Cleared</span>
-          <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-emerald-300">
-            {num(verifiedAndCleared)}
-          </p>
-          <p className="mt-1 text-xs text-slate-200">Passed Chief residency &amp; vetting</p>
-          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            {((verifiedAndCleared / totalSubmissions) * 100).toFixed(1)}% Master Verified Pool
-          </div>
-        </Card>
-
-        {/* 3. Flagged / In Triage */}
-        <Card className="border-amber-500/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Flagged / In Triage</span>
-          <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-amber-300">
-            {num(flaggedInTriage)}
-          </p>
-          <p className="mt-1 text-xs text-slate-200">Under Chief field review</p>
-          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-            Zero database leak
-          </div>
-        </Card>
-
-        {/* 4. Appeals Resolved vs Rejected */}
-        <Card className="border-violet-500/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Appeals Resolved vs Rejected</span>
-          <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-violet-300">
-            {appealsResolved} <span className="text-sm font-normal text-slate-200">/ {appealsRejected}</span>
-          </p>
-          <p className="mt-1 text-xs text-slate-200">Chief appeals throughput</p>
-          <div className="mt-2 flex items-center gap-1.5 text-[11px] text-violet-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
-            {anomalies.appealOverturnRatePct.toFixed(0)}% Overturn ratio
-          </div>
-        </Card>
-
-        {/* 5. Budget Tranche Liquidity Meter */}
-        <Card className="sm:col-span-2 lg:col-span-1 border-amber-300/30">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-200">Tranche Liquidity Meter</span>
-            <Badge tone="emerald">Cap: KES 15M</Badge>
-          </div>
-          <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-amber-200">
-            {kes(committedAmount)}
-          </p>
-          <div className="mt-2">
-            <StackedBar
-              total={totalPool}
-              label="Budget Tranche Committed"
-              parts={[
-                { label: 'Allocated', value: committedAmount, tone: 'emerald' },
-                { label: 'Balance', value: remaining, tone: 'gold' }
-              ]}
-            />
-          </div>
-          <p className="mt-1.5 text-[11px] text-slate-200 flex justify-between font-mono">
-            <span>Bal: <strong className="text-white">{kes(remaining)}</strong></span>
-            <span>{committedPct.toFixed(1)}% Consumed</span>
-          </p>
-        </Card>
-      </div>
-
-      {/* MACRO DISTRIBUTION CHARTS */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* 1. Intake Trajectory Line Chart */}
-        <Card
-          title="Intake Trajectory vs. Chief Clearance Curve"
-          subtitle="Cumulative applicant intake velocity vs. Chief verification throughput over 6 months."
+      {/* QUICK WORKSPACE NAVIGATION TILES */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+        <Link
+          to="/mca/applications"
+          className="dash-single-card"
+          style={{
+            padding: '18px 20px',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
         >
-          <div className="mt-3">
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(6, 182, 212, 0.15)', color: '#06b6d4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="applications" size={20} />
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text, #fff)', fontWeight: 600 }}>Applications</h4>
+            <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>Demographics &amp; matrix</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/mca/documents"
+          className="dash-single-card"
+          style={{
+            padding: '18px 20px',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+        >
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(139, 92, 246, 0.15)', color: '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="documents" size={20} />
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text, #fff)', fontWeight: 600 }}>Documents</h4>
+            <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>Verification stages</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/mca/disbursements"
+          className="dash-single-card"
+          style={{
+            padding: '18px 20px',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+        >
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="cheque" size={20} />
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text, #fff)', fontWeight: 600 }}>Disbursements</h4>
+            <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>Payables &amp; cheque manifests</p>
+          </div>
+        </Link>
+
+        <Link
+          to="/mca/appeals"
+          className="dash-single-card"
+          style={{
+            padding: '18px 20px',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+        >
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="shield" size={20} />
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text, #fff)', fontWeight: 600 }}>Appeals</h4>
+            <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>{appealsResolved} resolved / {appealsRejected} rejected</p>
+          </div>
+        </Link>
+      </div>
+
+      {/* MACRO DISTRIBUTION & GEOGRAPHIC PARITY */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: 20 }}>
+        {/* Intake Velocity Chart */}
+        <section className="dash-single-card" style={{ padding: '22px 24px' }}>
+          <h3 className="stitch-section-title" style={{ margin: '0 0 4px', fontSize: '1.05rem' }}>
+            Intake Trajectory vs. Chief Clearance Curve
+          </h3>
+          <p style={{ margin: '0 0 16px', fontSize: '0.82rem', color: '#94a3b8' }}>
+            Cumulative applicant intake velocity vs. Chief verification throughput over 6 months.
+          </p>
+          <div style={{ marginTop: 12 }}>
             <TrendChart
               mode="line"
               labels={months}
@@ -194,80 +357,86 @@ export function DashboardPage() {
                 { key: 'clearance', label: 'Chief Cleared Pool', color: '#34d399', values: clearanceCurve }
               ]}
             />
-            <div className="mt-3 flex items-center justify-center gap-6 text-xs text-slate-300">
-              <span className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#38bdf8]" />
-                Raw Intake Velocity ({totalSubmissions} Total)
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24, marginTop: 14, fontSize: '0.82rem', color: '#cbd5e1' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#38bdf8' }} />
+                Raw Intake Velocity ({num(totalSubmissions)} Total)
               </span>
-              <span className="flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#34d399]" />
-                Chief Clearance Curve ({verifiedAndCleared} Verified)
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#34d399' }} />
+                Chief Clearance Curve ({num(verifiedAndCleared)} Verified)
               </span>
             </div>
           </div>
-        </Card>
+        </section>
 
-        {/* 2. Geographic Parity Overview (Tendeno vs. Sorget) */}
-        <Card
-          title="Geographic Parity Overview (Tendeno vs. Sorget)"
-          subtitle="Administrative clearance rates and fiscal parity across the two primary ward divisions."
-        >
-          <div className="mt-4 space-y-5">
+        {/* Geographic Parity (Tendeno vs. Sorget) */}
+        <section className="dash-single-card" style={{ padding: '22px 24px' }}>
+          <h3 className="stitch-section-title" style={{ margin: '0 0 4px', fontSize: '1.05rem' }}>
+            Geographic Parity Overview (Tendeno vs. Sorget)
+          </h3>
+          <p style={{ margin: '0 0 16px', fontSize: '0.82rem', color: '#94a3b8' }}>
+            Administrative clearance rates and fiscal parity across the two primary ward divisions.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Tendeno Parity Gauge */}
-            <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-2">
-              <div className="flex items-center justify-between">
+            <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <div>
-                  <span className="font-semibold text-white text-sm">Tendeno Location</span>
-                  <span className="text-xs text-slate-300 block">Tendeno Central, East, West &amp; Mware</span>
+                  <div style={{ fontWeight: 600, color: '#fff', fontSize: '0.92rem' }}>Tendeno Location</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Tendeno Central, East, West &amp; Mware</div>
                 </div>
-                <div className="text-right">
-                  <span className="font-mono text-base font-bold text-emerald-300">
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#34d399', fontSize: '1.05rem' }}>
                     {tendenoClearPct.toFixed(1)}%
                   </span>
-                  <span className="text-[11px] text-slate-300 block">
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                     {tendenoCleared.length} / {tendenoTotal.length} Cleared
-                  </span>
+                  </div>
                 </div>
               </div>
-              <div className="h-3 w-full rounded-full bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-emerald-400 transition-all duration-500"
-                  style={{ width: `${tendenoClearPct}%` }}
-                />
+              <div style={{ height: 8, borderRadius: 4, background: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden' }}>
+                <div style={{ width: `${tendenoClearPct}%`, height: '100%', background: 'linear-gradient(90deg, #10b981, #34d399)', borderRadius: 4, transition: 'width 0.4s ease' }} />
               </div>
             </div>
 
             {/* Sorget Parity Gauge */}
-            <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-4 space-y-2">
-              <div className="flex items-center justify-between">
+            <div style={{ padding: '14px 16px', borderRadius: 10, background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <div>
-                  <span className="font-semibold text-white text-sm">Sorget Location</span>
-                  <span className="text-xs text-slate-300 block">Sorget Central, Forest, Kipchorian &amp; Kamuingi</span>
+                  <div style={{ fontWeight: 600, color: '#fff', fontSize: '0.92rem' }}>Sorget Location</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Sorget Central, Forest, Kipchorian &amp; Kamuingi</div>
                 </div>
-                <div className="text-right">
-                  <span className="font-mono text-base font-bold text-cyan-300">
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#38bdf8', fontSize: '1.05rem' }}>
                     {sorgetClearPct.toFixed(1)}%
                   </span>
-                  <span className="text-[11px] text-slate-300 block">
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
                     {sorgetCleared.length} / {sorgetTotal.length} Cleared
-                  </span>
+                  </div>
                 </div>
               </div>
-              <div className="h-3 w-full rounded-full bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-cyan-400 transition-all duration-500"
-                  style={{ width: `${sorgetClearPct}%` }}
-                />
+              <div style={{ height: 8, borderRadius: 4, background: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden' }}>
+                <div style={{ width: `${sorgetClearPct}%`, height: '100%', background: 'linear-gradient(90deg, #06b6d4, #38bdf8)', borderRadius: 4, transition: 'width 0.4s ease' }} />
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs text-slate-300">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)', fontSize: '0.8rem', color: '#94a3b8' }}>
               <span>Statutory Equity Target: &ge; 45% per division</span>
-              <Badge tone="emerald">Geographic Equity Balanced</Badge>
+              <span style={{ color: '#34d399', fontWeight: 600 }}>&bull; Geographic Equity Balanced</span>
             </div>
           </div>
-        </Card>
+        </section>
       </div>
+
+      {/* LOCATION DRILLDOWN MODAL WITH IN-PLACE FLOATING VILLAGE DROPDOWN */}
+      <ChiefLocationModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        mode="applications"
+        metricType={modalMetric}
+      />
     </div>
   );
 }

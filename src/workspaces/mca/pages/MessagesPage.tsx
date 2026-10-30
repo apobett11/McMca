@@ -147,12 +147,65 @@ export function MessagesPage() {
     cat === 'Severe Boundary Dispute' ? 'amber' : cat === 'Special Hardship Intervention' ? 'emerald' : 'cyan';
 
   return (
-    <div className="space-y-6 pb-12">
-      <PageHeader
-        eyebrow="Help Desk Escalations"
-        title="Messages"
-        description="Inquiries, boundary disputes and hardship cases escalated directly from Help Desk officers."
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="pb-12">
+      {/* HERO BANNER (CHIEF STYLING - AMBER THEME) */}
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '24px 28px',
+          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, var(--surface-elevated, #101c38) 100%)',
+          border: '1px solid rgba(245, 158, 11, 0.25)',
+          boxShadow: '0 4px 20px rgba(245, 158, 11, 0.08)'
+        }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 12,
+                background: 'rgba(245, 158, 11, 0.18)',
+                color: '#f59e0b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 16px rgba(245, 158, 11, 0.25)'
+              }}
+            >
+              <Icon name="megaphone" size={26} />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: 'rgba(245, 158, 11, 0.2)',
+                    color: '#f59e0b',
+                    border: '1px solid rgba(245, 158, 11, 0.35)'
+                  }}
+                >
+                  Help Desk Direct Escalations
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                  Tendeno / Sorget Constituents
+                </span>
+              </div>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.45rem', color: 'var(--text, #fff)', fontWeight: 800 }}>
+                Constituent Inquiries &amp; Help Desk Escalations
+              </h1>
+              <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
+                Direct constituent hardship petitions, border dispute inquiries, and special quota directives.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="border-amber-500/20">
