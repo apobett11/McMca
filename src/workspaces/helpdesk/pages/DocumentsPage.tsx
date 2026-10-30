@@ -52,26 +52,52 @@ export function DocumentsPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* HERO BANNER (CHIEF STYLING) */}
-      <section className="dash-single-card" style={{ padding: '22px 26px', background: 'var(--surface-elevated)' }}>
+      {/* HERO BANNER (CHIEF STYLING - VIOLET THEME) */}
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '22px 26px',
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, var(--surface-elevated) 100%)',
+          border: '1px solid rgba(139, 92, 246, 0.25)',
+          boxShadow: '0 4px 20px rgba(139, 92, 246, 0.08)'
+        }}
+      >
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div
               style={{
-                width: 46,
-                height: 46,
-                borderRadius: 10,
-                background: 'rgba(217, 119, 6, 0.15)',
-                color: '#d97706',
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                background: 'rgba(139, 92, 246, 0.18)',
+                color: '#a855f7',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: '0 0 16px rgba(139, 92, 246, 0.25)'
               }}
             >
               <Icon name="documents" size={24} />
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: '1.35rem', color: 'var(--text)', fontWeight: 700 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    padding: '2px 8px',
+                    borderRadius: 4,
+                    background: 'rgba(139, 92, 246, 0.2)',
+                    color: '#c084fc',
+                    border: '1px solid rgba(139, 92, 246, 0.35)'
+                  }}
+                >
+                  Document Verification Pipeline
+                </span>
+              </div>
+              <h1 style={{ margin: '4px 0 0', fontSize: '1.35rem', color: 'var(--text)', fontWeight: 700 }}>
                 Document Stages &amp; Registration Progress
               </h1>
               <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.88rem' }}>
@@ -86,7 +112,17 @@ export function DocumentsPage() {
               type="button"
               className="btn btn--primary"
               onClick={() => openModal('total')}
-              style={{ padding: '8px 18px', fontSize: '0.82rem', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 6 }}
+              style={{
+                padding: '8px 18px',
+                fontSize: '0.82rem',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+                border: 'none',
+                boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)'
+              }}
             >
               <Icon name="mapPin" size={16} />
               <span>Explore Ward Locations</span>
@@ -95,30 +131,34 @@ export function DocumentsPage() {
         </div>
       </section>
 
-      {/* CHIEF-STYLE STRIP CARDS WITH TITLES */}
+      {/* CHIEF-STYLE STRIP CARDS WITH VIOLET THEME & CLEAR HIERARCHY */}
       <div className="dash-analytics-strips" style={{ margin: 0 }}>
-        {/* Card 1: Total Registrations */}
+        {/* Card 1: Completed Document Sets - PRIMARY FOCUS */}
+        <ChiefStripCard
+          title="Document Pipeline"
+          value={`${analytics.completedRegistrations.toLocaleString()} Completed Sets`}
+          statusBadge={`${completedPct}% Verified`}
+          statusTone="admitted"
+          themeTone="violet"
+          isFocus={true}
+          pct={completedPct}
+          footInfo="All 5 onboarding stages verified across ward"
+          actionText="Inspect Completed"
+          onAction={() => openModal('completed')}
+        />
+
+        {/* Card 2: Total Ward Registrations - SECONDARY HIERARCHY */}
         <ChiefStripCard
           title="Ward Registrations"
-          value={`${analytics.totalRegistrations.toLocaleString()} Registrations`}
+          value={`${analytics.totalRegistrations.toLocaleString()} Total Records`}
           statusBadge="All Pipeline"
           statusTone="admitted"
+          themeTone="violet"
+          isFocus={false}
           pct={100}
           footInfo="Total registrations across Tendeno & Sorget"
           actionText="View Location Distribution"
           onAction={() => openModal('total')}
-        />
-
-        {/* Card 2: Completed Document Sets */}
-        <ChiefStripCard
-          title="Completed Documents"
-          value={`${analytics.completedRegistrations.toLocaleString()} Completed Sets`}
-          statusBadge={`${completedPct}% Verified`}
-          statusTone="admitted"
-          pct={completedPct}
-          footInfo="All 5 onboarding stages verified"
-          actionText="Inspect Completed"
-          onAction={() => openModal('completed')}
         />
 
         {/* Card 3: Incomplete Students */}
@@ -127,6 +167,8 @@ export function DocumentsPage() {
           value={`${analytics.incompleteStudentRegistrations.toLocaleString()} Hanging Steps`}
           statusBadge={`${incompleteStudentsPct}% Incomplete`}
           statusTone="declined"
+          themeTone="violet"
+          isFocus={false}
           pct={incompleteStudentsPct}
           fillGradient="linear-gradient(90deg, #f59e0b, #ef4444)"
           footInfo="Independent, Delegated & Custody students"
@@ -141,6 +183,8 @@ export function DocumentsPage() {
           value={`${analytics.incompleteParentRegistrations.toLocaleString()} Pending Verification`}
           statusBadge={`${incompleteParentsPct}% Incomplete`}
           statusTone="review"
+          themeTone="violet"
+          isFocus={false}
           pct={incompleteParentsPct}
           fillGradient="linear-gradient(90deg, #8b5cf6, #d97706)"
           footInfo="Guardian ID verification or linkage hanging"

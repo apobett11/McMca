@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Icon } from '../../../components/Icon.jsx';
 import { getFullApplicantPool } from '../../../data/scalableWardDataset.ts';
 import { getDocumentRegistrations } from '../../../workspaces/helpdesk/services/helpDeskService.ts';
@@ -10,10 +10,23 @@ export function ChiefLocationModal({
   metricType = 'total',
   analytics
 }) {
-  // Active selected village for table view; null means showing locations & sublocations
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 768 : false));
+
+  // Active selected location
+  const [activeLocation, setActiveLocation] = useState('Tendeno');
+  // Active selected sub-location
+  const [activeSubLoc, setActiveSubLoc] = useState('Tendeno Central');
+  // Sub-location that has its village floating popover open (desktop/hover)
+  const [hoveredSubLoc, setHoveredSubLoc] = useState(null);
+
+  // Mobile specific: whether the sub-location popup is open
+  const [mobileSubLocPopupOpen, setMobileSubLocPopupOpen] = useState(false);
+  // Mobile specific: active subloc that scrolled for village view
+  const [mobileSelectedSubLoc, setMobileSelectedSubLoc] = useState(null);
+
+  // Active selected village for table view; null means browsing locations/sublocations
   const [activeVillageView, setActiveVillageView] = useState(null);
-  // Track which sublocations have their village list dropped down/expanded: { [subLocationName]: boolean }
-  const [expandedSubLocs, setExpandedSubLocs] = useState({});
 
   // Table filters & sorting
   const [tableSort, setTableSort] = useState('all'); // 'all' | 'successful' | 'failed'
@@ -21,20 +34,39 @@ export function ChiefLocationModal({
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  // Selected administrative location tab
-  const [activeLocation, setActiveLocation] = useState('Tendeno');
+  const subLocRefs = useRef({});
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth < 768);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Reset state on open
+  useEffect(() => {
+    if (open) {
+      setActiveVillageView(null);
+      setHoveredSubLoc(null);
+      setMobileSubLocPopupOpen(false);
+      setMobileSelectedSubLoc(null);
+      setTableSort(
+        metricType === 'successful' || metricType === 'completed'
+          ? 'successful'
+          : metricType === 'flagged' || metricType === 'incomplete_students' || metricType === 'incomplete_parents'
+          ? 'failed'
+          : 'all'
+      );
+      setSearch('');
+      setPage(1);
+    }
+  }, [open, metricType]);
 
   const allApplicants = useMemo(() => getFullApplicantPool(), []);
   const allDocRegistrations = useMemo(() => getDocumentRegistrations(), []);
 
   if (!open) return null;
-
-  const toggleSubLocDropdown = (subLocName) => {
-    setExpandedSubLocs((prev) => ({
-      ...prev,
-      [subLocName]: !prev[subLocName]
-    }));
-  };
 
   const handleSelectVillage = (villageName, subLocName, locName) => {
     setActiveVillageView({
@@ -42,13 +74,8 @@ export function ChiefLocationModal({
       subLocation: subLocName,
       location: locName
     });
-    setTableSort(
-      metricType === 'successful' || metricType === 'completed'
-        ? 'successful'
-        : metricType === 'flagged' || metricType === 'incomplete_students' || metricType === 'incomplete_parents'
-        ? 'failed'
-        : 'all'
-    );
+    setHoveredSubLoc(null);
+    setMobileSubLocPopupOpen(false);
     setSearch('');
     setPage(1);
   };
@@ -118,7 +145,7 @@ export function ChiefLocationModal({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16
+        padding: isMobile ? 8 : 16
       }}
       onClick={onClose}
     >
@@ -127,33 +154,41 @@ export function ChiefLocationModal({
         style={{
           width: '100%',
           maxWidth: 980,
-          maxHeight: '90vh',
+          maxHeight: '92vh',
           display: 'flex',
           flexDirection: 'column',
           background: 'var(--surface-elevated, #0f172a)',
           border: '1px solid var(--glass-border, rgba(255, 255, 255, 0.12))',
           borderRadius: 'var(--radius-xl, 14px)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
-          overflow: 'hidden'
+          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.65)',
+          overflow: 'hidden',
+          animation: 'emilModalIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          // Clicking anywhere outside floating village list closes it
+          if (!e.target.closest('.chief-village-popover') && !e.target.closest('.subloc-card-btn')) {
+            setHoveredSubLoc(null);
+          }
+        }}
       >
-        {/* MODAL HEADER */}
+        {/* MODAL HEADER WITH VISIBLE X BUTTON */}
         <div
           style={{
-            padding: '16px 22px',
+            padding: '14px 20px',
             borderBottom: '1px solid var(--glass-border, rgba(255, 255, 255, 0.08))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 12
+            gap: 12,
+            background: 'rgba(0, 0, 0, 0.2)'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span
               style={{
-                width: 34,
-                height: 34,
+                width: 32,
+                height: 32,
                 borderRadius: 8,
                 background: 'rgba(217, 119, 6, 0.15)',
                 color: '#d97706',
@@ -162,172 +197,288 @@ export function ChiefLocationModal({
                 justifyContent: 'center'
               }}
             >
-              <Icon name="applications" size={18} />
+              <Icon name="applications" size={17} />
             </span>
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text, #f8fafc)', fontWeight: 700 }}>
+              <h2 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text, #f8fafc)', fontWeight: 700 }}>
                 {activeVillageView
                   ? `${activeVillageView.village === 'all' ? `All Villages in ${activeVillageView.subLocation}` : activeVillageView.village} · Applications Table`
                   : 'Ward Administrative Locations & Village Breakdown'}
               </h2>
-              <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>
+              <p style={{ margin: '1px 0 0', fontSize: '0.74rem', color: '#94a3b8' }}>
                 {activeVillageView
                   ? `${activeVillageView.location} Location · ${activeVillageView.subLocation} Sub-Location`
-                  : 'Click any sub-location to dropdown its villages directly, then click a village to view its table.'}
+                  : 'Select Location & Sub-Location to hover/view villages, then click a village to load the applications.'}
               </p>
             </div>
           </div>
 
+          {/* VISIBLE X BUTTON ON TOP RIGHT */}
           <button
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
             style={{
-              background: 'transparent',
-              border: 'none',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid var(--glass-border)',
               color: '#94a3b8',
               cursor: 'pointer',
-              padding: 6,
+              width: 30,
+              height: 30,
               borderRadius: 6,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+              e.currentTarget.style.borderColor = '#ef4444';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#94a3b8';
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+              e.currentTarget.style.borderColor = 'var(--glass-border)';
             }}
           >
-            <Icon name="close" size={20} />
+            <Icon name="close" size={16} />
           </button>
         </div>
 
-        {/* MODAL BODY (SCROLLABLE) */}
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '20px 22px' }}>
-          {/* VIEW A: LOCATIONS & IN-PLACE DROPDOWN OF VILLAGES */}
+        {/* MODAL BODY (SCROLLABLE IN, NOT DISPLACING WHOLE POPUP) */}
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: isMobile ? '14px 12px' : '18px 20px' }}>
           {!activeVillageView ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {/* LOCATION TABS (TENDENO & SORGET) */}
-              <div style={{ display: 'flex', gap: 10 }}>
-                {['Tendeno', 'Sorget'].map((loc) => {
-                  const locItem = analytics?.locations?.find((l) => l.location === loc);
-                  const count = getMetricCount(locItem);
-                  const isActive = activeLocation === loc;
-
-                  return (
-                    <button
-                      key={loc}
-                      type="button"
-                      onClick={() => setActiveLocation(loc)}
-                      className="dash-strip-card"
-                      style={{
-                        flex: 1,
-                        padding: '16px 20px',
-                        cursor: 'pointer',
-                        borderColor: isActive ? 'var(--gold-soft, #d97706)' : undefined,
-                        background: isActive ? 'rgba(217, 119, 6, 0.08)' : 'var(--surface-elevated, #1a2234)',
-                        textAlign: 'left'
-                      }}
-                    >
-                      <div className="dash-strip-card__head">
-                        <div>
-                          <span className="dash-strip-card__label">{loc} Location</span>
-                          <h3 className="dash-strip-card__val" style={{ fontSize: '1.35rem', marginTop: 4 }}>
-                            {count.toLocaleString()} Applications
-                          </h3>
-                        </div>
-                        <span className={`stitch-status-badge ${isActive ? 'stitch-status-badge--admitted' : 'stitch-status-badge--review'}`}>
-                          {isActive ? 'Active Selection' : 'Click to View'}
-                        </span>
-                      </div>
-                      <div className="dash-strip-card__foot" style={{ marginTop: 10 }}>
-                        <span>4 Sub-Locations · 16 Villages</span>
-                        <span style={{ color: '#d97706', fontWeight: 600 }}>Explore &gt;</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* SUB-LOCATIONS CARDS WITH IN-PLACE VILLAGE DROPDOWN */}
+            /* LOCATIONS AND SUB-LOCATIONS BROWSER */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* SECTION TITLE: LOCATIONS */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <h3 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text)', fontWeight: 600 }}>
-                    {activeLocation} Sub-Locations ({subLocationsList.length})
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#d97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Locations
                   </h3>
-                  <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-                    Click &quot;View Villages&quot; to dropdown the villages list inside the card
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    2 Administrative Areas in Ward
                   </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+                {/* DESKTOP LOCATIONS: CARDS SIDE BY SIDE WITH ACTIVE STATE */}
+                {!isMobile ? (
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {['Tendeno', 'Sorget'].map((loc) => {
+                      const locItem = analytics?.locations?.find((l) => l.location === loc);
+                      const count = getMetricCount(locItem);
+                      const isActive = activeLocation === loc;
+
+                      return (
+                        <div
+                          key={loc}
+                          onClick={() => {
+                            setActiveLocation(loc);
+                            const firstSub = analytics?.subLocations?.[loc]?.[0]?.subLocation || '';
+                            setActiveSubLoc(firstSub);
+                            setHoveredSubLoc(null);
+                          }}
+                          className="dash-strip-card"
+                          style={{
+                            flex: 1,
+                            padding: '12px 16px',
+                            cursor: 'pointer',
+                            border: isActive ? '2px solid #d97706' : '1px solid var(--glass-border)',
+                            background: isActive ? 'rgba(217, 119, 6, 0.12)' : 'var(--surface-elevated, #1a2234)',
+                            boxShadow: isActive ? '0 0 16px rgba(217, 119, 6, 0.22)' : undefined,
+                            transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
+                          }}
+                        >
+                          <div className="dash-strip-card__head" style={{ marginBottom: 4 }}>
+                            <div>
+                              <span className="dash-strip-card__label" style={{ color: isActive ? '#f59e0b' : undefined, fontWeight: 700 }}>
+                                {loc} Location
+                              </span>
+                              <h4 className="dash-strip-card__val" style={{ fontSize: '1.2rem', marginTop: 2 }}>
+                                {count.toLocaleString()} Applications
+                              </h4>
+                            </div>
+                            <span className={`stitch-status-badge ${isActive ? 'stitch-status-badge--admitted' : 'stitch-status-badge--review'}`} style={{ fontSize: '0.7rem' }}>
+                              {isActive ? '● Active Location' : 'Select'}
+                            </span>
+                          </div>
+                          <div className="dash-strip-card__foot" style={{ fontSize: '0.75rem', marginTop: 4 }}>
+                            <span>4 Sub-Locations · 16 Villages</span>
+                            <span style={{ color: '#d97706', fontWeight: 600 }}>Explore &gt;</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* MOBILE VIEW: CLEAN LIST CARDS PREVENTING CONFUSION */
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {['Tendeno', 'Sorget'].map((loc) => {
+                      const locItem = analytics?.locations?.find((l) => l.location === loc);
+                      const count = getMetricCount(locItem);
+                      const isActive = activeLocation === loc;
+
+                      return (
+                        <div
+                          key={loc}
+                          onClick={() => {
+                            setActiveLocation(loc);
+                            setMobileSubLocPopupOpen(true);
+                          }}
+                          style={{
+                            padding: '12px 14px',
+                            borderRadius: 8,
+                            background: isActive ? 'rgba(217, 119, 6, 0.14)' : 'rgba(255, 255, 255, 0.03)',
+                            border: isActive ? '1px solid #d97706' : '1px solid var(--glass-border)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <div>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>
+                              {loc} Location
+                            </span>
+                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: 2 }}>
+                              {count.toLocaleString()} Applications · Tap to view Sub-Locations
+                            </div>
+                          </div>
+                          <span style={{ color: '#d97706', fontSize: '1rem', fontWeight: 700 }}>&gt;</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* LITTLE SPACE BETWEEN LOCATIONS AND SUB-LOCATIONS */}
+              <div style={{ height: 4 }} />
+
+              {/* SECTION TITLE: SUB-LOCATIONS */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#d97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Sub-Locations ({activeLocation})
+                  </h3>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    Hover or click &quot;Villages&quot; for floating list (does not shift cards)
+                  </span>
+                </div>
+
+                {/* SMALLER SUB-LOCATION CARDS WITH ACTIVE STATE & FLOATING HOVER VILLAGE LIST */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                    gap: 10,
+                    position: 'relative'
+                  }}
+                >
                   {subLocationsList.map((sub) => {
                     const count = getMetricCount(sub);
-                    const isExpanded = Boolean(expandedSubLocs[sub.subLocation]);
+                    const isActive = activeSubLoc === sub.subLocation;
+                    const isHoverOpen = hoveredSubLoc === sub.subLocation;
 
                     return (
                       <div
                         key={sub.subLocation}
-                        className="dash-single-card"
+                        ref={(el) => (subLocRefs.current[sub.subLocation] = el)}
                         style={{
-                          background: 'rgba(255, 255, 255, 0.02)',
-                          border: isExpanded ? '1px solid #d97706' : '1px solid var(--glass-border)',
-                          borderRadius: 10,
-                          padding: 16,
+                          position: 'relative',
+                          background: isActive ? 'rgba(217, 119, 6, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                          border: isActive ? '2px solid #d97706' : '1px solid var(--glass-border)',
+                          borderRadius: 8,
+                          padding: '10px 12px',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: 10,
-                          transition: 'all 0.2s ease'
+                          gap: 6,
+                          boxShadow: isActive ? '0 0 14px rgba(217, 119, 6, 0.2)' : undefined,
+                          transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => {
+                          setActiveSubLoc(sub.subLocation);
+                          setHoveredSubLoc(isHoverOpen ? null : sub.subLocation);
                         }}
                       >
-                        {/* Sub-Location Head */}
                         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                           <div>
-                            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#94a3b8', fontWeight: 600 }}>
-                              {sub.subLocation} Sub-Location
+                            <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
+                              {sub.subLocation}
                             </span>
-                            <h4 style={{ margin: '4px 0 0', fontSize: '1.15rem', color: 'var(--text)', fontWeight: 700 }}>
-                              {count.toLocaleString()} Applications
-                            </h4>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text)', marginTop: 2 }}>
+                              {count.toLocaleString()}
+                            </div>
                           </div>
-                          <span className="stitch-status-badge stitch-status-badge--review" style={{ fontSize: '0.72rem' }}>
+                          <span
+                            className="stitch-status-badge stitch-status-badge--review"
+                            style={{ fontSize: '0.68rem', padding: '2px 6px' }}
+                          >
                             {sub.villages?.length || 4} Villages
                           </span>
                         </div>
 
-                        {/* In-Place Dropdown Toggle */}
-                        <button
-                          type="button"
-                          onClick={() => toggleSubLocDropdown(sub.subLocation)}
-                          className="btn btn--secondary"
-                          style={{
-                            width: '100%',
-                            padding: '8px 12px',
-                            fontSize: '0.8rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            borderRadius: 6,
-                            marginTop: 4
-                          }}
-                        >
-                          <span style={{ fontWeight: 600 }}>
-                            {isExpanded ? 'Hide Villages' : 'View Villages List'}
+                        {/* BUTTON TRIGGERING FLOATING HOVER POPUP */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+                          <span style={{ fontSize: '0.72rem', color: isActive ? '#f59e0b' : '#94a3b8' }}>
+                            {isActive ? '● Selected Sub-Location' : 'Click to select'}
                           </span>
-                          <span style={{ fontSize: '0.85rem' }}>{isExpanded ? '▲' : '▼'}</span>
-                        </button>
-
-                        {/* DROPDOWN LIST OF VILLAGES IN THERE (NO EXTRA POPUP!) */}
-                        {isExpanded && (
-                          <div
+                          <button
+                            type="button"
+                            className="subloc-card-btn"
                             style={{
-                              marginTop: 6,
-                              padding: '8px 6px',
-                              background: 'rgba(0, 0, 0, 0.25)',
-                              borderRadius: 6,
-                              border: '1px solid rgba(255, 255, 255, 0.06)',
+                              padding: '3px 8px',
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              borderRadius: 4,
+                              background: isHoverOpen ? '#d97706' : 'rgba(255, 255, 255, 0.08)',
+                              color: isHoverOpen ? '#000' : 'var(--text)',
+                              border: 'none',
+                              cursor: 'pointer',
                               display: 'flex',
-                              flexDirection: 'column',
+                              alignItems: 'center',
                               gap: 4
                             }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveSubLoc(sub.subLocation);
+                              setHoveredSubLoc(isHoverOpen ? null : sub.subLocation);
+                            }}
                           >
-                            {/* All Villages Option */}
+                            <span>Villages</span>
+                            <span>{isHoverOpen ? '▲' : '▾'}</span>
+                          </button>
+                        </div>
+
+                        {/* VILLAGE LIST APPEARS AS A FLOATING HOVER ABOVE THE CARDS (DOES NOT AFFECT SUB-LOCATION CARDS) */}
+                        {isHoverOpen && (
+                          <div
+                            className="chief-village-popover"
+                            style={{
+                              position: 'absolute',
+                              top: 'calc(100% + 6px)',
+                              left: 0,
+                              zIndex: 100,
+                              minWidth: 230,
+                              background: 'var(--surface-elevated, #0f172a)',
+                              border: '1px solid #d97706',
+                              borderRadius: 8,
+                              boxShadow: '0 16px 36px rgba(0, 0, 0, 0.85), 0 0 14px rgba(217, 119, 6, 0.25)',
+                              padding: 6,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 3,
+                              animation: 'popIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div style={{ padding: '4px 8px', fontSize: '0.7rem', color: '#94a3b8', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', fontWeight: 600 }}>
+                              Select Village in {sub.subLocation}
+                            </div>
+
+                            {/* All Villages item */}
                             <button
                               type="button"
                               onClick={() => handleSelectVillage('all', sub.subLocation, activeLocation)}
@@ -335,23 +486,22 @@ export function ChiefLocationModal({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
-                                padding: '8px 10px',
+                                padding: '6px 8px',
                                 borderRadius: 4,
-                                background: 'transparent',
+                                background: 'rgba(217, 119, 6, 0.12)',
                                 border: 'none',
                                 color: '#d97706',
-                                fontSize: '0.82rem',
+                                fontSize: '0.78rem',
                                 fontWeight: 700,
                                 cursor: 'pointer',
                                 textAlign: 'left'
                               }}
-                              className="chief-village-opt"
                             >
-                              <span>★ All Villages in {sub.subLocation}</span>
+                              <span>★ All Villages</span>
                               <span>{count} &gt;</span>
                             </button>
 
-                            {/* Individual Villages */}
+                            {/* Individual village items */}
                             {sub.villages?.map((v) => (
                               <button
                                 key={v}
@@ -361,19 +511,21 @@ export function ChiefLocationModal({
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
-                                  padding: '7px 10px',
+                                  padding: '5px 8px',
                                   borderRadius: 4,
                                   background: 'transparent',
                                   border: 'none',
                                   color: 'var(--text)',
-                                  fontSize: '0.82rem',
+                                  fontSize: '0.76rem',
                                   cursor: 'pointer',
-                                  textAlign: 'left'
+                                  textAlign: 'left',
+                                  transition: 'background 0.12s ease'
                                 }}
-                                className="chief-village-opt"
+                                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)')}
+                                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                               >
                                 <span>• {v}</span>
-                                <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>View Table &gt;</span>
+                                <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Table &gt;</span>
                               </button>
                             ))}
                           </div>
@@ -386,7 +538,7 @@ export function ChiefLocationModal({
             </div>
           ) : (
             /* VIEW B: TABLE LABELLED WITH THE VILLAGE AT THE TOP */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {/* TOP ACTION BAR: BACK BUTTON + VILLAGE LABEL + SORTS IN TABLE HEAD */}
               <div
                 style={{
@@ -394,21 +546,21 @@ export function ChiefLocationModal({
                   flexWrap: 'wrap',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: 12,
-                  padding: '12px 16px',
+                  gap: 10,
+                  padding: '10px 14px',
                   background: 'rgba(255, 255, 255, 0.02)',
                   borderRadius: 8,
                   border: '1px solid var(--glass-border)'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <button
                     type="button"
                     onClick={() => setActiveVillageView(null)}
                     className="btn btn--secondary"
-                    style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}
+                    style={{ padding: '5px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 5 }}
                   >
-                    <span>&larr;</span> Back to Villages
+                    <span>&larr;</span> Back to Locations
                   </button>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -417,7 +569,7 @@ export function ChiefLocationModal({
                         ? `All Villages in ${activeVillageView.subLocation}`
                         : activeVillageView.village}
                     </span>
-                    <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                    <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
                       ({tableRows.length} applications)
                     </span>
                   </div>
@@ -425,16 +577,16 @@ export function ChiefLocationModal({
 
                 {/* SORTS AT THE TABLE HEAD: ALL, SUCCESSFUL, FAILED */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase' }}>
                     Sort by:
                   </span>
                   <button
                     type="button"
                     onClick={() => { setTableSort('all'); setPage(1); }}
                     style={{
-                      padding: '5px 12px',
+                      padding: '4px 10px',
                       borderRadius: 6,
-                      fontSize: '0.78rem',
+                      fontSize: '0.75rem',
                       fontWeight: 600,
                       cursor: 'pointer',
                       border: tableSort === 'all' ? '1px solid #d97706' : '1px solid var(--glass-border)',
@@ -448,9 +600,9 @@ export function ChiefLocationModal({
                     type="button"
                     onClick={() => { setTableSort('successful'); setPage(1); }}
                     style={{
-                      padding: '5px 12px',
+                      padding: '4px 10px',
                       borderRadius: 6,
-                      fontSize: '0.78rem',
+                      fontSize: '0.75rem',
                       fontWeight: 600,
                       cursor: 'pointer',
                       border: tableSort === 'successful' ? '1px solid #10b981' : '1px solid var(--glass-border)',
@@ -464,9 +616,9 @@ export function ChiefLocationModal({
                     type="button"
                     onClick={() => { setTableSort('failed'); setPage(1); }}
                     style={{
-                      padding: '5px 12px',
+                      padding: '4px 10px',
                       borderRadius: 6,
-                      fontSize: '0.78rem',
+                      fontSize: '0.75rem',
                       fontWeight: 600,
                       cursor: 'pointer',
                       border: tableSort === 'failed' ? '1px solid #ef4444' : '1px solid var(--glass-border)',
@@ -483,13 +635,13 @@ export function ChiefLocationModal({
                     value={search}
                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                     style={{
-                      padding: '5px 10px',
-                      fontSize: '0.78rem',
+                      padding: '4px 8px',
+                      fontSize: '0.75rem',
                       borderRadius: 6,
                       border: '1px solid var(--glass-border)',
                       background: 'rgba(0,0,0,0.3)',
                       color: '#fff',
-                      width: 140
+                      width: 120
                     }}
                   />
                 </div>
@@ -511,7 +663,7 @@ export function ChiefLocationModal({
                   <tbody>
                     {paginatedRows.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ padding: '36px 20px', textAlign: 'center', color: '#94a3b8' }}>
+                        <td colSpan={6} style={{ padding: '30px 16px', textAlign: 'center', color: '#94a3b8' }}>
                           No applications match the active criteria in this village.
                         </td>
                       </tr>
@@ -529,7 +681,7 @@ export function ChiefLocationModal({
                             </td>
                             <td>
                               <strong>{isApp ? row.fullName : row.name}</strong>
-                              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                              <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
                                 [{isApp ? row.accountClass : (row.isParent ? 'PARENT' : 'STUDENT')}]
                               </div>
                             </td>
@@ -557,17 +709,17 @@ export function ChiefLocationModal({
 
               {/* PAGINATION */}
               {totalPages > 1 && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', fontSize: '0.8rem', color: '#94a3b8' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px', fontSize: '0.78rem', color: '#94a3b8' }}>
                   <span>
                     Showing {(page - 1) * pageSize + 1}–{Math.min(tableRows.length, page * pageSize)} of {tableRows.length} applications
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <button
                       type="button"
                       className="btn btn--secondary"
                       disabled={page <= 1}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                      style={{ padding: '3px 8px', fontSize: '0.72rem' }}
                     >
                       Previous
                     </button>
@@ -577,7 +729,7 @@ export function ChiefLocationModal({
                       className="btn btn--secondary"
                       disabled={page >= totalPages}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                      style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                      style={{ padding: '3px 8px', fontSize: '0.72rem' }}
                     >
                       Next
                     </button>
@@ -588,30 +740,155 @@ export function ChiefLocationModal({
           )}
         </div>
 
-        {/* MODAL FOOTER */}
+        {/* MODAL FOOTER WITH SMALLER CLOSE BUTTON */}
         <div
           style={{
-            padding: '14px 22px',
+            padding: '10px 18px',
             borderTop: '1px solid var(--glass-border, rgba(255, 255, 255, 0.08))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: 'rgba(0, 0, 0, 0.15)'
+            background: 'rgba(0, 0, 0, 0.2)'
           }}
         >
-          <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+          <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
             Tendeno / Sorget Ward NG-CDF Bursary Funnel
           </span>
+          {/* SMALLER CLOSE BUTTON */}
           <button
             type="button"
             className="btn btn--secondary"
             onClick={onClose}
-            style={{ padding: '8px 20px', fontSize: '0.82rem' }}
+            style={{ padding: '4px 12px', fontSize: '0.75rem', borderRadius: 6 }}
           >
             Close
           </button>
         </div>
       </div>
+
+      {/* MOBILE POPUP FOR SUB-LOCATIONS */}
+      {isMobile && mobileSubLocPopupOpen && (
+        <div
+          role="dialog"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 10000,
+            background: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center'
+          }}
+          onClick={() => setMobileSubLocPopupOpen(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxHeight: '80vh',
+              background: 'var(--surface-elevated, #0f172a)',
+              borderTop: '2px solid #d97706',
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              padding: '16px 16px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              overflowY: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h3 style={{ margin: 0, fontSize: '1rem', color: '#d97706', fontWeight: 700 }}>
+                {activeLocation} Sub-Locations
+              </h3>
+              <button
+                type="button"
+                onClick={() => setMobileSubLocPopupOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8' }}
+              >
+                <Icon name="close" size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {subLocationsList.map((sub) => {
+                const count = getMetricCount(sub);
+                const isSelected = mobileSelectedSubLoc === sub.subLocation;
+
+                return (
+                  <div
+                    key={sub.subLocation}
+                    style={{
+                      borderRadius: 8,
+                      border: isSelected ? '1px solid #d97706' : '1px solid var(--glass-border)',
+                      background: isSelected ? 'rgba(217, 119, 6, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+                      padding: 12,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6
+                    }}
+                  >
+                    <div
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                      onClick={() => setMobileSelectedSubLoc(isSelected ? null : sub.subLocation)}
+                    >
+                      <div>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text)' }}>
+                          {sub.subLocation}
+                        </span>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                          {count.toLocaleString()} Applications · {sub.villages?.length || 4} Villages
+                        </div>
+                      </div>
+                      <span style={{ color: '#d97706' }}>{isSelected ? '▲' : '▼'}</span>
+                    </div>
+
+                    {/* VILLAGE LIST ON MOBILE (SCROLLS TO GIVE SPACE) */}
+                    {isSelected && (
+                      <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 8 }}>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectVillage('all', sub.subLocation, activeLocation)}
+                          style={{
+                            padding: '6px 10px',
+                            background: 'rgba(217, 119, 6, 0.15)',
+                            color: '#d97706',
+                            border: 'none',
+                            borderRadius: 4,
+                            textAlign: 'left',
+                            fontSize: '0.8rem',
+                            fontWeight: 700
+                          }}
+                        >
+                          ★ All Villages in {sub.subLocation} ({count}) &gt;
+                        </button>
+                        {sub.villages?.map((v) => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => handleSelectVillage(v, sub.subLocation, activeLocation)}
+                            style={{
+                              padding: '6px 10px',
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              color: 'var(--text)',
+                              border: 'none',
+                              borderRadius: 4,
+                              textAlign: 'left',
+                              fontSize: '0.8rem'
+                            }}
+                          >
+                            • {v} &gt;
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

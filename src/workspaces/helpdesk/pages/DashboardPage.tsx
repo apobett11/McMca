@@ -44,9 +44,24 @@ export function DashboardPage() {
     : 67;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* HERO BANNER (MATCHING CHIEF DASHBOARD EXACTLY) */}
-      <section className="dash-single-card" style={{ padding: '24px 28px', background: 'var(--surface-elevated)' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 24,
+        animation: 'emilPageFade 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+      }}
+    >
+      {/* HOMEPAGE HERO BANNER (THEME: EXECUTIVE WARM GOLD) */}
+      <section
+        className="dash-single-card"
+        style={{
+          padding: '24px 28px',
+          background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, var(--surface-elevated, #1a2234) 60%)',
+          border: '1px solid rgba(217, 119, 6, 0.25)',
+          boxShadow: '0 8px 30px rgba(217, 119, 6, 0.08)'
+        }}
+      >
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div
@@ -61,15 +76,30 @@ export function DashboardPage() {
                 justifyContent: 'center',
                 fontWeight: 700,
                 fontSize: '1.25rem',
-                boxShadow: '0 4px 14px rgba(217, 119, 6, 0.3)'
+                boxShadow: '0 4px 14px rgba(217, 119, 6, 0.35)'
               }}
             >
               HD
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: '1.45rem', color: 'var(--text)' }}>
-                {greeting}, {off?.name || 'Clara Chelangat'}.
-              </h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h1 style={{ margin: 0, fontSize: '1.45rem', color: 'var(--text)' }}>
+                  {greeting}, {off?.name || 'Clara Chelangat'}.
+                </h1>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    background: 'rgba(217, 119, 6, 0.2)',
+                    color: '#f59e0b',
+                    fontWeight: 700,
+                    border: '1px solid rgba(217, 119, 6, 0.4)'
+                  }}
+                >
+                  Operations Hub
+                </span>
+              </div>
               <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.9rem' }}>
                 Tendeno / Sorget Ward · Operations Terminal · Assessment, Verification &amp; Appeals Desk
               </p>
@@ -93,61 +123,66 @@ export function DashboardPage() {
         </div>
       </section>
 
-      {/* CHIEF-STYLE THIN RANGES (DASH-STRIP-CARD) WITH TITLES & PROGRESS BARS */}
+      {/* CHIEF-STYLE ANALYTICS STRIPS (CLEAN HIERARCHY WITH ONE FOCUS THING) */}
       <div className="dash-analytics-strips" style={{ margin: 0 }}>
-        {/* Applications Strip Card */}
+        {/* ONE FOCUS CARD: WARD APPLICATIONS (ELEVATED HIERARCHY) */}
         <ChiefStripCard
           title="Ward Applications"
           value={`${analytics.totalApplications.toLocaleString()} Total Applications`}
           statusBadge={`${approvalPct}% Cleared`}
           statusTone="admitted"
+          themeTone="gold"
+          isFocus={true}
           pct={approvalPct}
           footInfo={`${analytics.successfulApplications.toLocaleString()} Approved · ${analytics.flaggedApplications.toLocaleString()} In Review`}
-          actionText="View Applications"
+          actionText="Open Applications"
           onAction={() => navigate('/helpdesk/applications')}
           hasUpdate={analytics.flaggedApplications > 0}
         />
 
-        {/* Documents Strip Card */}
+        {/* SECONDARY HIERARCHY: DOCUMENTS */}
         <ChiefStripCard
           title="Document Pipeline"
           value={`${analytics.completedRegistrations.toLocaleString()} Completed Sets`}
           statusBadge={`${analytics.incompleteStudentRegistrations} Incomplete`}
           statusTone={analytics.incompleteStudentRegistrations > 0 ? 'review' : 'admitted'}
+          themeTone="gold"
           pct={docCompletedPct}
           footInfo={`${analytics.incompleteStudentRegistrations} Students · ${analytics.incompleteParentRegistrations} Parents Hanging`}
-          actionText="View Documents"
+          actionText="Open Documents"
           onAction={() => navigate('/helpdesk/documents')}
           hasUpdate={analytics.incompleteStudentRegistrations > 0}
         />
 
-        {/* Messages Strip Card */}
+        {/* SECONDARY HIERARCHY: MESSAGES */}
         <ChiefStripCard
           title="Inquiries & Messages"
           value={`${analytics.openMessages} Open Tickets`}
           statusBadge="Action Queue"
           statusTone="review"
+          themeTone="gold"
           pct={75}
           footInfo="4 Escalations to MCA / Chief Desk"
-          actionText="View Messages"
+          actionText="Open Messages"
           onAction={() => navigate('/helpdesk/messages')}
           hasUpdate={analytics.openMessages > 0}
         />
 
-        {/* Profile / Shift Strip Card */}
+        {/* TERTIARY HIERARCHY: PROFILE / TERMINAL */}
         <ChiefStripCard
           title="Operations Terminal"
           value="Day Shift (08:00 - 17:00)"
           statusBadge="On Duty"
           statusTone="admitted"
+          themeTone="gold"
           pct={100}
           footInfo="Assigned: Tendeno & Sorget Locations"
-          actionText="View Profile"
+          actionText="Open Profile"
           onAction={() => navigate('/helpdesk/profile')}
         />
       </div>
 
-      {/* STRUCTURED ANALYTICS CAREFULLY CRAFTED INTO SECTIONS (CHIEF STYLE) */}
+      {/* STRUCTURED ANALYTICS SECTIONS */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
         {/* Section 1: Processing Telemetry */}
         <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
@@ -233,7 +268,7 @@ export function DashboardPage() {
         </section>
       </div>
 
-      {/* LOCATION DRILLDOWN MODAL WITH IN-PLACE VILLAGE DROPDOWN */}
+      {/* LOCATION DRILLDOWN MODAL */}
       <ChiefLocationModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
