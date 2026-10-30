@@ -9,6 +9,7 @@ import { Modal } from '../ui/overlays.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { Badge, Button, FieldLabel, Textarea } from '../ui/primitives.tsx';
 import { HD_EVENTS, loadAlerts, loadStuck, loadTickets, loadUploads, officer, isOpenTicket, searchHelpDesk } from './data.ts';
+import { FloatingActionBar } from './components/FloatingActionBar.tsx';
 
 const CYCLE = '2026/2027';
 
@@ -144,7 +145,7 @@ export function HelpDeskShell() {
     const off = officer();
     return {
       workspace: 'helpdesk',
-      brand: { title: 'Operational Support Terminal', division: 'Tendeno/Sorget Division', seal: 'shield' },
+      brand: { title: 'Help Desk Dashboard', division: 'Tendeno / Sorget Ward', seal: 'shield' },
       groups: [
         {
           title: 'Navigation',
@@ -160,17 +161,15 @@ export function HelpDeskShell() {
       footer: <ShiftCard />,
       banner: <ShiftBanner />,
       shortcuts: [
+        { label: 'Open Applications', icon: 'users', to: '/helpdesk/applications' },
         { label: 'Open Documents', icon: 'fileCheck', to: '/helpdesk/documents' },
-        { label: 'Open Messages', icon: 'send', to: '/helpdesk/messages' }
+        { label: 'Open Messages', icon: 'message', to: '/helpdesk/messages' }
       ],
       user: { name: off.name, role: 'Help Desk Officer' },
       search: searchHelpDesk,
       alerts: loadAlerts(),
-      switchTargets: [
-        { label: 'MCA Executive Suite', to: '/mca/dashboard', icon: 'bank' },
-        { label: 'Chief Portal', to: '/chief/dashboard', icon: 'shield' },
-        { label: 'Public Portal', to: '/', icon: 'home' }
-      ]
+      // Explicitly empty: Help Desk operators only operate their own dashboard
+      switchTargets: []
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick]);
@@ -178,6 +177,7 @@ export function HelpDeskShell() {
   return (
     <WorkspaceShell config={config}>
       <Outlet />
+      <FloatingActionBar />
     </WorkspaceShell>
   );
 }

@@ -285,23 +285,27 @@ function UserMenu({ config }: { config: ShellConfig }) {
       </button>
       {open ? (
         <div role="menu" className="absolute right-0 top-[46px] z-40 w-64 animate-ws-pop rounded-xl border border-slate-700 bg-ink-900 p-1.5 shadow-2xl">
-          <p className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-300">Switch session</p>
-          {config.switchTargets.map((t) => (
-            <button
-              key={t.to}
-              role="menuitem"
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                navigate(t.to);
-              }}
-              className="flex min-h-[40px] w-full items-center gap-3 rounded-lg px-3 text-sm font-semibold text-slate-100 hover:bg-slate-800/70"
-            >
-              <Icon name={t.icon} size={16} />
-              {t.label}
-            </button>
-          ))}
-          <div className="my-1.5 border-t border-slate-800" />
+          {config.switchTargets && config.switchTargets.length > 0 ? (
+            <>
+              <p className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-300">Switch session</p>
+              {config.switchTargets.map((t) => (
+                <button
+                  key={t.to}
+                  role="menuitem"
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate(t.to);
+                  }}
+                  className="flex min-h-[40px] w-full items-center gap-3 rounded-lg px-3 text-sm font-semibold text-slate-100 hover:bg-slate-800/70"
+                >
+                  <Icon name={t.icon} size={16} />
+                  {t.label}
+                </button>
+              ))}
+              <div className="my-1.5 border-t border-slate-800" />
+            </>
+          ) : null}
           <button
             role="menuitem"
             type="button"
@@ -325,6 +329,7 @@ function UserMenu({ config }: { config: ShellConfig }) {
 
 export function WorkspaceShell({ config, children }: { config: ShellConfig; children: ReactNode }) {
   const navigate = useNavigate();
+  const { signOut } = useAuth() as { signOut?: () => Promise<void> };
   const [mobileNav, setMobileNav] = useState(false);
   const [alertsOpen, setAlertsOpen] = useState(false);
   const critical = config.alerts.filter((a) => a.tone === 'red').length;
@@ -356,6 +361,19 @@ export function WorkspaceShell({ config, children }: { config: ShellConfig; chil
         {/* Top command strip – sticky 64px */}
         <header className={cx('ws-noprint sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-800/80 bg-ink-950/85 px-4 backdrop-blur-xl lg:px-6', config.workspace === 'mca' ? 'lg:ml-[280px]' : 'lg:ml-[260px]')}>
           <IconButton label="Open navigation" icon="menu" className="lg:hidden" onClick={() => setMobileNav(true)} />
+          
+          {config.workspace === 'helpdesk' ? (
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-accent/40 bg-accent/10 text-accent-soft shadow-inner">
+                <Icon name={config.brand.seal} size={18} />
+              </span>
+              <div className="hidden sm:block leading-tight min-w-0">
+                <span className="block truncate text-[11px] font-bold uppercase tracking-wider text-accent-soft">{config.brand.division}</span>
+                <span className="block truncate text-sm font-bold text-white">{config.brand.title}</span>
+              </div>
+            </div>
+          ) : null}
+
           <OmniSearch config={config} />
           <div className="mx-auto hidden min-w-0 whitespace-nowrap xl:block">{config.banner}</div>
           <div className="ml-auto flex items-center gap-1.5">
@@ -363,6 +381,25 @@ export function WorkspaceShell({ config, children }: { config: ShellConfig; chil
               <IconButton key={s.label} label={s.label} icon={s.icon} variant="secondary" className="hidden sm:inline-flex" onClick={() => (s.to ? navigate(s.to) : s.onClick?.())} />
             ))}
             <IconButton label={`Critical alerts${critical ? `, ${critical} critical` : ''}`} icon="bell" variant="secondary" badge={config.alerts.length} onClick={() => setAlertsOpen(true)} />
+            
+            {/* Direct Logout Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await signOut?.();
+                } finally {
+                  navigate('/login');
+                }
+              }}
+              title="Sign out of Help Desk"
+              aria-label="Sign out of Help Desk"
+              className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs font-semibold text-red-300 transition-colors hover:border-red-500/50 hover:bg-red-500/20"
+            >
+              <Icon name="logout" size={14} />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
+
             <UserMenu config={config} />
           </div>
         </header>
