@@ -14,6 +14,7 @@ import { getStatusConfig } from '../../../utils/statusConfig.js';
 import { CompleteRegistrationWizard } from '../../../components/account/CompleteRegistrationWizard.jsx';
 import { getTimeGreeting } from '../../../utils/greeting.js';
 import { AddChildModal } from '../../../components/account/AddChildModal.jsx';
+import { StitchRadialDial } from '../../../components/StitchRadialDial.jsx';
 
 function preparednessCopy(done, total) {
   if (!total || done <= 0) return 'Start your details to build a household record.';
@@ -252,43 +253,50 @@ export function ParentDashboardPage() {
             </div>
           </div>
 
-          {/* 4-Item Household Aggregate Metric Strip */}
-          <div className="parent-metrics-strip">
-            <div className="parent-metric-tile">
-              <span className="parent-metric-lbl">Linked Students</span>
-              <div className="parent-metric-val">{children.length}</div>
-              <span className="parent-metric-sub">
-                Target: {targetInSchool || children.length} in school
-              </span>
-            </div>
+          {/* Interactive Household Radial Dial Dock (Google Stitch Telemetry) */}
+          <div className="stitch-dial-dock" style={{ marginTop: 22 }}>
+            <StitchRadialDial
+              percentage={pct}
+              size={84}
+              strokeWidth={7}
+              color={complete ? '#10B981' : '#6366F1'}
+              label="Household Readiness"
+              sublabel={complete ? 'All steps verified' : `${doneCount} of ${steps.length} steps`}
+              interactive={!complete}
+              onClick={() => setWizardOpen(true)}
+            />
 
-            <div className="parent-metric-tile">
-              <span className="parent-metric-lbl">Household Readiness</span>
-              <div className={`parent-metric-val ${complete ? 'parent-metric-val--emerald' : 'parent-metric-val--indigo'}`}>
-                {pct}%
-              </div>
-              <span className="parent-metric-sub">
-                {doneCount} of {steps.length} steps verified
-              </span>
-            </div>
+            <StitchRadialDial
+              percentage={Math.min(100, targetInSchool > 0 ? Math.round((currentLinkedChildren / targetInSchool) * 100) : (currentLinkedChildren > 0 ? 100 : 0))}
+              size={84}
+              strokeWidth={7}
+              color="#00F0FF"
+              label="Linked Students"
+              sublabel={`${currentLinkedChildren} of ${targetInSchool} in School`}
+              interactive={!allChildrenAdded}
+              onClick={handleAddChildClick}
+            />
 
-            <div className="parent-metric-tile">
-              <span className="parent-metric-lbl">Bursary Records</span>
-              <div className="parent-metric-val">{applications.length}</div>
-              <span className="parent-metric-sub">
-                Active cycle submissions
-              </span>
-            </div>
+            <StitchRadialDial
+              percentage={applications.length > 0 ? 100 : 0}
+              size={84}
+              strokeWidth={7}
+              color="#F59E0B"
+              label="Active Submissions"
+              sublabel={`${applications.length} cycle record${applications.length === 1 ? '' : 's'}`}
+              interactive={true}
+              onClick={() => navigate('/parent/applications')}
+            />
 
-            <div className="parent-metric-tile">
-              <span className="parent-metric-lbl">Total Grants Awarded</span>
-              <div className="parent-metric-val parent-metric-val--emerald">
-                {formatMoney(totalAllocated)}
-              </div>
-              <span className="parent-metric-sub">
-                Cumulative household allocation
-              </span>
-            </div>
+            <StitchRadialDial
+              percentage={totalAllocated > 0 ? 100 : 0}
+              size={84}
+              strokeWidth={7}
+              color="#10B981"
+              label="Grants Awarded"
+              sublabel={formatMoney(totalAllocated)}
+              interactive={false}
+            />
           </div>
         </section>
 

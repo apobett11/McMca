@@ -1,0 +1,132 @@
+/* ==========================================================================
+   GOOGLE STITCH MODERN AETHERIC GLASS & CLAYMORPHIC SYSTEM
+   ========================================================================== */
+
+/* 1. Frosted Translucent Glassmorphic Cards (Replaces flat oversized rectangles) */
+.stitch-glass-surface,
+.portal :is(.dash-single-card, .student-hero, .parent-household-hero, .chief-command-hero, .mca-hero, .mca-card, .hd-card) {
+  background: rgba(13, 27, 54, 0.72) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.24) !important;
+  box-shadow: 
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.5),
+    0 16px 42px -6px rgba(0, 5, 20, 0.65) !important;
+  border-radius: 20px !important;
+}
+
+/* 2. Claymorphic Tactile Pills & Buttons */
+.stitch-clay-pill,
+.portal .badge,
+.portal .stitch-status-badge {
+  border-radius: 9999px !important;
+  box-shadow: 
+    inset 1px 1px 2px rgba(255, 255, 255, 0.22),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.25) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.portal .btn {
+  border-radius: 9999px !important;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+    0 4px 14px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.portal .btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.45),
+    0 8px 24px rgba(37, 99, 235, 0.45) !important;
+}
+
+.portal .btn:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+/* 3. Concentric Radial Dials Dock (Replaces bulky rectangular cards) */
+.stitch-dial-dock {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 18px 22px;
+  background: rgba(7, 14, 30, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.stitch-radial-dial-wrap:hover {
+  transform: translateY(-2px);
+}
+
+/* 4. Fluid Glowing Telemetry Micro-Ranges */
+.dash-strip-card__track,
+.chief-locality-track,
+.mca-equity-bar-track {
+  height: 6px !important;
+  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  overflow: hidden !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+}
+
+.dash-strip-card__fill,
+.chief-locality-bar,
+.mca-equity-bar-fill {
+  height: 100% !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 0 10px currentColor !important;
+}
+
+/* 5. Luminous Modal & Popup Makeover */
+.modal-panel,
+.modal-content,
+.hd-toast,
+.notice {
+  background: rgba(9, 18, 38, 0.92) !important;
+  backdrop-filter: blur(28px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
+  border: 1.5px solid rgba(59, 130, 246, 0.35) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    0 24px 64px -12px rgba(0, 0, 0, 0.8),
+    0 0 32px rgba(37, 99, 235, 0.22) !important;
+  border-radius: 20px !important;
+}
+
+/* 6. Section Anchors (Eliminates Indistinct Blurring Sections) */
+.stitch-section-anchor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.stitch-section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stitch-section-icon-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60A5FA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

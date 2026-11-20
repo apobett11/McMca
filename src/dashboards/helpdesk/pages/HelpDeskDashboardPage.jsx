@@ -4,6 +4,7 @@ import { HelpDeskLayout } from '../components/HelpDeskLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { getTimeGreeting } from '../../../utils/greeting.js';
 import { SessionHoursModal } from '../components/SessionHoursModal.jsx';
+import { StitchRadialDial } from '../../../components/StitchRadialDial.jsx';
 import {
   getHelpDeskProfile,
   calculateHelpDeskMetrics,
@@ -167,83 +168,51 @@ export function HelpDeskDashboardPage() {
             </div>
           </div>
 
-          {/* 4-Item Realtime Telemetry Grid (Clickable) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14 }}>
-            {/* Tile 1: Intake Pass Rate */}
-            <div
-              className="hd-metric-tile hd-card--interactive"
+          {/* Interactive Google Stitch Telemetry Dial Dock (Clickable Radial Micro-Modals) */}
+          <div className="stitch-dial-dock" style={{ marginTop: 20 }}>
+            <StitchRadialDial
+              percentage={appStats.passRate}
+              size={84}
+              strokeWidth={7}
+              color="#10B981"
+              label="Intake Pass Rate"
+              sublabel={`${appStats.passed} Approved · ${appStats.failed} Rejected`}
+              interactive={true}
               onClick={() => setVisualModal('apps')}
-              title="Click to view full Pass / Fail telemetry"
-              style={{ cursor: 'pointer' }}
-            >
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#94A3B8', display: 'flex', justifyContent: 'space-between' }}>
-                <span>Intake Pass Rate</span>
-                <span style={{ color: '#10B981' }}>{appStats.passRate}%</span>
-              </div>
-              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#10B981', marginTop: 4 }}>
-                {appStats.passed} <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Approved</span>
-              </div>
-              <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginTop: 2 }}>
-                {appStats.failed} Rejected ({appStats.ratio} : 1 Ratio)
-              </div>
-            </div>
+            />
 
-            {/* Tile 2: Incomplete Steps */}
-            <div
-              className="hd-metric-tile hd-card--interactive"
+            <StitchRadialDial
+              percentage={stepStats.completionRate}
+              size={84}
+              strokeWidth={7}
+              color="#F59E0B"
+              label="Hanging Drafts"
+              sublabel={`${stepStats.incomplete} Incomplete Steps`}
+              interactive={true}
               onClick={() => setVisualModal('steps')}
-              title="Click to view Registration Step Progress"
-              style={{ cursor: 'pointer' }}
-            >
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#94A3B8', display: 'flex', justifyContent: 'space-between' }}>
-                <span>Hanging Drafts</span>
-                <span style={{ color: '#F59E0B' }}>{stepStats.completionRate}%</span>
-              </div>
-              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: stepStats.incomplete > 0 ? '#F59E0B' : '#10B981', marginTop: 4 }}>
-                {stepStats.incomplete} <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Incomplete</span>
-              </div>
-              <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginTop: 2 }}>
-                {stepStats.completed} Fully Filed of {stepStats.total}
-              </div>
-            </div>
+            />
 
-            {/* Tile 3: Communications Rate */}
-            <div
-              className="hd-metric-tile hd-card--interactive"
+            <StitchRadialDial
+              percentage={msgStats.overall.rate}
+              size={84}
+              strokeWidth={7}
+              color="#00F0FF"
+              label="Inquiries Velocity"
+              sublabel={`${msgStats.overall.replied} of ${msgStats.overall.total} Replied`}
+              interactive={true}
               onClick={() => setVisualModal('messages')}
-              title="Click to view Communications & Reply Rate"
-              style={{ cursor: 'pointer' }}
-            >
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#94A3B8', display: 'flex', justifyContent: 'space-between' }}>
-                <span>Inquiries Velocity</span>
-                <span style={{ color: '#06B6D4' }}>{msgStats.overall.rate}%</span>
-              </div>
-              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#06B6D4', marginTop: 4 }}>
-                {msgStats.overall.replied} <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Replied</span>
-              </div>
-              <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginTop: 2 }}>
-                {msgStats.overall.pending} Pending Action
-              </div>
-            </div>
+            />
 
-            {/* Tile 4: Upload Errors */}
-            <div
-              className="hd-metric-tile hd-card--interactive"
+            <StitchRadialDial
+              percentage={uploadStats.totalFailed > 0 ? Math.max(10, 100 - uploadStats.totalFailed * 15) : 100}
+              size={84}
+              strokeWidth={7}
+              color={uploadStats.totalFailed > 0 ? '#EF4444' : '#10B981'}
+              label="Document Health"
+              sublabel={uploadStats.totalFailed > 0 ? `${uploadStats.totalFailed} Flagged Uploads` : 'Zero Discrepancies'}
+              interactive={true}
               onClick={() => setVisualModal('uploads')}
-              title="Click to view Document Upload Errors"
-              style={{ cursor: 'pointer' }}
-            >
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#94A3B8', display: 'flex', justifyContent: 'space-between' }}>
-                <span>Document Errors</span>
-                {uploadStats.totalFailed > 0 && <span style={{ color: '#EF4444' }}>Action</span>}
-              </div>
-              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: uploadStats.totalFailed > 0 ? '#EF4444' : '#10B981', marginTop: 4 }}>
-                {uploadStats.totalFailed} <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Flagged</span>
-              </div>
-              <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginTop: 2 }}>
-                Requiring applicant re-upload
-              </div>
-            </div>
+            />
           </div>
         </section>
 
@@ -448,15 +417,19 @@ export function HelpDeskDashboardPage() {
               aria-label="Close modal backdrop"
             />
             <div
-              className="modal-panel hd-card"
+              className="modal-panel hd-card stitch-glass-surface"
               role="dialog"
               aria-modal="true"
               style={{
                 maxWidth: 540,
-                background: '#070d18',
-                border: '1px solid rgba(255, 255, 255, 0.14)',
-                borderRadius: 14,
-                padding: '24px'
+                background: 'rgba(13, 27, 54, 0.88)',
+                backdropFilter: 'blur(32px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(32px) saturate(200%)',
+                border: '1.5px solid rgba(255, 255, 255, 0.16)',
+                borderTop: '1.5px solid rgba(0, 240, 255, 0.4)',
+                boxShadow: '0 24px 60px -8px rgba(0, 5, 20, 0.85), 0 0 30px rgba(0, 240, 255, 0.12)',
+                borderRadius: 18,
+                padding: '26px'
               }}
             >
               <header

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChiefLayout } from '../components/ChiefLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { RefreshButton } from '../../../components/RefreshButton.jsx';
+import { StitchRadialDial } from '../../../components/StitchRadialDial.jsx';
 import { getTimeGreeting } from '../../../utils/greeting.js';
 import {
   getChiefProfile,
@@ -18,6 +19,7 @@ import {
 import { CHIEF_SUMMARY } from '../../../data/chiefMock.js';
 
 export function ChiefDashboardPage() {
+  const navigate = useNavigate();
   const greeting = getTimeGreeting();
 
   // Profile state
@@ -279,42 +281,51 @@ export function ChiefDashboardPage() {
             </div>
           </div>
 
-          {/* 4-Item Executive Vetting Telemetry */}
-          <div className="chief-telemetry-grid">
-            <div className="chief-telemetry-tile">
-              <div className="chief-telemetry-lbl">Ward Applications</div>
-              <div className="chief-telemetry-val">{totalApps}</div>
-              <div className="chief-telemetry-sub">{approvedApps} Approved · {rejectedApps} Rejected</div>
-            </div>
+          {/* Interactive Executive Vetting Telemetry (Google Stitch Radial Dials) */}
+          <div className="stitch-dial-dock" style={{ marginTop: 22 }}>
+            <StitchRadialDial
+              percentage={appProcessedPct}
+              size={84}
+              strokeWidth={7}
+              color="#3B82F6"
+              label="Cycle Processed"
+              sublabel={`${approvedApps + rejectedApps} of ${totalApps} Decided`}
+              interactive={true}
+              onClick={() => navigate('/chief/applications')}
+            />
 
-            <div className="chief-telemetry-tile">
-              <div className="chief-telemetry-lbl">
-                <span>In Vetting Review</span>
-                {underReviewApps > 0 && <span className="card-update-dot" title="Pending review" />}
-              </div>
-              <div className="chief-telemetry-val chief-telemetry-val--gold">{underReviewApps}</div>
-              <div className="chief-telemetry-sub">{appProcessedPct}% Cycle Processed</div>
-            </div>
+            <StitchRadialDial
+              percentage={totalApps > 0 ? Math.round((underReviewApps / totalApps) * 100) : 0}
+              size={84}
+              strokeWidth={7}
+              color="#F59E0B"
+              label="In Vetting Review"
+              sublabel={`${underReviewApps} Pending Decisions`}
+              interactive={true}
+              onClick={() => navigate('/chief/applications?filter=under_review')}
+            />
 
-            <div className="chief-telemetry-tile">
-              <div className="chief-telemetry-lbl">
-                <span>Flagged / Mismatches</span>
-                {suspiciousApps > 0 && <span className="card-update-dot" title="Flagged case" />}
-              </div>
-              <div className={`chief-telemetry-val ${suspiciousApps > 0 ? 'chief-telemetry-val--rose' : 'chief-telemetry-val--emerald'}`}>
-                {suspiciousApps}
-              </div>
-              <div className="chief-telemetry-sub">{suspiciousApps > 0 ? 'ID location discrepancy' : 'Zero discrepancies'}</div>
-            </div>
+            <StitchRadialDial
+              percentage={totalApps > 0 ? Math.round((suspiciousApps / totalApps) * 100) : 0}
+              size={84}
+              strokeWidth={7}
+              color={suspiciousApps > 0 ? '#EF4444' : '#10B981'}
+              label="Integrity Check"
+              sublabel={suspiciousApps > 0 ? `${suspiciousApps} Discrepancies` : 'Zero Discrepancies'}
+              interactive={suspiciousApps > 0}
+              onClick={() => navigate('/chief/applications?filter=flagged')}
+            />
 
-            <div className="chief-telemetry-tile">
-              <div className="chief-telemetry-lbl">
-                <span>Ward Appeals</span>
-                {pendingAppeals > 0 && <span className="card-update-dot" title="Pending appeals" />}
-              </div>
-              <div className="chief-telemetry-val chief-telemetry-val--emerald">{totalAppeals}</div>
-              <div className="chief-telemetry-sub">{pendingAppeals} In Queue · {resolvedAppeals} Resolved</div>
-            </div>
+            <StitchRadialDial
+              percentage={appealResolvedPct}
+              size={84}
+              strokeWidth={7}
+              color="#10B981"
+              label="Ward Appeals"
+              sublabel={`${resolvedAppeals} of ${totalAppeals} Resolved`}
+              interactive={true}
+              onClick={() => navigate('/chief/appeals')}
+            />
           </div>
         </section>
 

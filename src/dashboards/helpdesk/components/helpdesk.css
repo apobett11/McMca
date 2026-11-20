@@ -1,10 +1,27 @@
-/* Help Desk Theme Extensions: High contrast, darker cards, lively hover, WhatsApp chat */
+/* Help Desk Google Stitch Theme: Frosted Glass, Tactile Claymorphism, Radial Dial Telemetry */
+
+.helpdesk-command-hero {
+  background: rgba(13, 27, 54, 0.76) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+  border-radius: 22px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18), inset 0 -1px 2px rgba(0, 0, 0, 0.5), 0 18px 46px -6px rgba(0, 5, 20, 0.65) !important;
+  position: relative;
+  overflow: hidden;
+}
 
 .hd-card {
-  background: #0b1322 !important;
-  border: 1px solid rgba(255, 255, 255, 0.09) !important;
-  border-radius: var(--radius-lg, 12px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  background: rgba(13, 27, 54, 0.72) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.22) !important;
+  border-radius: 16px;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), inset 0 -1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px -6px rgba(0, 5, 20, 0.6) !important;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 

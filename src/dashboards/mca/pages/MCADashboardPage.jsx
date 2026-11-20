@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { MCALayout } from '../components/MCALayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
 import { RefreshButton } from '../../../components/RefreshButton.jsx';
+import { StitchRadialDial } from '../../../components/StitchRadialDial.jsx';
 import {
   getMCAApplications,
   getMCAMessages,
@@ -134,92 +135,51 @@ export function MCADashboardPage() {
           </div>
         </div>
 
-        <div className="mca-metrics-grid">
-          {/* Card 1: Bursaries Disbursed / Allocated */}
-          <div
-            className="mca-metric-card mca-card--clickable"
+        {/* Interactive Bursary Executive Telemetry (Google Stitch Radial Dials) */}
+        <div className="stitch-dial-dock">
+          <StitchRadialDial
+            percentage={applications.length > 0 ? 100 : 0}
+            size={86}
+            strokeWidth={7}
+            color="#3B82F6"
+            label="Bursary Disbursed"
+            sublabel={`KES ${totalBursaryAllocated.toLocaleString()}`}
+            interactive={true}
             onClick={() => navigate('/mca/applications')}
-            title="Click to view Applications Analytics"
-          >
-            <div className="mca-metric-card__top">
-              <div className="mca-metric-card__icon" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa' }}>
-                <Icon name="funds" size={18} />
-              </div>
-              <span style={{ fontSize: '0.75rem', color: '#60a5fa', fontWeight: 600 }}>Active Cycle</span>
-            </div>
-            <div>
-              <div className="mca-metric-card__value">KES {totalBursaryAllocated.toLocaleString()}</div>
-              <div className="mca-metric-card__label">Bursary Disbursed / Allocated</div>
-            </div>
-            <div className="mca-metric-card__trend" style={{ color: '#34d399' }}>
-              <Icon name="check" size={14} /> {applications.length} students enrolled
-            </div>
-          </div>
+          />
 
-          {/* Card 2: Total Applicants & Intake */}
-          <div
-            className="mca-metric-card mca-card--clickable"
+          <StitchRadialDial
+            percentage={approvalRate}
+            size={86}
+            strokeWidth={7}
+            color="#10B981"
+            label="Approval Rate"
+            sublabel={`${approvedCount} of ${applications.length} Students`}
+            interactive={true}
             onClick={() => navigate('/mca/applications')}
-            title="Click to view Applications Roster"
-          >
-            <div className="mca-metric-card__top">
-              <div className="mca-metric-card__icon" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399' }}>
-                <Icon name="user" size={18} />
-              </div>
-              <span className="mca-badge mca-badge--done">{approvedCount} Approved</span>
-            </div>
-            <div>
-              <div className="mca-metric-card__value">{applications.length}</div>
-              <div className="mca-metric-card__label">Total Applications Received</div>
-            </div>
-            <div className="mca-metric-card__trend" style={{ color: '#34d399' }}>
-              {approvalRate}% overall approval rate
-            </div>
-          </div>
+          />
 
-          {/* Card 3: Cycle State & Administration */}
-          <div
-            className="mca-metric-card mca-card--clickable"
+          <StitchRadialDial
+            percentage={100}
+            size={86}
+            strokeWidth={7}
+            color="#6366F1"
+            label="Intake Cycle"
+            sublabel={`${cycleSettings.cycle || '2026/2027'} (${cycleSettings.state || 'Allocated'})`}
+            interactive={true}
             onClick={() => navigate('/mca/applications')}
-            title="Click to manage Cycle Window & Controls"
-          >
-            <div className="mca-metric-card__top">
-              <div className="mca-metric-card__icon" style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}>
-                <Icon name="calendar" size={18} />
-              </div>
-              <span className="mca-badge mca-badge--scheduled">{cycleSettings.state || 'Allocated'}</span>
-            </div>
-            <div>
-              <div className="mca-metric-card__value">{cycleSettings.cycle || '2026/2027'}</div>
-              <div className="mca-metric-card__label">Active Intake Cycle</div>
-            </div>
-            <div className="mca-metric-card__trend" style={{ color: '#818cf8' }}>
-              Across all {WARD_VILLAGES.length} Ward Villages
-            </div>
-          </div>
+          />
 
-          {/* Card 4: Help Desk Forwarded Petitions */}
-          <div
-            className="mca-metric-card mca-card--clickable"
+          <StitchRadialDial
+            percentage={messages.length > 0 ? Math.round((pendingMessagesCount / messages.length) * 100) : 0}
+            size={86}
+            strokeWidth={7}
+            color="#EC4899"
+            label="Help Desk Cases"
+            sublabel={`${pendingMessagesCount} Actionable Escalations`}
+            interactive={true}
             onClick={() => navigate('/mca/messages')}
-            title="Click to view Help Desk Messages"
-          >
-            <div className="mca-metric-card__top">
-              <div className="mca-metric-card__icon" style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#f472b6' }}>
-                <Icon name="bell" size={18} />
-              </div>
-              <span className="mca-badge" style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#f472b6', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
-                {pendingMessagesCount} Actionable
-              </span>
-            </div>
-            <div>
-              <div className="mca-metric-card__value">{messages.length}</div>
-              <div className="mca-metric-card__label">Help Desk Escalations</div>
-            </div>
-            <div className="mca-metric-card__trend" style={{ color: '#94a3b8' }}>
-              Forwarded applicant inquiries
-            </div>
-          </div>
+          />
         </div>
       </section>
 

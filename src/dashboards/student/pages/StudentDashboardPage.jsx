@@ -12,6 +12,7 @@ import { applicationSerial, cycleTitle, formatMoney } from '../../../lib/househo
 import { EDUCATION_LEVEL_LABEL } from '../../../lib/accountAllocation/constants.js';
 import { getStatusConfig } from '../../../utils/statusConfig.js';
 import { activeBursaryWindow } from '../../../lib/accountQueries';
+import { StitchRadialDial } from '../../../components/StitchRadialDial.jsx';
 
 function preparednessCopy(done, total) {
   if (!total || done <= 0) return 'Start your details to build a bursary record.';
@@ -209,14 +210,19 @@ export function StudentDashboardPage() {
               </div>
             </div>
 
-            <div className="student-readiness-pill">
-              <div className="student-readiness-meter">
-                {showSkeleton ? '…' : `${pct}%`}
-              </div>
-              <div className="student-readiness-desc">
-                <span className="title">Preparedness</span>
-                <span className="subtitle">{showSkeleton ? 'Loading…' : preparednessCopy(doneCount, steps.length)}</span>
-              </div>
+            <div className="student-readiness-pill" style={{ background: 'transparent', border: 'none', padding: 0 }}>
+              <StitchRadialDial
+                percentage={showSkeleton ? 0 : pct}
+                size={76}
+                strokeWidth={6.5}
+                color="#00F0FF"
+                secondaryPercentage={complete ? 100 : Math.round((doneCount / steps.length) * 100)}
+                secondaryColor="rgba(112, 0, 255, 0.45)"
+                label="Readiness Meter"
+                sublabel={showSkeleton ? 'Checking records…' : preparednessCopy(doneCount, steps.length)}
+                interactive={true}
+                onClick={() => navigate('/student/documents', { state: { continueRegistration: true } })}
+              />
             </div>
           </div>
 

@@ -50,15 +50,18 @@
 }
 
 /* ==========================================================================
-   1. HOUSEHOLD COMMAND HERO BAND
+   1. HOUSEHOLD COMMAND HERO BAND (GOOGLE STITCH GLASS AETHERIC)
    ========================================================================== */
 .parent-household-hero {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(19, 31, 59, 0.98));
-  border: 1.5px solid var(--par-border);
+  background: rgba(13, 27, 54, 0.76) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.28) !important;
   border-radius: var(--par-radius-xl);
   padding: 28px 32px;
   margin-bottom: 24px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18), inset 0 -1px 2px rgba(0, 0, 0, 0.5), 0 18px 46px -6px rgba(0, 5, 20, 0.65) !important;
   position: relative;
   overflow: hidden;
 }
@@ -193,21 +196,22 @@
   align-items: center;
   gap: 8px;
   padding: 11px 24px;
-  background: var(--par-accent-emerald);
-  color: #051A10;
-  border: none;
+  background: linear-gradient(135deg, #10B981, #059669) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
   border-radius: var(--par-radius-pill);
   font-family: 'Hanken Grotesk', sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 16px var(--par-accent-emerald-glow);
+  box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.4), inset -1px -1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px var(--par-accent-emerald-glow) !important;
   transition: var(--par-transition);
 }
 
 .btn-parent-add-child:hover {
-  background: #34D399;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #34D399, #10B981) !important;
+  transform: translateY(-1.5px);
+  box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.5), 0 8px 24px rgba(16, 185, 129, 0.4) !important;
 }
 
 /* ==========================================================================
@@ -245,11 +249,14 @@
 }
 
 .parent-child-card {
-  background: var(--par-surface);
-  border: 1.5px solid var(--par-border);
+  background: rgba(13, 27, 54, 0.72) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.22) !important;
   border-radius: var(--par-radius-xl);
   padding: 22px 24px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), inset 0 -1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px -6px rgba(0, 5, 20, 0.6) !important;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -258,9 +265,9 @@
 }
 
 .parent-child-card:hover {
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: rgba(99, 102, 241, 0.4) !important;
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 20px 48px -6px rgba(0, 5, 20, 0.7) !important;
 }
 
 .parent-child-card--attention {

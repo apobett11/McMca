@@ -50,15 +50,18 @@
 }
 
 /* ==========================================================================
-   DOMINANT STATUS HERO (MISSION CONTROL ANCHOR)
+   DOMINANT STATUS HERO (MISSION CONTROL ANCHOR - GOOGLE STITCH GLASS)
    ========================================================================== */
 .student-status-hero {
-  background: linear-gradient(135deg, rgba(19, 31, 51, 0.95), rgba(23, 36, 61, 0.95));
-  border: 1.5px solid var(--stu-border);
+  background: rgba(13, 27, 54, 0.76) !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.28) !important;
   border-radius: var(--stu-radius-xl);
   padding: 28px 32px;
   margin-bottom: 24px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), inset 0 -1px 2px rgba(0, 0, 0, 0.5), 0 18px 46px -6px rgba(0, 5, 20, 0.65) !important;
   position: relative;
   overflow: hidden;
 }
@@ -181,14 +184,17 @@
 }
 
 /* ==========================================================================
-   5-STAGE MILESTONE STEPPER TRACK
+   5-STAGE MILESTONE STEPPER TRACK (CLAYMORPHIC TACTILE DOCK)
    ========================================================================== */
 .student-stepper-wrap {
   margin: 18px 0 24px;
   padding: 16px 20px;
-  background: var(--stu-surface-soft);
-  border: 1px solid var(--stu-border);
+  background: rgba(10, 20, 40, 0.6) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: var(--stu-radius-lg);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
 }
 
 .student-stepper {
@@ -223,8 +229,8 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--stu-surface);
-  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: #111D33;
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
   color: var(--stu-text-muted);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.8rem;
@@ -232,6 +238,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.18), inset -1px -1px 2px rgba(0, 0, 0, 0.4), 0 3px 8px rgba(0, 0, 0, 0.3);
   transition: var(--stu-transition);
 }
 
@@ -245,9 +252,10 @@
 
 /* Stepper States */
 .student-stepper__node.is-complete .student-stepper__circle {
-  background: var(--stu-status-green);
-  border-color: var(--stu-status-green);
+  background: linear-gradient(135deg, #10B981, #059669);
+  border-color: #34D399;
   color: #FFFFFF;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35), inset 1px 1px 2px rgba(255, 255, 255, 0.3);
 }
 
 .student-stepper__node.is-complete .student-stepper__label {
@@ -258,7 +266,7 @@
   background: #0B1326;
   border-color: var(--stu-accent-cyan);
   color: var(--stu-accent-cyan);
-  box-shadow: 0 0 14px var(--stu-accent-cyan-glow);
+  box-shadow: 0 0 16px var(--stu-accent-cyan-glow), inset 1px 1px 2px rgba(0, 240, 255, 0.3);
 }
 
 .student-stepper__node.is-active .student-stepper__label {
@@ -325,29 +333,29 @@
   color: var(--stu-text-secondary);
 }
 
-/* Primary Cyan Action CTA */
+/* Primary Cyan Action CTA (Tactile Claymorphic Pill) */
 .btn-student-cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 11px 26px;
-  background: var(--stu-accent-cyan);
-  color: #060E20;
-  border: none;
+  background: linear-gradient(135deg, #00F0FF, #0284C7) !important;
+  color: #060E20 !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
   border-radius: var(--stu-radius-pill);
   font-family: 'Hanken Grotesk', sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 16px var(--stu-accent-cyan-glow);
+  box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.45), inset -1px -1px 2px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 240, 255, 0.35) !important;
   transition: var(--stu-transition);
   text-decoration: none;
 }
 
 .btn-student-cta:hover {
-  background: #57F7FF;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0, 240, 255, 0.4);
+  background: linear-gradient(135deg, #57F7FF, #38BDF8) !important;
+  transform: translateY(-1.5px);
+  box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.6), 0 8px 24px rgba(0, 240, 255, 0.5) !important;
 }
 
 /* ==========================================================================
@@ -371,18 +379,22 @@
   gap: 24px;
 }
 
-/* Structural Card Containers (20% Layer) */
+/* Structural Card Containers (20% Layer - Google Stitch Frosted Glass) */
 .student-card-panel {
-  background: var(--stu-surface);
-  border: 1.5px solid var(--stu-border);
+  background: rgba(13, 27, 54, 0.72) !important;
+  backdrop-filter: blur(24px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.22) !important;
   border-radius: var(--stu-radius-xl);
   padding: 24px 26px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), inset 0 -1px 2px rgba(0, 0, 0, 0.5), 0 16px 40px -6px rgba(0, 5, 20, 0.6) !important;
   transition: var(--stu-transition);
 }
 
 .student-card-panel:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(0, 240, 255, 0.25) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.22), 0 20px 48px -6px rgba(0, 5, 20, 0.7) !important;
 }
 
 .student-panel-head {
@@ -463,21 +475,23 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: var(--stu-surface-soft);
-  border: 1px solid var(--stu-border);
+  background: rgba(14, 26, 52, 0.6) !important;
+  backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-radius: var(--stu-radius-md);
   cursor: pointer;
   transition: var(--stu-transition);
 }
 
 .student-checklist-row:hover {
-  background: var(--stu-surface-hover);
-  border-color: rgba(0, 240, 255, 0.25);
-  transform: translateX(2px);
+  background: rgba(22, 38, 72, 0.7) !important;
+  border-color: rgba(0, 240, 255, 0.35) !important;
+  transform: translateX(3px);
+  box-shadow: 0 4px 14px rgba(0, 240, 255, 0.12);
 }
 
 .student-checklist-row.is-done {
-  border-color: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.35) !important;
 }
 
 .student-checklist-left {
@@ -508,7 +522,7 @@
   color: var(--stu-text-primary);
 }
 
-/* Quick Action Tiles */
+/* Quick Action Tiles (Frosted Glass + Micro-Clay Elevation) */
 .student-tiles-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -516,8 +530,11 @@
 }
 
 .student-tile {
-  background: var(--stu-surface-card);
-  border: 1.5px solid var(--stu-border);
+  background: rgba(16, 30, 60, 0.65) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.18) !important;
   border-radius: var(--stu-radius-lg);
   padding: 16px;
   display: flex;
@@ -525,14 +542,15 @@
   gap: 8px;
   cursor: pointer;
   text-decoration: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 6px 18px rgba(0, 0, 0, 0.25) !important;
   transition: var(--stu-transition);
 }
 
 .student-tile:hover {
-  background: var(--stu-surface-hover);
-  border-color: var(--stu-accent-cyan);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 240, 255, 0.12);
+  background: rgba(22, 42, 82, 0.8) !important;
+  border-color: var(--stu-accent-cyan) !important;
+  transform: translateY(-2.5px);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 10px 24px rgba(0, 240, 255, 0.2) !important;
 }
 
 .student-tile-icon {
