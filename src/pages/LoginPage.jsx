@@ -412,15 +412,16 @@ export function LoginPage({ initialTab = 'login' }) {
 
   const fieldStyle = {
     width: '100%',
-    padding: '11px 14px',
+    padding: '12px 14px',
     fontSize: 14,
     borderRadius: 10,
-    border: '1.5px solid rgba(148, 163, 184, 0.48)',
-    background: 'rgba(15, 23, 42, 0.65)',
-    color: '#E2E8F0',
+    border: '1.5px solid rgba(59, 130, 246, 0.35)',
+    background: '#091024',
+    color: '#F8FAFC',
     fontFamily: 'inherit',
     outline: 'none',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
   };
 
   return (
@@ -429,8 +430,8 @@ export function LoginPage({ initialTab = 'login' }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'var(--background, #0B1120)',
-      backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.18) 0%, transparent 60%), radial-gradient(circle at 10% 90%, rgba(37, 99, 235, 0.12) 0%, transparent 50%)',
+      background: '#070D1E',
+      backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.22) 0%, transparent 60%), radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.1) 0%, transparent 50%)',
       fontFamily: 'var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)',
       padding: '32px 16px'
     }}>
@@ -440,7 +441,7 @@ export function LoginPage({ initialTab = 'login' }) {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(11, 17, 32, 0.85)',
+            background: 'rgba(7, 13, 30, 0.88)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             zIndex: 99999,
@@ -454,15 +455,15 @@ export function LoginPage({ initialTab = 'login' }) {
         >
           <div
             style={{
-              background: '#1E293B',
+              background: '#0F172A',
               borderRadius: 20,
               maxWidth: 440,
               width: '100%',
               padding: '28px 24px',
-              border: popupModal.type === 'error' ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(16, 185, 129, 0.4)',
-              boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.7)',
+              border: popupModal.type === 'error' ? '1.5px solid rgba(239, 68, 68, 0.45)' : '1.5px solid rgba(16, 185, 129, 0.45)',
+              boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
               textAlign: 'center',
-              color: '#E2E8F0',
+              color: '#F8FAFC',
               fontFamily: 'inherit'
             }}
           >
@@ -553,19 +554,96 @@ export function LoginPage({ initialTab = 'login' }) {
 
       <div style={{
         width: '100%',
-        maxWidth: activeTab === 'register' && role && !finished ? 560 : 420,
-        background: 'var(--surface-elevated, #162032)',
-        borderRadius: 24,
-        padding: activeTab === 'register' && role && !finished ? '32px 28px' : '32px',
-        border: '1px solid rgba(124, 58, 237, 0.28)',
-        boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+        maxWidth: activeTab === 'register' && role && !finished ? 580 : 440,
+        background: 'linear-gradient(145deg, rgba(16, 28, 56, 0.98), rgba(11, 19, 38, 0.98))',
+        borderRadius: 22,
+        padding: activeTab === 'register' && role && !finished ? '32px 28px' : '36px 32px',
+        border: '1.5px solid rgba(59, 130, 246, 0.35)',
+        boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+        position: 'relative',
+        overflow: 'hidden',
         transition: 'all 0.25s ease'
       }}>
+        {/* Top Crisp Accent Line (Google Stitch Sovereign Accent) */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: 'linear-gradient(90deg, #2563EB, #06B6D4, #F59E0B)'
+        }} />
+
+        {/* Portal Civic Branding Header */}
+        <div style={{ textAlign: 'center', marginBottom: 26 }}>
+          <div style={{
+            width: 52,
+            height: 52,
+            borderRadius: 15,
+            background: 'linear-gradient(135deg, #2563EB, #06B6D4)',
+            padding: 2,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 16px rgba(37, 99, 235, 0.35)',
+            marginBottom: 12
+          }}>
+            <div style={{
+              width: '100%',
+              height: '100%',
+              background: '#070D1E',
+              borderRadius: 13,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#60A5FA'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+          </div>
+
+          <h1 style={{
+            fontSize: '1.45rem',
+            fontWeight: 800,
+            color: '#F8FAFC',
+            margin: '0 0 6px',
+            letterSpacing: '-0.02em',
+            fontFamily: '"Sora", sans-serif'
+          }}>
+            McMCA Bursary Portal
+          </h1>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            fontSize: 12,
+            color: '#94A3B8'
+          }}>
+            <span>Tendeno / Sorget Ward</span>
+            <span>•</span>
+            <span style={{
+              background: 'rgba(245, 158, 11, 0.15)',
+              color: '#F59E0B',
+              border: '1px solid rgba(245, 158, 11, 0.32)',
+              padding: '2px 8px',
+              borderRadius: 999,
+              fontWeight: 700,
+              fontSize: 11
+            }}>
+              2026/2027 Cycle
+            </span>
+          </div>
+        </div>
+
         {/* Unified Tab Switcher: Sign In & Register */}
         <div style={{
           display: 'flex',
-          background: 'rgba(255, 255, 255, 0.04)',
-          border: '1px solid rgba(148, 163, 184, 0.15)',
+          background: '#070D1E',
+          border: '1.5px solid rgba(59, 130, 246, 0.25)',
           borderRadius: 14,
           padding: 4,
           marginBottom: 24
@@ -580,14 +658,14 @@ export function LoginPage({ initialTab = 'login' }) {
               flex: 1,
               padding: '10px 14px',
               borderRadius: 10,
-              border: 'none',
-              background: activeTab === 'login' ? 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)' : 'transparent',
+              border: activeTab === 'login' ? '1px solid rgba(255, 255, 255, 0.15)' : 'none',
+              background: activeTab === 'login' ? 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)' : 'transparent',
               color: activeTab === 'login' ? '#FFFFFF' : '#94A3B8',
               fontWeight: 700,
               fontSize: 14,
               cursor: 'pointer',
               transition: 'all 0.18s ease',
-              boxShadow: activeTab === 'login' ? '0 2px 8px rgba(124, 58, 237, 0.4)' : 'none'
+              boxShadow: activeTab === 'login' ? '0 2px 10px rgba(37, 99, 235, 0.45)' : 'none'
             }}
           >
             Sign In
@@ -599,14 +677,14 @@ export function LoginPage({ initialTab = 'login' }) {
               flex: 1,
               padding: '10px 14px',
               borderRadius: 10,
-              border: 'none',
-              background: activeTab === 'register' ? 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)' : 'transparent',
+              border: activeTab === 'register' ? '1px solid rgba(255, 255, 255, 0.15)' : 'none',
+              background: activeTab === 'register' ? 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)' : 'transparent',
               color: activeTab === 'register' ? '#FFFFFF' : '#94A3B8',
               fontWeight: 700,
               fontSize: 14,
               cursor: 'pointer',
               transition: 'all 0.18s ease',
-              boxShadow: activeTab === 'register' ? '0 2px 8px rgba(124, 58, 237, 0.4)' : 'none'
+              boxShadow: activeTab === 'register' ? '0 2px 10px rgba(37, 99, 235, 0.45)' : 'none'
             }}
           >
             Register
@@ -632,7 +710,7 @@ export function LoginPage({ initialTab = 'login' }) {
 
             <form onSubmit={handleLogin}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#E2E8F0' }}>
+                <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#F8FAFC' }}>
                   National ID or Email
                 </label>
                 <input
@@ -646,7 +724,7 @@ export function LoginPage({ initialTab = 'login' }) {
               </div>
 
               <div style={{ marginBottom: 22 }}>
-                <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#E2E8F0' }}>
+                <label style={{ display: 'block', marginBottom: 6, fontSize: 13, fontWeight: 600, color: '#F8FAFC' }}>
                   Password
                 </label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -668,7 +746,7 @@ export function LoginPage({ initialTab = 'login' }) {
                       right: 12,
                       background: 'none',
                       border: 'none',
-                      color: showLoginPassword ? '#A78BFA' : '#94A3B8',
+                      color: showLoginPassword ? '#60A5FA' : '#94A3B8',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -699,14 +777,14 @@ export function LoginPage({ initialTab = 'login' }) {
                   width: '100%',
                   padding: '13px',
                   borderRadius: 12,
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #7C3AED 0%, #2563EB 100%)',
+                  border: '1px solid rgba(96, 165, 250, 0.4)',
+                  background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
                   color: '#FFFFFF',
                   fontWeight: 700,
                   fontSize: 15,
                   cursor: loginLoading ? 'not-allowed' : 'pointer',
                   opacity: loginLoading ? 0.75 : 1,
-                  boxShadow: '0 4px 16px rgba(124, 58, 237, 0.4)',
+                  boxShadow: '0 4px 16px rgba(37, 99, 235, 0.4)',
                   transition: 'all 0.2s ease'
                 }}
               >
@@ -721,7 +799,7 @@ export function LoginPage({ initialTab = 'login' }) {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#A78BFA',
+                  color: '#60A5FA',
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -733,7 +811,7 @@ export function LoginPage({ initialTab = 'login' }) {
             </div>
 
             <div style={{ marginTop: 14, textAlign: 'center' }}>
-              <Link to="/" style={{ color: '#64748B', fontSize: 12, textDecoration: 'none' }}>
+              <Link to="/" style={{ color: '#94A3B8', fontSize: 12, textDecoration: 'none' }}>
                 ← Back to Homepage
               </Link>
             </div>
@@ -746,7 +824,7 @@ export function LoginPage({ initialTab = 'login' }) {
             {!role ? (
               <div>
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, color: '#E2E8F0' }}>
+                  <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600, color: '#F8FAFC' }}>
                     Register as
                   </label>
                   <select
@@ -771,7 +849,7 @@ export function LoginPage({ initialTab = 'login' }) {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#A78BFA',
+                      color: '#60A5FA',
                       fontSize: 13,
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -783,7 +861,7 @@ export function LoginPage({ initialTab = 'login' }) {
                 </div>
 
                 <div style={{ marginTop: 14, textAlign: 'center' }}>
-                  <Link to="/" style={{ color: '#64748B', fontSize: 12, textDecoration: 'none' }}>
+                  <Link to="/" style={{ color: '#94A3B8', fontSize: 12, textDecoration: 'none' }}>
                     ← Back to Homepage
                   </Link>
                 </div>
