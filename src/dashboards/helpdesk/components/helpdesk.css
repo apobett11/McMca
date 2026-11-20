@@ -757,4 +757,68 @@
   }
 }
 
+/* ==========================================================================
+   GOOGLE STITCH HELPDESK COMMAND WORKSTATION
+   ========================================================================== */
+.helpdesk-command-hero {
+  background: linear-gradient(135deg, rgba(11, 19, 34, 0.98), rgba(17, 28, 46, 0.98));
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  position: relative;
+  overflow: hidden;
+}
+
+.helpdesk-command-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #10B981, #06B6D4, #F59E0B);
+}
+
+.helpdesk-stage-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.95fr;
+  gap: 24px;
+}
+
+@media (max-width: 960px) {
+  .helpdesk-stage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.helpdesk-action-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.helpdesk-action-tile {
+  background: #070C16;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 16px 12px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: inherit;
+}
+
+.helpdesk-action-tile:hover {
+  background: #0E1728;
+  border-color: rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+}
+
+
 

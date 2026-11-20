@@ -152,6 +152,31 @@ export function StudentDashboardPage() {
 
   const appStripPct = hasAppliedThisCycle || apps.length > 0 ? 100 : 0;
 
+  // Calculate current bursary lifecycle milestone (0 to 4)
+  const latestApp = sortedApps[0];
+  const rawStatus = String(latestApp?.application_status || latestApp?.status || '').toLowerCase();
+  
+  let currentMilestone = 0; // 0: Profile Draft
+  if (sortedApps.length > 0) {
+    if (['funds_sent', 'disbursed'].includes(rawStatus)) {
+      currentMilestone = 4; // Funds Sent
+    } else if (['approved'].includes(rawStatus)) {
+      currentMilestone = 3; // Committee Approved
+    } else if (['chief_approved', 'under_review'].includes(rawStatus)) {
+      currentMilestone = 2; // Chief Vetted
+    } else {
+      currentMilestone = 1; // Submitted
+    }
+  }
+
+  const MILESTONES = [
+    { label: 'Profile Ready', num: 1 },
+    { label: 'Submitted', num: 2 },
+    { label: 'Chief Vetted', num: 3 },
+    { label: 'Committee Review', num: 4 },
+    { label: 'Funds Disbursed', num: 5 }
+  ];
+
   useEffect(() => {
     function onAppUpdated() {
       refresh();
@@ -161,302 +186,396 @@ export function StudentDashboardPage() {
   }, [refresh]);
 
   return (
-    <StudentLayout pageTitle="Overview" layout="dashboard" studentName={profile ? studentName : ''}>
+    <StudentLayout pageTitle="Student Mission Control" layout="dashboard" studentName={profile ? studentName : ''}>
       <div className="stitch-dashboard">
-        {/* Student identity hero */}
-        <section className="student-hero">
-          <div className="student-hero__identity">
-            <div className="student-hero__avatar" aria-hidden="true">
-              {studentName.split(' ').map((part) => part[0]).join('').toUpperCase().slice(0, 2)}
+        {/* ========================================================
+            1. DOMINANT STATUS HERO (MISSION CONTROL ANCHOR)
+            ======================================================== */}
+        <section className="student-status-hero">
+          <div className="student-status-hero__top">
+            <div className="student-identity-cluster">
+              <div className="student-avatar-ring">
+                <div className="student-avatar-inner">
+                  {studentName.split(' ').map((part) => part[0]).join('').toUpperCase().slice(0, 2)}
+                </div>
+              </div>
+              <div className="student-identity-text">
+                <h1>{greeting}, {studentName}</h1>
+                <div className="student-identity-meta">
+                  <span className="school-name">{profile?.school_name || 'Independent Student Portal'}</span>
+                  <span>•</span>
+                  <span>{activeCycle ? cycleName : '2026/2027 Bursary Cycle'}</span>
+                </div>
+              </div>
             </div>
-            <div className="student-hero__copy">
-              <h1 className="student-hero__title">{greeting}, {studentName}</h1>
-              <p className="student-hero__meta">{profile?.school_name || 'Student overview'}</p>
-            </div>
-          </div>
-          <div className="student-hero__readiness">
-            <div className="student-hero__ring" aria-hidden="true">
-              <span>{showSkeleton ? '…' : `${pct}%`}</span>
-            </div>
-            <div>
-              <p className="student-hero__readiness-label">Preparedness</p>
-              <p className="student-hero__readiness-desc">
-                {showSkeleton ? 'Checking your saved steps.' : preparednessCopy(doneCount, steps.length)}
-              </p>
-            </div>
-          </div>
-        </section>
 
-        {/* Stay Verified Single Card */}
-        <section className="dash-single-card" style={{ marginBottom: 20 }}>
-          <div className="dash-single-card__head" style={{ borderBottom: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-            <div>
-              <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.25rem' }}>Stay Verified</h2>
-              <p className="field__help" style={{ margin: '4px 0 0', color: 'var(--text-secondary, #94A3B8)' }}>
-                Complete your verification to ensure smooth application processing.
-              </p>
+            <div className="student-readiness-pill">
+              <div className="student-readiness-meter">
+                {showSkeleton ? '…' : `${pct}%`}
+              </div>
+              <div className="student-readiness-desc">
+                <span className="title">Preparedness</span>
+                <span className="subtitle">{showSkeleton ? 'Loading…' : preparednessCopy(doneCount, steps.length)}</span>
+              </div>
             </div>
-            <Link
-              to="/student/profile"
-              className="btn btn--primary"
-              style={{ borderRadius: 999, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', width: 'auto', textDecoration: 'none' }}
-            >
-              <Icon name="profile" size={18} />
-              <span>Update Profile</span>
-            </Link>
           </div>
-        </section>
 
-        {/* Card 1: Registration & Bursary Overview */}
-        <section className="dash-single-card" style={{ marginBottom: 20 }}>
-          <div className="dash-single-card__head" style={{ borderBottom: 'none' }}>
-            <div>
-              <h2 className="stitch-section-title" style={{ margin: 0 }}>Registration & Bursary Overview</h2>
-              <p className="field__help" style={{ margin: '4px 0 0' }}>
-                Complete every form step to build your profile and unlock bursary applications.
-              </p>
+          {/* 5-Step Connected Milestone Stepper */}
+          <div className="student-stepper-wrap">
+            <div className="student-stepper" role="progressbar" aria-label="Bursary application milestones">
+              {MILESTONES.map((m, idx) => {
+                const isPast = idx < currentMilestone;
+                const isCurrent = idx === currentMilestone;
+                return (
+                  <div
+                    key={m.label}
+                    className={`student-stepper__node ${isPast ? 'is-complete' : isCurrent ? 'is-active' : ''}`}
+                  >
+                    <div className="student-stepper__circle">
+                      {isPast ? <Icon name="check" size={14} /> : <span>{idx + 1}</span>}
+                    </div>
+                    <span className="student-stepper__label">{m.label}</span>
+                  </div>
+                );
+              })}
             </div>
-            <div className="btn-row">
+          </div>
+
+          {/* Action Callout Row */}
+          <div className="student-status-hero__action-bar">
+            <div className="student-status-hero__status-text">
+              <span className={`student-status-pill ${
+                rawStatus === 'approved' || rawStatus === 'disbursed'
+                  ? 'student-status-pill--admitted'
+                  : rawStatus === 'rejected'
+                    ? 'student-status-pill--declined'
+                    : sortedApps.length > 0
+                      ? 'student-status-pill--review'
+                      : 'student-status-pill--neutral'
+              }`}>
+                {sortedApps.length > 0 ? getStatusConfig(rawStatus).label : complete ? 'Eligible to Apply' : 'Profile Incomplete'}
+              </span>
+              <span className="student-status-note">
+                {sortedApps.length > 0
+                  ? `Application ${applicationSerial(latestApp)}: Review in progress by Ward Bursary Committee.`
+                  : complete
+                    ? 'All steps completed. Submit your application for the open cycle.'
+                    : `Please complete the remaining ${steps.length - doneCount} steps to unlock funding.`}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <RefreshButton onClick={refresh} busy={refreshing} />
               {complete && !hasAppliedThisCycle ? (
                 <button
                   type="button"
-                  className="btn btn--primary"
+                  className="btn-student-cta"
                   onClick={() => navigate('/student/forms?apply=1')}
                 >
                   <Icon name="applications" size={18} />
-                  Apply for Bursary
+                  <span>Apply for Bursary</span>
                 </button>
               ) : hasAppliedThisCycle ? (
-                <Link
-                  className="btn btn--primary"
-                  to="/student/applications"
-                >
+                <Link className="btn-student-cta" to="/student/applications">
                   <Icon name="applications" size={18} />
-                  View Application
+                  <span>View Active Application</span>
                 </Link>
               ) : (
                 <Link
-                  className="btn btn--primary"
+                  className="btn-student-cta"
                   to="/student/documents"
                   state={{ continueRegistration: true }}
                 >
                   <Icon name="chevronRight" size={18} />
-                  Finish remaining steps ({steps.length - doneCount} left)
+                  <span>Finish Registration ({steps.length - doneCount} left)</span>
                 </Link>
               )}
             </div>
           </div>
         </section>
 
-        {/* Card 2: Analytics & progress strips */}
-        <section className="dash-single-card" style={{ marginBottom: 20 }}>
-          <div className="dash-analytics-strips" style={{ margin: 0, padding: 16 }}>
-            <div className="dash-strip-card">
-              <div className="dash-strip-card__head">
-                <div>
-                  <span className="dash-strip-card__label">Bursary Applications</span>
-                  <h3 className="dash-strip-card__val">
-                    {apps.length > 0 ? `${apps.length} ${apps.length === 1 ? 'Application' : 'Applications'}` : '0 Applications'}
-                  </h3>
-                </div>
-                <span className={`stitch-status-badge ${hasAppliedThisCycle ? 'stitch-status-badge--admitted' : activeCycle ? 'stitch-status-badge--review' : 'stitch-status-badge--withdrawn'}`}>
-                  {hasAppliedThisCycle ? 'Submitted' : activeCycle ? 'Cycle open' : 'No cycle'}
-                </span>
-              </div>
-              <div className="dash-strip-card__track" role="progressbar" aria-valuenow={appStripPct} aria-valuemin="0" aria-valuemax="100">
-                <div
-                  className="dash-strip-card__fill dash-strip-card__fill--gold"
-                  style={{ width: `${appStripPct}%` }}
-                />
-              </div>
-              <div className="dash-strip-card__foot">
-                <span>{activeCycle ? cycleName : 'Cycle status'}</span>
-                <span>{hasAppliedThisCycle ? '100%' : apps.length > 0 ? 'Submitted' : '0%'}</span>
-              </div>
-            </div>
-
-            <div className="dash-strip-card">
-              <div className="dash-strip-card__head">
-                <div>
-                  <span className="dash-strip-card__label">Form Fields</span>
-                  <h3 className="dash-strip-card__val">
-                    {doneCount} of {steps.length} Steps
-                  </h3>
-                </div>
-                <span className={`stitch-status-badge ${complete ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
-                  {complete ? 'Complete' : `${steps.length - doneCount} Needed`}
-                </span>
-              </div>
-              <div className="dash-strip-card__track" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100">
-                <div
-                  className={`dash-strip-card__fill ${complete ? 'dash-strip-card__fill--green' : 'dash-strip-card__fill--gold'}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <div className="dash-strip-card__foot">
-                <span>{complete ? 'Every step on file' : preparednessCopy(doneCount, steps.length)}</span>
-                <span>{pct}%</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {error ? (
           <div className="notice" role="alert" style={{ marginBottom: 20 }}>
-            <strong>Could not load</strong>
+            <strong>Could not load record</strong>
             <p>{error}</p>
           </div>
         ) : null}
 
-        {/* Card 3: Registration Checklist */}
-        <section className="dash-single-card" style={{ marginBottom: 20 }}>
-          <div className="dash-single-card__head">
-            <div>
-              <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>Registration Checklist</h3>
-              <p className="field__help" style={{ margin: '4px 0 0' }}>
-                Personal information is pre-checked from registration. Click any step to open and complete it.
-              </p>
-            </div>
-          </div>
-
-          {showSkeleton ? (
-            <div className="skeleton-wrap" style={{ padding: 16 }}>
-              <div className="skeleton skeleton--hero" />
-            </div>
-          ) : (
-            <ul className="checklist-single-card__list">
-              {steps.map((step) => {
-                const done = completedKeys.includes(step.key);
-                const isOrphan = profile?.parentStatus === 'orphan' || sessionProfile?.parentStatus === 'orphan';
-                const stepTitle = step.key === 'parent_information'
-                  ? (isOrphan ? "Guardian's information" : "Parent's information")
-                  : step.title;
-                return (
-                  <li
-                    key={step.key}
-                    className={`checklist-single-card__row${done ? ' checklist-single-card__row--done' : ''}`}
-                    onClick={() => navigate('/student/documents', { state: { startAtKey: step.key } })}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={done}
-                      onChange={() => {
-                        navigate('/student/documents', { state: { startAtKey: step.key } });
-                      }}
-                      tabIndex={0}
-                      aria-label={`${stepTitle} ${done ? 'completed' : 'not completed'}`}
-                      style={{ cursor: 'pointer' }}
-                    />
-                    <span className="checklist-single-card__title">{stepTitle}</span>
-                    <span className={`stitch-status-badge ${done ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
-                      {done ? 'Done' : 'Needed'}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
-
-        {/* Card 4: Applications & history */}
-        <section className="dash-single-card" style={{ marginBottom: 20 }}>
-          <div className="dash-single-card__head">
-            <div>
-              <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>Applications</h3>
-              <p className="field__help" style={{ margin: '4px 0 0' }}>
-                {sortedApps.length > 0
-                  ? 'Your latest bursary applications and award status.'
-                  : 'Track cycle applications and submission status.'}
-              </p>
-            </div>
-            {sortedApps.length > 0 && (
-              <Link className="btn btn--outline" to="/student/applications" style={{ borderRadius: 999 }}>
-                View all history
-              </Link>
-            )}
-          </div>
-
-          {showSkeleton ? (
-            <div className="skeleton-wrap" style={{ padding: 16 }}>
-              <div className="skeleton skeleton--hero" />
-            </div>
-          ) : sortedApps.length === 0 ? (
-            complete ? (
-              <div className="dash-apps-empty" style={{ padding: '28px 16px', textAlign: 'center' }}>
-                <div style={{ display: 'inline-flex', padding: 12, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', marginBottom: 12 }}>
-                  <Icon name="approved" size={32} />
+        {/* ========================================================
+            2. TWO-COLUMN INTEGRATED WORKSPACE STAGE (60% / 40%)
+            ======================================================== */}
+        <div className="student-grid">
+          {/* LEFT COLUMN: ACTIVE APPLICATION & HISTORY LEDGER */}
+          <div className="student-col">
+            {/* Active Application Dossier Panel */}
+            <div className="student-card-panel">
+              <div className="student-panel-head">
+                <div>
+                  <h2 className="student-panel-title">Active Cycle Application</h2>
+                  <p className="student-panel-sub">
+                    {activeCycle ? cycleName : '2026/2027 Ward Allocation Cycle'}
+                  </p>
                 </div>
-                <h4 style={{ margin: '0 0 6px', fontSize: '1.08rem', color: 'var(--text-primary, #F8FAFC)' }}>
-                  All 5 Steps & Documents Verified
-                </h4>
-                <p className="dash-apps-empty__msg" style={{ margin: '0 auto 16px', maxWidth: 440, color: 'var(--text-secondary, #94A3B8)' }}>
-                  Your details and documents are on file. You are eligible to apply for {activeCycle ? cycleName : 'the open bursary cycle'}.
-                </p>
-                <button
-                  type="button"
-                  className="btn btn--primary"
-                  onClick={() => navigate('/student/forms?apply=1')}
-                  style={{ borderRadius: 999, display: 'inline-flex', width: 'auto', padding: '10px 28px', margin: '0 auto' }}
-                >
-                  <Icon name="applications" size={18} />
-                  Apply for Bursary Now
-                </button>
+                {sortedApps.length > 0 && (
+                  <Link
+                    to="/student/applications"
+                    style={{ fontSize: '0.8rem', color: 'var(--stu-accent-cyan)', fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    View Full Details →
+                  </Link>
+                )}
               </div>
-            ) : (
-              <div className="dash-apps-empty">
-                <p className="dash-apps-empty__msg">
-                  You have made no application. Please finish the {steps.length - doneCount} remaining steps to unlock bursary application.
-                </p>
-                <Link className="btn btn--primary" to="/student/documents" style={{ borderRadius: 999, display: 'inline-flex', width: 'auto' }}>
-                  Continue form registration
+
+              {showSkeleton ? (
+                <div className="skeleton-wrap" style={{ padding: 16 }}>
+                  <div className="skeleton skeleton--hero" />
+                </div>
+              ) : latestApp ? (
+                <div className="student-app-dossier">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
+                    <div>
+                      <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--stu-text-muted)', fontWeight: 700 }}>
+                        Institution
+                      </span>
+                      <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--stu-text-primary)' }}>
+                        {latestApp.institution_name || latestApp.school || 'Educational Institution'}
+                      </div>
+                    </div>
+                    <span className={`student-status-pill ${
+                      rawStatus === 'approved' ? 'student-status-pill--admitted' : 'student-status-pill--review'
+                    }`}>
+                      {getStatusConfig(rawStatus).label}
+                    </span>
+                  </div>
+
+                  <div className="student-dossier-grid">
+                    <div className="student-dossier-item">
+                      <span className="student-dossier-lbl">Tracking Code</span>
+                      <span className="student-dossier-val student-dossier-val--accent">
+                        {applicationSerial(latestApp)}
+                      </span>
+                    </div>
+                    <div className="student-dossier-item">
+                      <span className="student-dossier-lbl">Academic Tier</span>
+                      <span className="student-dossier-val">
+                        {levelLabel(latestApp.institution_level || latestApp.educationLevel)}
+                      </span>
+                    </div>
+                    <div className="student-dossier-item">
+                      <span className="student-dossier-lbl">Requested Amount</span>
+                      <span className="student-dossier-val">
+                        {formatMoney(latestApp.requested_amount || latestApp.fee_balance || 0)}
+                      </span>
+                    </div>
+                    <div className="student-dossier-item">
+                      <span className="student-dossier-lbl">Allocated Grant</span>
+                      <span className="student-dossier-val" style={{ color: 'var(--stu-status-green)' }}>
+                        {latestApp.allocated_amount ? formatMoney(latestApp.allocated_amount) : 'Pending Vetting'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: '24px 16px', textAlign: 'center', background: 'var(--stu-surface-card)', borderRadius: 'var(--stu-radius-lg)' }}>
+                  <div style={{ display: 'inline-flex', padding: 12, borderRadius: '50%', background: 'rgba(0, 240, 255, 0.1)', color: 'var(--stu-accent-cyan)', marginBottom: 10 }}>
+                    <Icon name="applications" size={28} />
+                  </div>
+                  <h3 style={{ margin: '0 0 6px', fontSize: '1.05rem', color: 'var(--stu-text-primary)' }}>
+                    {complete ? 'Ready for Application Submission' : 'Complete Form Steps to Apply'}
+                  </h3>
+                  <p style={{ margin: '0 auto 16px', maxWidth: 420, fontSize: '0.84rem', color: 'var(--stu-text-secondary)', lineHeight: 1.5 }}>
+                    {complete
+                      ? 'All required documents and family background data are verified on file.'
+                      : `You have ${steps.length - doneCount} remaining steps in your registration checklist before you can submit.`}
+                  </p>
+                  {complete ? (
+                    <button
+                      type="button"
+                      className="btn-student-cta"
+                      onClick={() => navigate('/student/forms?apply=1')}
+                    >
+                      <Icon name="applications" size={16} />
+                      <span>Start Bursary Application Now</span>
+                    </button>
+                  ) : (
+                    <Link
+                      to="/student/documents"
+                      state={{ continueRegistration: true }}
+                      className="btn-student-cta"
+                    >
+                      <Icon name="chevronRight" size={16} />
+                      <span>Complete Remaining Steps</span>
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Application History Ledger */}
+            <div className="student-card-panel">
+              <div className="student-panel-head">
+                <div>
+                  <h3 className="student-panel-title">Application Records</h3>
+                  <p className="student-panel-sub">Historical bursary grant submissions and outcomes</p>
+                </div>
+                {sortedApps.length > 0 && (
+                  <Link
+                    to="/student/applications"
+                    style={{ fontSize: '0.8rem', color: 'var(--stu-text-muted)', textDecoration: 'none' }}
+                  >
+                    All History ({sortedApps.length})
+                  </Link>
+                )}
+              </div>
+
+              {sortedApps.length === 0 ? (
+                <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--stu-text-muted)', fontSize: '0.85rem' }}>
+                  No prior bursary applications found on file.
+                </div>
+              ) : (
+                <div className="stitch-apps-table" style={{ border: 'none', borderRadius: 0 }}>
+                  <table style={{ width: '100%' }}>
+                    <thead>
+                      <tr>
+                        <th>Cycle</th>
+                        <th>Tracking Code</th>
+                        <th>Institution</th>
+                        <th>Status</th>
+                        <th>Award</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedApps.slice(0, 5).map((app) => {
+                        const appRaw = app.application_status || app.status || 'submitted';
+                        return (
+                          <tr key={app.id}>
+                            <td data-label="Cycle" style={{ fontSize: '0.82rem' }}>
+                              {cycleTitle(app, windows, app.created_at)}
+                            </td>
+                            <td data-label="Tracking" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--stu-accent-cyan)' }}>
+                              {applicationSerial(app)}
+                            </td>
+                            <td data-label="Institution" style={{ fontWeight: 600, fontSize: '0.84rem' }}>
+                              {app.institution_name || app.school || '—'}
+                            </td>
+                            <td data-label="Status">
+                              <span className={`student-status-pill ${
+                                appRaw === 'approved' ? 'student-status-pill--admitted' : 'student-status-pill--review'
+                              }`}>
+                                {getStatusConfig(appRaw).label}
+                              </span>
+                            </td>
+                            <td data-label="Award" style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '0.84rem' }}>
+                              {formatMoney(app.allocated_amount ?? app.allocatedAmount)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: CHECKLIST & QUICK ACTION TILES */}
+          <div className="student-col">
+            {/* Registration Checklist Panel */}
+            <div className="student-card-panel">
+              <div className="student-panel-head">
+                <div>
+                  <h3 className="student-panel-title">Registration Checklist</h3>
+                  <p className="student-panel-sub">
+                    {doneCount} of {steps.length} required steps verified
+                  </p>
+                </div>
+                <span className={`student-status-pill ${complete ? 'student-status-pill--admitted' : 'student-status-pill--review'}`}>
+                  {complete ? 'Ready' : `${steps.length - doneCount} Pending`}
+                </span>
+              </div>
+
+              {showSkeleton ? (
+                <div className="skeleton-wrap" style={{ padding: 12 }}>
+                  <div className="skeleton skeleton--hero" />
+                </div>
+              ) : (
+                <ul className="student-checklist">
+                  {steps.map((step) => {
+                    const done = completedKeys.includes(step.key);
+                    const isOrphan = profile?.parentStatus === 'orphan' || sessionProfile?.parentStatus === 'orphan';
+                    const stepTitle = step.key === 'parent_information'
+                      ? (isOrphan ? "Guardian's Details" : "Parent's Details")
+                      : step.title;
+                    return (
+                      <li
+                        key={step.key}
+                        className={`student-checklist-row ${done ? 'is-done' : ''}`}
+                        onClick={() => navigate('/student/documents', { state: { startAtKey: step.key } })}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && navigate('/student/documents', { state: { startAtKey: step.key } })}
+                      >
+                        <div className="student-checklist-left">
+                          <div className="student-checklist-icon">
+                            {done ? <Icon name="check" size={14} /> : <span style={{ fontSize: 10 }}>○</span>}
+                          </div>
+                          <span className="student-checklist-title">{stepTitle}</span>
+                        </div>
+                        <span className={`student-status-pill ${done ? 'student-status-pill--admitted' : 'student-status-pill--neutral'}`} style={{ padding: '2px 8px', fontSize: '0.68rem' }}>
+                          {done ? 'Verified' : 'Required'}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* Quick Action Tiles */}
+            <div className="student-card-panel">
+              <div className="student-panel-head">
+                <div>
+                  <h3 className="student-panel-title">Direct Services</h3>
+                  <p className="student-panel-sub">Fast access to bursary student tools</p>
+                </div>
+              </div>
+
+              <div className="student-tiles-grid">
+                <Link to="/student/documents" className="student-tile">
+                  <div className="student-tile-icon">
+                    <Icon name="documents" size={18} />
+                  </div>
+                  <div className="student-tile-title">Documents Hub</div>
+                  <div className="student-tile-desc">Upload &amp; manage certified statements</div>
+                </Link>
+
+                <Link to="/student/forms" className="student-tile">
+                  <div className="student-tile-icon">
+                    <Icon name="applications" size={18} />
+                  </div>
+                  <div className="student-tile-title">Official Forms</div>
+                  <div className="student-tile-desc">Download award slips &amp; templates</div>
+                </Link>
+
+                <Link to="/student/appeals" className="student-tile">
+                  <div className="student-tile-icon">
+                    <Icon name="support" size={18} />
+                  </div>
+                  <div className="student-tile-title">Lodge Appeal</div>
+                  <div className="student-tile-desc">Contest bursary committee verdict</div>
+                </Link>
+
+                <Link to="/student/support" className="student-tile">
+                  <div className="student-tile-icon">
+                    <Icon name="support" size={18} />
+                  </div>
+                  <div className="student-tile-title">Help Desk</div>
+                  <div className="student-tile-desc">Constituency agent direct support</div>
                 </Link>
               </div>
-            )
-          ) : (
-            <div>
-              <div className="stitch-apps-table" style={{ border: 'none', borderRadius: 0 }}>
-                <table style={{ minWidth: 540 }}>
-                  <thead>
-                    <tr>
-                      <th>Cycle</th>
-                      <th>Serial number</th>
-                      <th>Institution</th>
-                      <th>Level</th>
-                      <th>Status</th>
-                      <th>Allocated</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedApps.slice(0, 5).map((app) => {
-                      const rawStatus = app.application_status || app.status || 'submitted';
-                      const status = getStatusConfig(rawStatus);
-                      return (
-                        <tr key={app.id}>
-                          <td data-label="Cycle">{cycleTitle(app, windows, app.created_at)}</td>
-                          <td data-label="Serial number" style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>
-                            {applicationSerial(app)}
-                          </td>
-                          <td data-label="Institution" style={{ fontWeight: 600 }}>
-                            {app.institution_name || app.school || '—'}
-                          </td>
-                          <td data-label="Level">{levelLabel(app.institution_level || app.educationLevel)}</td>
-                          <td data-label="Status">
-                            <span className={`stitch-status-badge ${statusClass(rawStatus)}`}>
-                              {status.label}
-                            </span>
-                          </td>
-                          <td data-label="Allocated">{formatMoney(app.allocated_amount ?? app.allocatedAmount)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
             </div>
-          )}
-        </section>
+          </div>
+        </div>
       </div>
     </StudentLayout>
   );

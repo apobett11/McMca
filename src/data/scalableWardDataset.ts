@@ -368,7 +368,7 @@ export function fetchScalableApplicants(query: FetchApplicantsQuery): FetchAppli
   });
 
   const totalMatching = rows.length;
-  const pageSize = query.pageSize || 25;
+  const pageSize = Math.min(Math.max(Number(query.pageSize) || 25, 25), 50);
   const page = Math.max(1, query.page || 1);
   const totalPages = Math.ceil(totalMatching / pageSize) || 1;
 

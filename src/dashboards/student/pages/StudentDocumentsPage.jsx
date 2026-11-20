@@ -3,7 +3,7 @@ import { Icon } from '../../../components/Icon.jsx';
 import { RefreshButton } from '../../../components/RefreshButton.jsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useSecureData } from '../../../lib/useSecureData';
-import { fetchStudentDocuments, fetchStudentProfile, uploadStudentDocument } from '../../../lib/queries';
+import { fetchStudentDocuments, fetchStudentProfile, uploadStudentDocument, getDocumentSignedUrl } from '../../../lib/queries';
 import { joinFullName } from '../../../lib/accountAllocation';
 import {
   UPLOAD_KIND,
@@ -272,6 +272,36 @@ export function StudentDocumentsSection() {
                         </p>
                       </div>
                     </div>
+                    {doc.storage_path && (
+                      <button
+                        type="button"
+                        className="btn btn--secondary"
+                        style={{
+                          padding: '6px 14px',
+                          fontSize: 12,
+                          borderRadius: 999,
+                          cursor: 'pointer',
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          color: '#E2E8F0',
+                          border: '1px solid rgba(255, 255, 255, 0.15)',
+                          marginRight: 8
+                        }}
+                        onClick={async () => {
+                          try {
+                            const url = await getDocumentSignedUrl(doc.storage_path, 900);
+                            if (url) {
+                              window.open(url, '_blank', 'noopener,noreferrer');
+                            } else {
+                              alert('Unable to generate document access link.');
+                            }
+                          } catch (err) {
+                            alert('Document access restricted: ' + (err.message || 'Access denied'));
+                          }
+                        }}
+                      >
+                        View
+                      </button>
+                    )}
                     {doc.ai_verified ? (
                       <span className="doc-checklist__status doc-checklist__status--ok">Verified</span>
                     ) : (

@@ -34,14 +34,53 @@ function registerApiPlugin(supabaseUrl, serviceRoleKey) {
           return;
         }
 
+        const ALLOWED_PUBLIC_ROLES = ['student', 'parent'];
+        if (!ALLOWED_PUBLIC_ROLES.includes(role)) {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Unauthorized registration: Administrative and executive roles cannot be created via public registration.' }));
+          return;
+        }
+
         const cleanEmail = String(email).trim().toLowerCase();
         const cleanId = String(fields.nationalId || '').trim().replace(/\D/g, '');
         const cleanPhone = String(fields.phone || '').trim();
 
-        if (!cleanId) {
+        if (!cleanId || !/^\d{7,9}$/.test(cleanId)) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'National ID number is required.' }));
+          res.end(JSON.stringify({ error: 'A valid 7 to 9 digit Kenyan National ID number is required.' }));
           return;
+        }
+
+        // Server-side Age Calculation
+        const computeAgeYears = (dob) => {
+          if (!dob) return null;
+          const born = new Date(dob);
+          if (Number.isNaN(born.getTime())) return null;
+          const now = new Date();
+          let age = now.getUTCFullYear() - born.getUTCFullYear();
+          const monthDelta = now.getUTCMonth() - born.getUTCMonth();
+          if (monthDelta < 0 || (monthDelta === 0 && now.getUTCDate() < born.getUTCDate())) age -= 1;
+          return age;
+        };
+
+        const calculatedAge = computeAgeYears(fields.dateOfBirth);
+        if (role === 'student') {
+          if (calculatedAge === null) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'A valid date of birth is required.' }));
+            return;
+          }
+          if (calculatedAge < 18) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Statutory age requirement: You must be 18 years or older to register as an independent student. Underage students must be registered under parental custody.' }));
+            return;
+          }
+        } else if (role === 'parent') {
+          if (calculatedAge !== null && calculatedAge < 18) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Statutory requirement: Parents or guardians registering must be at least 18 years of age.' }));
+            return;
+          }
         }
 
         // Check if account already exists with this national ID or email
@@ -140,7 +179,7 @@ function registerApiPlugin(supabaseUrl, serviceRoleKey) {
           const studentProfile = {
             auth_user_id: authUserId,
             student_type: 'IND',
-            account_class: 'IND',
+            account_class: 'independent',
             category_locked: true,
             parent_created: false,
             delegated_access: false,

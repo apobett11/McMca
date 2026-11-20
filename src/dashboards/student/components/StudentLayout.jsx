@@ -4,6 +4,7 @@ import { StudentFooter } from './StudentFooter.jsx';
 import { StudentDesktopSidebar } from './StudentDesktopSidebar.jsx';
 import { StudentSlideMenu } from './StudentSlideMenu.jsx';
 import { NotificationModal } from '../../../components/NotificationModal.jsx';
+import '../styles/student.css';
 
 export function StudentLayout({
   pageTitle,

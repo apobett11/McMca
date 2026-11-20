@@ -86,338 +86,357 @@ export function HelpDeskDashboardPage() {
           </div>
         )}
 
-        {/* Officer identity hero with top-right sleek refresh icon */}
-        <section className="student-hero hd-card" style={{ padding: '20px 24px' }}>
-          <div className="student-hero__identity">
-            <div className="student-hero__avatar" aria-hidden="true">
-              {officerName.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
+        {/* 1. Google Stitch Help Desk Command Hero */}
+        <section className="helpdesk-command-hero">
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 20, marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div
+                style={{
+                  width: 58,
+                  height: 58,
+                  borderRadius: 16,
+                  background: 'linear-gradient(135deg, #10B981, #06B6D4)',
+                  padding: 2.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 16px rgba(16, 185, 129, 0.25)',
+                  flexShrink: 0
+                }}
+              >
+                <div style={{ width: '100%', height: '100%', background: '#070C16', borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.15rem', color: '#10B981' }}>
+                  {officerName.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+              </div>
+              <div>
+                <h1 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: '#F8FAFC' }}>
+                  {greeting}, {officerName}
+                </h1>
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginTop: 4, fontSize: '0.82rem', color: '#94A3B8' }}>
+                  <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '3px 10px', borderRadius: 999, fontWeight: 700, fontSize: '0.72rem', textTransform: 'uppercase' }}>
+                    Triage Operations Lead
+                  </span>
+                  <span>•</span>
+                  <span>{shift}</span>
+                  <span>•</span>
+                  <span>{profile.officerId}</span>
+                </div>
+              </div>
             </div>
-            <div className="student-hero__copy">
-              <h1 className="student-hero__title">{greeting}, {officerName}</h1>
-              <p className="student-hero__meta">
-                {roleTitle} &bull; {shift} &bull; {profile.officerId}
-              </p>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={reloadData}
+                disabled={refreshing}
+                className="btn btn--secondary"
+                aria-label="Refresh telemetry data"
+                title="Refresh telemetry"
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+              >
+                <Icon name="refresh" size={18} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+              </button>
+
+              <button
+                type="button"
+                className="btn btn--outline btn--compact"
+                onClick={() => setSessionModalOpen(true)}
+                style={{ borderRadius: 999 }}
+              >
+                <Icon name="clock" size={16} />
+                <span>Shift Hours</span>
+              </button>
+
+              <Link
+                to="/helpdesk/applications?table=assessment"
+                className="btn btn--primary btn--compact"
+                style={{ borderRadius: 999, background: '#10B981', borderColor: '#10B981', color: '#051A10', fontWeight: 700 }}
+              >
+                <Icon name="applications" size={16} />
+                <span>Rejected Queue ({appStats.failed})</span>
+              </Link>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-            <div className="student-hero__readiness">
-              <div className="student-hero__ring" aria-hidden="true">
-                <span>{appStats.passRate}%</span>
+          {/* 4-Item Realtime Telemetry Grid (Clickable) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14 }}>
+            {/* Tile 1: Intake Pass Rate */}
+            <div
+              className="hd-metric-tile hd-card--interactive"
+              onClick={() => setVisualModal('apps')}
+              title="Click to view full Pass / Fail telemetry"
+              style={{ cursor: 'pointer' }}
+            >
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#94A3B8', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Intake Pass Rate</span>
+                <span style={{ color: '#10B981' }}>{appStats.passRate}%</span>
               </div>
-              <div>
-                <p className="student-hero__readiness-label">Pass Ratio</p>
-                <p className="student-hero__readiness-desc">
-                  {appStats.passed} Passed vs {appStats.failed} Failed ({appStats.ratio} : 1 Ratio)
-                </p>
+              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#10B981', marginTop: 4 }}>
+                {appStats.passed} <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Approved</span>
+              </div>
+              <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginTop: 2 }}>
+                {appStats.failed} Rejected ({appStats.ratio} : 1 Ratio)
               </div>
             </div>
 
-            {/* Sleek Icon Refresh Button at top right */}
-            <button
-              type="button"
-              onClick={reloadData}
-              disabled={refreshing}
-              className="btn btn--secondary"
-              aria-label="Refresh telemetry data"
-              title="Refresh telemetry"
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: '50%',
-                padding: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer'
-              }}
+            {/* Tile 2: Incomplete Steps */}
+            <div
+              className="hd-metric-tile hd-card--interactive"
+              onClick={() => setVisualModal('steps')}
+              title="Click to view Registration Step Progress"
+              style={{ cursor: 'pointer' }}
             >
-              <Icon name="refresh" size={18} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
-            </button>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#94A3B8', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Hanging Drafts</span>
+                <span style={{ color: '#F59E0B' }}>{stepStats.completionRate}%</span>
+              </div>
+              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: stepStats.incomplete > 0 ? '#F59E0B' : '#10B981', marginTop: 4 }}>
+                {stepStats.incomplete} <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Incomplete</span>
+              </div>
+              <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginTop: 2 }}>
+                {stepStats.completed} Fully Filed of {stepStats.total}
+              </div>
+            </div>
+
+            {/* Tile 3: Communications Rate */}
+            <div
+              className="hd-metric-tile hd-card--interactive"
+              onClick={() => setVisualModal('messages')}
+              title="Click to view Communications & Reply Rate"
+              style={{ cursor: 'pointer' }}
+            >
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#94A3B8', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Inquiries Velocity</span>
+                <span style={{ color: '#06B6D4' }}>{msgStats.overall.rate}%</span>
+              </div>
+              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#06B6D4', marginTop: 4 }}>
+                {msgStats.overall.replied} <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Replied</span>
+              </div>
+              <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginTop: 2 }}>
+                {msgStats.overall.pending} Pending Action
+              </div>
+            </div>
+
+            {/* Tile 4: Upload Errors */}
+            <div
+              className="hd-metric-tile hd-card--interactive"
+              onClick={() => setVisualModal('uploads')}
+              title="Click to view Document Upload Errors"
+              style={{ cursor: 'pointer' }}
+            >
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#94A3B8', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Document Errors</span>
+                {uploadStats.totalFailed > 0 && <span style={{ color: '#EF4444' }}>Action</span>}
+              </div>
+              <div style={{ fontSize: '1.45rem', fontWeight: 800, color: uploadStats.totalFailed > 0 ? '#EF4444' : '#10B981', marginTop: 4 }}>
+                {uploadStats.totalFailed} <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 500 }}>Flagged</span>
+              </div>
+              <div style={{ fontSize: '0.74rem', color: '#94A3B8', marginTop: 2 }}>
+                Requiring applicant re-upload
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Minimalist Dashboard Body (Bulky header removed) */}
-        <section className="dash-single-card hd-card" style={{ padding: 0 }}>
-          {/* 3 Analytics Strips with Thin Progress Ranges - Homepage exclusive */}
-          <div className="dash-analytics-strips" style={{ margin: 0, padding: 16, borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            {/* Range 1: Applications Passed vs Failed - Clickable */}
-            <div
-              className="dash-strip-card dash-strip-card--interactive"
-              onClick={() => setVisualModal('apps')}
-              title="Click to view full Pass / Fail breakdown telemetry"
-            >
-              <div className="dash-strip-card__head">
+        {/* 2. Google Stitch Operational Workstation Split */}
+        <div className="helpdesk-stage-grid">
+          {/* Left Column: Location Intake & Document Discrepancies */}
+          <div>
+            {/* Location Vetting Distribution */}
+            <section className="hd-card" style={{ padding: 24, marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
                 <div>
-                  <span className="dash-strip-card__label" style={{ fontSize: '0.68rem', letterSpacing: '0.06em', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Applications Passed vs Failed
-                  </span>
-                  <h3 className="dash-strip-card__val" style={{ margin: '4px 0 0', display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ fontSize: '1.65rem', fontWeight: 800, color: '#10b981' }}>{appStats.passed}</span> <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Passed</span> &bull; <span style={{ fontSize: '1.65rem', fontWeight: 800, color: '#ef4444' }}>{appStats.failed}</span> <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Failed</span>
+                  <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>
+                    Ward Locality Vetting Distribution
                   </h3>
-                </div>
-                <span className="stitch-status-badge stitch-status-badge--admitted" style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
-                  <strong style={{ fontSize: '1.15rem', fontWeight: 800 }}>{appStats.passRate}%</strong> <span style={{ fontSize: '0.68rem', opacity: 0.85 }}>Pass Rate</span>
-                </span>
-              </div>
-              <div className="dash-strip-card__track" role="progressbar" aria-valuenow={appStats.passRate} aria-valuemin="0" aria-valuemax="100">
-                <div
-                  className="dash-strip-card__fill dash-strip-card__fill--gold"
-                  style={{ width: `${appStats.passRate}%` }}
-                />
-              </div>
-              <div className="dash-strip-card__foot" style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                <span>Total Monitored: <strong style={{ color: '#fff', fontSize: '0.86rem' }}>{appStats.total}</strong> Applications</span>
-                <span>Ratio: <strong style={{ color: 'var(--gold-champagne, #ddbb6a)', fontSize: '0.86rem' }}>{appStats.ratio} : 1</strong></span>
-              </div>
-            </div>
-
-            {/* Range 2: Registration Steps Completion & Hanging Steps - Clickable */}
-            <div
-              className="dash-strip-card dash-strip-card--interactive"
-              onClick={() => setVisualModal('steps')}
-              title="Click to view Registration Step Progress breakdown"
-            >
-              <div className="dash-strip-card__head">
-                <div>
-                  <span className="dash-strip-card__label" style={{ fontSize: '0.68rem', letterSpacing: '0.06em', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Applicant Step Progress
-                  </span>
-                  <h3 className="dash-strip-card__val" style={{ margin: '4px 0 0', display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ fontSize: '1.65rem', fontWeight: 800, color: '#10b981' }}>{stepStats.completed}</span> <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Finished</span> &bull; <span style={{ fontSize: '1.65rem', fontWeight: 800, color: '#f59e0b' }}>{stepStats.incomplete}</span> <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Hanging</span>
-                  </h3>
-                </div>
-                <span className={`stitch-status-badge ${stepStats.incomplete > 0 ? 'stitch-status-badge--review' : 'stitch-status-badge--admitted'}`} style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
-                  <strong style={{ fontSize: '1.15rem', fontWeight: 800 }}>{stepStats.completionRate}%</strong> <span style={{ fontSize: '0.68rem', opacity: 0.85 }}>Fully Filed</span>
-                </span>
-              </div>
-              <div className="dash-strip-card__track" role="progressbar" aria-valuenow={stepStats.completionRate} aria-valuemin="0" aria-valuemax="100">
-                <div
-                  className="dash-strip-card__fill dash-strip-card__fill--green"
-                  style={{ width: `${stepStats.completionRate}%` }}
-                />
-              </div>
-              <div className="dash-strip-card__foot" style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                <span><strong style={{ color: '#fff', fontSize: '0.86rem' }}>{stepStats.incomplete}</strong> applicants left steps incomplete</span>
-                <span><strong style={{ color: '#fff', fontSize: '0.86rem' }}>{stepStats.total}</strong> Total Records</span>
-              </div>
-            </div>
-
-            {/* Range 3: Omni-Desk Messages & Reply Rate - Clickable */}
-            <div
-              className="dash-strip-card dash-strip-card--interactive"
-              onClick={() => setVisualModal('messages')}
-              title="Click to view Omni-Desk Communications breakdown"
-            >
-              <div className="dash-strip-card__head">
-                <div>
-                  <span className="dash-strip-card__label" style={{ fontSize: '0.68rem', letterSpacing: '0.06em', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>
-                    Messages &amp; Reply Rate
-                  </span>
-                  <h3 className="dash-strip-card__val" style={{ margin: '4px 0 0', display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ fontSize: '1.65rem', fontWeight: 800, color: '#10b981' }}>{msgStats.overall.replied}</span> <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Replied</span> &bull; <span style={{ fontSize: '1.65rem', fontWeight: 800, color: '#f59e0b' }}>{msgStats.overall.pending}</span> <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Pending</span>
-                  </h3>
-                </div>
-                <span className="stitch-status-badge stitch-status-badge--review" style={{ display: 'inline-flex', alignItems: 'baseline', gap: 4 }}>
-                  <strong style={{ fontSize: '1.15rem', fontWeight: 800 }}>{msgStats.overall.rate}%</strong> <span style={{ fontSize: '0.68rem', opacity: 0.85 }}>Replied</span>
-                </span>
-              </div>
-              <div className="dash-strip-card__track" role="progressbar" aria-valuenow={msgStats.overall.rate} aria-valuemin="0" aria-valuemax="100">
-                <div
-                  className="dash-strip-card__fill dash-strip-card__fill--gold"
-                  style={{ width: `${msgStats.overall.rate}%` }}
-                />
-              </div>
-              <div className="dash-strip-card__foot" style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                <span>MCA: <strong style={{ color: '#fff', fontSize: '0.86rem' }}>{msgStats.mca.rate}%</strong> &bull; Desk: <strong style={{ color: '#fff', fontSize: '0.86rem' }}>{msgStats.helpdesk.rate}%</strong></span>
-                <span>Total: <strong style={{ color: '#fff', fontSize: '0.86rem' }}>{msgStats.overall.total}</strong> Messages</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Chief-inspired Minimalist Analytics Sections */}
-          <div style={{ padding: '20px 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
-            {/* Section 1: Processing Telemetry (2x2 grid of compact metric tiles) */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>
-                  Processing Telemetry
-                </h3>
-                <span className="badge badge--neutral">Live Overview</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div
-                  onClick={() => setVisualModal('apps')}
-                  className="hd-card--interactive"
-                  style={{ padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', cursor: 'pointer' }}
-                  title="Click to view full Pass / Fail breakdown telemetry"
-                >
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Pass Rate</span>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: '#10b981', marginTop: 3 }}>{appStats.passRate}%</div>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{appStats.passed} of {appStats.total} approved</span>
-                </div>
-
-                <div
-                  onClick={() => setVisualModal('steps')}
-                  className="hd-card--interactive"
-                  style={{ padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', cursor: 'pointer' }}
-                  title="Click to view Registration Step Progress breakdown"
-                >
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Hanging Steps</span>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: stepStats.incomplete > 0 ? '#f59e0b' : '#10b981', marginTop: 3 }}>
-                    {stepStats.incomplete}
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{stepStats.completionRate}% fully filed</span>
-                </div>
-
-                <div
-                  onClick={() => setVisualModal('uploads')}
-                  className="hd-card--interactive"
-                  style={{ padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', cursor: 'pointer' }}
-                  title="Click to view Document Upload Errors breakdown"
-                >
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Upload Errors</span>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: uploadStats.totalFailed > 0 ? '#ef4444' : '#10b981', marginTop: 3 }}>
-                    {uploadStats.totalFailed}
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Flagged documents</span>
-                </div>
-
-                <div
-                  onClick={() => setVisualModal('messages')}
-                  className="hd-card--interactive"
-                  style={{ padding: 12, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', cursor: 'pointer' }}
-                  title="Click to view Communications & Reply Rate breakdown"
-                >
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Reply Rate</span>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--gold-champagne, #ddbb6a)', marginTop: 3 }}>
-                    {msgStats.overall.rate}%
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{msgStats.overall.replied} of {msgStats.overall.total} replied</span>
+                  <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: '#94A3B8' }}>
+                    {appStats.locationBreakdown?.length || 4} Localities monitored across Tendeno / Sorget Ward
+                  </p>
                 </div>
               </div>
-            </div>
 
-            {/* Section 2: Pre-determined Location Distribution */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>
-                  Location Distribution
-                </h3>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{appStats.locationBreakdown?.length || 4} Localities</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {(appStats.locationBreakdown || []).map((loc) => (
                   <div key={loc.location}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: 4 }}>
-                      <span style={{ fontWeight: 500, color: 'var(--text)' }}>{loc.location}</span>
-                      <span style={{ color: '#94a3b8' }}>{loc.passed} passed &bull; {loc.failed} failed ({loc.passRate}%)</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', marginBottom: 6 }}>
+                      <span style={{ fontWeight: 600, color: '#F8FAFC' }}>{loc.location}</span>
+                      <span style={{ color: '#94A3B8' }}>
+                        <strong style={{ color: '#10B981' }}>{loc.passed} Passed</strong> • <strong style={{ color: '#EF4444' }}>{loc.failed} Failed</strong> ({loc.passRate}%)
+                      </span>
                     </div>
-                    <div style={{ width: '100%', height: 6, borderRadius: 4, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-                      <div style={{ width: `${loc.passRate}%`, height: '100%', borderRadius: 4, background: 'var(--gold-champagne, #ddbb6a)' }} />
+                    <div style={{ width: '100%', height: 6, borderRadius: 999, background: 'rgba(255, 255, 255, 0.06)', overflow: 'hidden' }}>
+                      <div style={{ width: `${loc.passRate}%`, height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #10B981, #06B6D4)' }} />
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
 
-            {/* Section 3: Quick Action Workflows (Chief-inspired 4 compact action links) */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
+            {/* Document Errors & Upload Flagging Review */}
+            <section className="hd-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>
-                  Help Desk Workflows
-                </h3>
-                <span className="badge badge--neutral">4 Modules</span>
+                <div>
+                  <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>
+                    Document Upload Discrepancies
+                  </h3>
+                  <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: '#94A3B8' }}>
+                    Flagged submissions requiring applicant verification or re-upload
+                  </p>
+                </div>
+                <Link to="/helpdesk/documents?table=failed_uploads" className="btn btn--outline btn--compact" style={{ borderRadius: 999 }}>
+                  Inspect ({uploadStats.totalFailed}) →
+                </Link>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-                <Link
-                  to="/helpdesk/documents"
-                  className="btn btn--secondary"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '12px 8px',
-                    textAlign: 'center',
-                    borderRadius: 10
-                  }}
+
+              {uploadStats.totalFailed > 0 ? (
+                <div style={{ padding: '14px 16px', borderRadius: 12, background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderLeft: '4px solid #EF4444', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <strong style={{ fontSize: '0.88rem', color: '#F8FAFC' }}>{uploadStats.totalFailed} Document Upload Errors Detected</strong>
+                    <p style={{ margin: '3px 0 0', fontSize: '0.78rem', color: '#F87171' }}>
+                      Unreadable OCR, missing institutional rubber stamps, or corrupted fee vouchers.
+                    </p>
+                  </div>
+                  <Link to="/helpdesk/documents?table=failed_uploads" className="btn btn--table" style={{ fontSize: '0.78rem', padding: '6px 12px' }}>
+                    Triage Now
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ padding: '20px 16px', textAlign: 'center', color: '#94A3B8', fontSize: '0.88rem' }}>
+                  <span style={{ color: '#10B981', fontWeight: 600 }}>✓ Zero flagged upload errors</span> detected in current shift.
+                </div>
+              )}
+            </section>
+          </div>
+
+          {/* Right Column: Processing Telemetry & Workflow Access Hub */}
+          <div>
+            {/* Processing Telemetry */}
+            <section className="hd-card" style={{ padding: 24, marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                <div>
+                  <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>
+                    Processing Telemetry
+                  </h3>
+                  <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: '#94A3B8' }}>
+                    Live shift throughput and operator metrics
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div
+                  onClick={() => setVisualModal('apps')}
+                  className="hd-metric-tile hd-card--interactive"
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view Pass / Fail telemetry"
                 >
-                  <Icon name="documents" size={22} />
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Documents</span>
-                  <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{stepStats.incomplete} Hanging</span>
+                  <span style={{ fontSize: '0.72rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 700 }}>Pass Ratio</span>
+                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#10B981', marginTop: 4 }}>{appStats.ratio} : 1</div>
+                  <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>{appStats.passRate}% Approval Rate</span>
+                </div>
+
+                <div
+                  onClick={() => setVisualModal('steps')}
+                  className="hd-metric-tile hd-card--interactive"
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view Registration Step Progress"
+                >
+                  <span style={{ fontSize: '0.72rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 700 }}>Hanging Steps</span>
+                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: stepStats.incomplete > 0 ? '#F59E0B' : '#10B981', marginTop: 4 }}>
+                    {stepStats.incomplete}
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>{stepStats.completionRate}% fully filed</span>
+                </div>
+
+                <div
+                  onClick={() => setVisualModal('messages')}
+                  className="hd-metric-tile hd-card--interactive"
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view Communications Telemetry"
+                >
+                  <span style={{ fontSize: '0.72rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 700 }}>Avg Turnaround</span>
+                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#F8FAFC', marginTop: 4 }}>1.2 Hrs</div>
+                  <span style={{ fontSize: '0.72rem', color: '#10B981' }}>Well within SLA</span>
+                </div>
+
+                <div
+                  onClick={() => setVisualModal('messages')}
+                  className="hd-metric-tile hd-card--interactive"
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view Communications Telemetry"
+                >
+                  <span style={{ fontSize: '0.72rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 700 }}>Open Inquiries</span>
+                  <div style={{ fontSize: '1.45rem', fontWeight: 800, color: msgStats.overall.pending > 0 ? '#F59E0B' : '#10B981', marginTop: 4 }}>
+                    {msgStats.overall.pending}
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>{msgStats.overall.rate}% Replied</span>
+                </div>
+              </div>
+            </section>
+
+            {/* Direct Triage Workflows Hub */}
+            <section className="hd-card" style={{ padding: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                <div>
+                  <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>
+                    Triage Workflows
+                  </h3>
+                  <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: '#94A3B8' }}>
+                    Immediate access to bursary registers and support channels
+                  </p>
+                </div>
+              </div>
+
+              <div className="helpdesk-action-tiles">
+                <Link to="/helpdesk/documents" className="helpdesk-action-tile">
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="documents" size={24} />
+                  </div>
+                  <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#F8FAFC' }}>Documents</span>
+                  <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>{stepStats.incomplete} Hanging steps</span>
                 </Link>
 
-                <Link
-                  to="/helpdesk/applications"
-                  className="btn btn--secondary"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '12px 8px',
-                    textAlign: 'center',
-                    borderRadius: 10
-                  }}
-                >
-                  <Icon name="applications" size={22} />
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Applications</span>
-                  <span style={{ fontSize: '0.7rem', color: '#ef4444' }}>{appStats.failed} In Queue</span>
+                <Link to="/helpdesk/applications" className="helpdesk-action-tile">
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="applications" size={24} />
+                  </div>
+                  <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#F8FAFC' }}>Applications</span>
+                  <span style={{ fontSize: '0.72rem', color: '#EF4444' }}>{appStats.failed} Rejected queue</span>
                 </Link>
 
-                <Link
-                  to="/helpdesk/messages"
-                  className="btn btn--secondary"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '12px 8px',
-                    textAlign: 'center',
-                    borderRadius: 10
-                  }}
-                >
-                  <Icon name="support" size={22} />
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Messages</span>
-                  <span style={{ fontSize: '0.7rem', color: '#f59e0b' }}>{msgStats.overall.pending} Pending</span>
+                <Link to="/helpdesk/messages" className="helpdesk-action-tile">
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(245, 158, 11, 0.12)', color: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="support" size={24} />
+                  </div>
+                  <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#F8FAFC' }}>Messages</span>
+                  <span style={{ fontSize: '0.72rem', color: '#F59E0B' }}>{msgStats.overall.pending} Pending</span>
                 </Link>
 
                 <button
                   type="button"
                   onClick={() => setSessionModalOpen(true)}
-                  className="btn btn--secondary"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '12px 8px',
-                    textAlign: 'center',
-                    borderRadius: 10,
-                    cursor: 'pointer'
-                  }}
-                  title="View Operator Session Hours & Shift Analytics"
+                  className="helpdesk-action-tile"
+                  style={{ width: '100%', cursor: 'pointer', font: 'inherit' }}
                 >
-                  <Icon name="clock" size={22} />
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Profile / Hours</span>
-                  <span style={{ fontSize: '0.7rem', color: '#10b981' }}>{shift}</span>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(6, 182, 212, 0.12)', color: '#06B6D4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="clock" size={24} />
+                  </div>
+                  <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#F8FAFC' }}>Shift Hours</span>
+                  <span style={{ fontSize: '0.72rem', color: '#10B981' }}>Shift analytics</span>
                 </button>
               </div>
-            </div>
+            </section>
           </div>
-
-          {/* Location Summary Footer Bar */}
-          <div className="dash-apps-footer-note">
-            <span>
-              <strong>Pre-determined Locations:</strong> Tendeno &bull; Sorget &bull; Parklands &bull; Westlands
-            </span>
-            <span>
-              Realtime Disabled &bull; Transparent Local Persistence
-            </span>
-          </div>
-        </section>
+        </div>
 
         {/* Visual Cards Detail Modal */}
         {visualModal && (

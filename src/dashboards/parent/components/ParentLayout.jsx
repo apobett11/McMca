@@ -4,6 +4,7 @@ import { ParentFooter } from './ParentFooter.jsx';
 import { ParentDesktopSidebar } from './ParentDesktopSidebar.jsx';
 import { ParentSlideMenu } from './ParentSlideMenu.jsx';
 import { NotificationModal } from '../../../components/NotificationModal.jsx';
+import '../styles/parent.css';
 
 export function ParentLayout({
   pageTitle,

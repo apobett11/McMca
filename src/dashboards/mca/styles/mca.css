@@ -1123,3 +1123,44 @@
   border-radius: 50%;
   background: #f59e0b;
 }
+
+/* ==========================================================================
+   GOOGLE STITCH MCA WORKSTATION ENHANCEMENTS
+   ========================================================================== */
+.mca-workstation-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.95fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .mca-workstation-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mca-equity-bar-wrap {
+  margin-bottom: 14px;
+}
+
+.mca-equity-bar-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.84rem;
+  margin-bottom: 6px;
+}
+
+.mca-equity-bar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.mca-equity-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3B82F6, #06B6D4);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}

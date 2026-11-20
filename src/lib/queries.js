@@ -203,12 +203,17 @@ export async function updateStudentProfile(userId, updates) {
 
 export async function uploadStudentDocument(userId, applicationId, docType, file) {
   const profileId = await getProfileIdByAuthId(userId);
-  const fileExt = file.name.split('.').pop();
-  const storagePath = `student-documents/${profileId}/${applicationId || 'general'}/${Date.now()}_${docType}.${fileExt}`;
+  if (!profileId) throw new Error('Student profile not found');
+  const rawExt = file.name ? file.name.split('.').pop() : 'bin';
+  const cleanExt = rawExt.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const cleanDocType = String(docType || 'doc').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const safeAppId = applicationId ? String(applicationId).replace(/[^a-zA-Z0-9_-]/g, '') : 'general';
+  
+  const storagePath = `student-documents/${profileId}/${safeAppId}/${Date.now()}_${cleanDocType}.${cleanExt}`;
   const { error: uploadError } = await supabase.storage
     .from('student-documents')
     .upload(storagePath, file, {
-      contentType: file.type,
+      contentType: file.type || 'application/octet-stream',
       upsert: false
     });
   if (uploadError) throw uploadError;
@@ -228,10 +233,15 @@ export async function uploadStudentDocument(userId, applicationId, docType, file
   if (insertError) throw insertError;
 }
 
-export async function getDocumentSignedUrl(storagePath) {
+/**
+ * Generates a short-lived (15-minute / 900s) private signed URL for document viewing.
+ * Complies with Kenya Data Protection Act 2019 data minimization principles.
+ */
+export async function getDocumentSignedUrl(storagePath, expiresIn = 900) {
+  if (!storagePath) return null;
   const { data, error } = await supabase.storage
     .from('student-documents')
-    .createSignedUrl(storagePath, 3600);
+    .createSignedUrl(storagePath, expiresIn);
   if (error) throw error;
   return data?.signedUrl;
 }

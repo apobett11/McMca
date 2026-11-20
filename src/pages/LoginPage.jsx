@@ -236,17 +236,9 @@ export function LoginPage({ initialTab = 'login' }) {
         }
       }
 
-      let effectivePassword = password;
-      if (loginEmail.toLowerCase() === 'mca@gmail.com' && (password === 'Mca1' || password === 'Mca12026')) {
-        effectivePassword = 'Mca12026';
-      }
-      if (loginEmail.toLowerCase() === 'help@gmail.com' && (password === 'Help1' || password === 'Help12026')) {
-        effectivePassword = 'Help12026';
-      }
-
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: loginEmail,
-        password: effectivePassword
+        password: password
       });
       if (signInError) throw signInError;
 

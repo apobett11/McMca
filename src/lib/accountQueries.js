@@ -187,10 +187,14 @@ export async function uploadIdentityDocument({
   if (!matchResult?.ok || !matchResult?.canPersist) {
     throw new Error('The document must be verified before it is saved.');
   }
-  const path = `identity/${ownerType}/${ownerId}/${Date.now()}_${documentKind}.${fileExt(file)}`;
+  const cleanOwnerType = String(ownerType || 'student').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const cleanOwnerId = String(ownerId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+  const cleanKind = String(documentKind || 'doc').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const ext = fileExt(file).replace(/[^a-z0-9]/g, '');
+  const path = `identity/${cleanOwnerType}/${cleanOwnerId}/${Date.now()}_${cleanKind}.${ext}`;
   const { error: uploadError } = await supabase.storage
     .from(IDENTITY_BUCKET)
-    .upload(path, file, { contentType: file.type, upsert: false });
+    .upload(path, file, { contentType: file.type || 'application/octet-stream', upsert: false });
   if (uploadError) throw uploadError;
 
   const { data, error } = await supabase
@@ -222,6 +226,19 @@ export async function uploadIdentityDocument({
     .single();
   if (error) throw error;
   return data;
+}
+
+/**
+ * Generates a short-lived (15-minute / 900s) private signed URL for identity documents.
+ * Adheres to KDPA 2019 statutory data minimization and privacy standards.
+ */
+export async function getIdentityDocumentSignedUrl(storagePath, expiresIn = 900) {
+  if (!storagePath) return null;
+  const { data, error } = await supabase.storage
+    .from(IDENTITY_BUCKET)
+    .createSignedUrl(storagePath, expiresIn);
+  if (error) throw error;
+  return data?.signedUrl;
 }
 
 export async function createNewUserAccount({ role, email, password, fields }) {
@@ -902,7 +919,19 @@ export async function submitStudentCycleApplication(profile) {
       })
       .select()
       .single();
-    if (insertError) throw insertError;
+
+    if (insertError) {
+      if (insertError.code === '23505' || insertError.message?.toLowerCase().includes('duplicate') || insertError.message?.toLowerCase().includes('unique')) {
+        return {
+          ok: false,
+          already: true,
+          reason: 'You have already submitted an application for this bursary cycle.',
+          window: cycle,
+          windows
+        };
+      }
+      throw insertError;
+    }
     application = dbApp;
 
     await supabase.from('application_details').insert({
@@ -922,10 +951,19 @@ export async function submitStudentCycleApplication(profile) {
       metadata: { application_id: application.id, window_id: cycle.id, serial }
     });
   } catch (dbErr) {
-    console.warn('Supabase application insert warning (offline or schema fallback):', dbErr);
+    if (dbErr?.code === '23505' || dbErr?.message?.toLowerCase().includes('duplicate') || dbErr?.message?.toLowerCase().includes('unique')) {
+      return {
+        ok: false,
+        already: true,
+        reason: 'You have already submitted an application for this bursary cycle.',
+        window: cycle,
+        windows
+      };
+    }
+    throw new Error(dbErr?.message || 'Database submission failed. Please check your network and retry.');
   }
 
-  const appId = application?.id || `app-${Date.now()}`;
+  const appId = application.id;
   const unifiedApp = {
     id: appId,
     serial,

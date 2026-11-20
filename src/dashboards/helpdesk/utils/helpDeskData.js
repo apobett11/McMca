@@ -712,12 +712,19 @@ export function getHelpDeskApplications() {
   return unique;
 }
 
-export async function syncHelpDeskApplicationsFromDB() {
+export async function syncHelpDeskApplicationsFromDB({ page = 1, pageSize = 25, sortBy = 'created_at', sortOrder = 'desc' } = {}) {
   if (supabase) {
     try {
-      const { data, error } = await supabase
+      const limit = Math.min(Math.max(Number(pageSize) || 25, 25), 50);
+      const currentPage = Math.max(Number(page) || 1, 1);
+      const from = (currentPage - 1) * limit;
+      const to = from + limit - 1;
+
+      const { data, error, count } = await supabase
         .from('student_applications')
-        .select('*, student_profiles(*), application_details(*)');
+        .select('*, student_profiles(*), application_details(*)', { count: 'exact' })
+        .order(sortBy, { ascending: sortOrder === 'asc' })
+        .range(from, to);
       if (!error && data && data.length > 0) {
         const fromDb = data.map((app) => {
           const profile = app.student_profiles || {};
@@ -746,13 +753,13 @@ export async function syncHelpDeskApplicationsFromDB() {
         const current = getHelpDeskApplications();
         const merged = Array.from(new Map([...fromDb, ...current].map((a) => [a.id || a.serial, a])).values());
         saveHelpDeskApplications(merged);
-        return merged;
+        return { items: merged, total: count ?? merged.length, page: currentPage, pageSize: limit };
       }
     } catch (err) {
       console.warn('HelpDesk DB sync fallback:', err);
     }
   }
-  return getHelpDeskApplications();
+  return { items: getHelpDeskApplications(), total: getHelpDeskApplications().length, page: 1, pageSize: 25 };
 }
 
 export function saveHelpDeskApplications(apps) {

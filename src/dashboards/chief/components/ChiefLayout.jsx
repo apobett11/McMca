@@ -4,6 +4,7 @@ import { ChiefFooter } from './ChiefFooter.jsx';
 import { ChiefDesktopSidebar } from './ChiefDesktopSidebar.jsx';
 import { ChiefSlideMenu } from './ChiefSlideMenu.jsx';
 import { NotificationModal } from '../../../components/NotificationModal.jsx';
+import '../styles/chief.css';
 
 export function ChiefLayout({
   pageTitle,

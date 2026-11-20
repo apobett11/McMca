@@ -1,5 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
+function computeAgeYears(dateOfBirth) {
+  if (!dateOfBirth) return null;
+  const born = new Date(dateOfBirth);
+  if (Number.isNaN(born.getTime())) return null;
+  const now = new Date();
+  let age = now.getUTCFullYear() - born.getUTCFullYear();
+  const monthDelta = now.getUTCMonth() - born.getUTCMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && now.getUTCDate() < born.getUTCDate())) {
+    age -= 1;
+  }
+  return age;
+}
+
 async function parseRequestBody(req) {
   if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
     return req.body;
@@ -48,7 +61,7 @@ export default async function handler(req, res) {
 
   if (!supabaseUrl || !serviceRoleKey) {
     res.status(500).json({
-      error: 'SUPABASE_SERVICE_ROLE_KEY or SUPABASE_URL is missing in Vercel Environment Variables. Please add SUPABASE_SERVICE_ROLE_KEY in Vercel Project Settings -> Environment Variables.'
+      error: 'SUPABASE_SERVICE_ROLE_KEY or SUPABASE_URL is missing in environment variables.'
     });
     return;
   }
@@ -67,13 +80,47 @@ export default async function handler(req, res) {
       return;
     }
 
+    // Security Gate 1: Prohibit public registration for administrative/executive roles
+    const ALLOWED_PUBLIC_ROLES = ['student', 'parent'];
+    if (!ALLOWED_PUBLIC_ROLES.includes(role)) {
+      res.status(403).json({
+        error: 'Unauthorized registration: Administrative and executive roles cannot be created via public registration.'
+      });
+      return;
+    }
+
     const cleanEmail = String(email).trim().toLowerCase();
     const cleanId = String(fields.nationalId || '').trim().replace(/\D/g, '');
     const cleanPhone = String(fields.phone || '').trim();
 
-    if (!cleanId) {
-      res.status(400).json({ error: 'National ID number is required.' });
+    // Security Gate 2: National ID format validation (7 to 9 digits for Kenya)
+    if (!cleanId || !/^\d{7,9}$/.test(cleanId)) {
+      res.status(400).json({
+        error: 'A valid 7 to 9 digit Kenyan National ID number is required.'
+      });
       return;
+    }
+
+    // Security Gate 3: Age validation against underage independent registration
+    const calculatedAge = computeAgeYears(fields.dateOfBirth);
+    if (role === 'student') {
+      if (calculatedAge === null) {
+        res.status(400).json({ error: 'A valid date of birth is required.' });
+        return;
+      }
+      if (calculatedAge < 18) {
+        res.status(400).json({
+          error: 'Statutory age requirement: You must be 18 years or older to register as an independent student. Underage students must be registered under parental custody.'
+        });
+        return;
+      }
+    } else if (role === 'parent') {
+      if (calculatedAge !== null && calculatedAge < 18) {
+        res.status(400).json({
+          error: 'Statutory requirement: Parents or guardians registering must be at least 18 years of age.'
+        });
+        return;
+      }
     }
 
     // Check if account already exists with this national ID or email in student_profiles

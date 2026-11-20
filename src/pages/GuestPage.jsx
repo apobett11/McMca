@@ -689,6 +689,26 @@ export function GuestPage() {
 
             {/* Schools & Bursary Distribution per Village Table */}
             <div className="gp-villages-card gp-glass-card">
+              {/* Executive Summary Mini-Stats */}
+              <div className="gp-distribution-summary-row">
+                <div className="gp-dist-summary-pill">
+                  <span className="gp-dist-summary-lbl">Sub-Locations</span>
+                  <span className="gp-dist-summary-val">6 Villages</span>
+                </div>
+                <div className="gp-dist-summary-pill">
+                  <span className="gp-dist-summary-lbl">Schools Mapped</span>
+                  <span className="gp-dist-summary-val">28 Institutions</span>
+                </div>
+                <div className="gp-dist-summary-pill">
+                  <span className="gp-dist-summary-lbl">Total Learners</span>
+                  <span className="gp-dist-summary-val">2,900 Enrolled</span>
+                </div>
+                <div className="gp-dist-summary-pill gp-dist-summary-pill--accent">
+                  <span className="gp-dist-summary-lbl">Grants Awarded</span>
+                  <span className="gp-dist-summary-val">2,060 (71.8% Coverage)</span>
+                </div>
+              </div>
+
               <div className="gp-villages-header">
                 <div>
                   <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 700, color: 'var(--gp-navy)' }}>
@@ -699,13 +719,16 @@ export function GuestPage() {
                   </p>
                 </div>
 
-                <input
-                  type="text"
-                  placeholder="Search village name…"
-                  value={villageSearch}
-                  onChange={(e) => setVillageSearch(e.target.value)}
-                  className="gp-search-input"
-                />
+                <div className="gp-search-wrap">
+                  <GuestIcon name="search" size={16} className="gp-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search village name…"
+                    value={villageSearch}
+                    onChange={(e) => setVillageSearch(e.target.value)}
+                    className="gp-search-input"
+                  />
+                </div>
               </div>
 
               <div className="gp-table-wrap">
@@ -789,11 +812,11 @@ export function GuestPage() {
           {/* 5. PRIVACY POLICY & PUBLIC GOVERNANCE RULES */}
           <section id="rules" className="gp-section-card gp-section-card--rules">
             <div className="gp-section-header">
-              <span className="gp-badge" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60A5FA', border: '1px solid rgba(96, 165, 250, 0.3)' }}>
+              <span className="gp-badge gp-badge--blue">
                 Statutory Compliance
               </span>
-              <h2 className="gp-section-title" style={{ color: '#FFFFFF' }}>Privacy Policy</h2>
-              <p className="gp-section-desc" style={{ color: '#94A3B8' }}>
+              <h2 className="gp-section-title">Privacy Policy &amp; Public Accountability</h2>
+              <p className="gp-section-desc">
                 The Tendeno / Sorget Ward Bursary Portal strictly adheres to the Kenya Data Protection Act, 2019, and the Public Finance Management (PFM) regulations.
               </p>
             </div>
@@ -834,10 +857,10 @@ export function GuestPage() {
             {/* CTA Box with Button to see full privacy rules */}
             <div className="gp-rules-cta-box">
               <div>
-                <div style={{ fontWeight: 700, fontSize: '1rem', color: '#FFFFFF', marginBottom: 4 }}>
+                <div className="gp-rules-cta-title">
                   Read the Full Statutory Policy &amp; Regulations
                 </div>
-                <div style={{ fontSize: '0.84rem', color: '#94A3B8' }}>
+                <div className="gp-rules-cta-desc">
                   Review candidate eligibility, citizen rights under the Data Protection Act, and appeals procedures.
                 </div>
               </div>

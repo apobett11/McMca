@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { StudentLayout } from '../components/StudentLayout.jsx';
 import { Icon } from '../../../components/Icon.jsx';
@@ -53,6 +53,7 @@ export function StudentFormsPage() {
   const [applyOpen, setApplyOpen] = useState(false);
   const [applyError, setApplyError] = useState('');
   const [applying, setApplying] = useState(false);
+  const submittingLockRef = useRef(false);
   const [justFinished, setJustFinished] = useState(false);
   const [notice, setNotice] = useState('');
 
@@ -90,62 +91,35 @@ export function StudentFormsPage() {
   }
 
   async function applyNow() {
-    if (!registration?.profile) return;
+    if (!registration?.profile || submittingLockRef.current) return;
+    submittingLockRef.current = true;
     setApplying(true);
     setApplyError('');
     try {
-      let application = null;
-      let cycleWindows = windows;
-      try {
-        const result = await submitStudentCycleApplication(registration.profile);
-        if (result.ok) {
-          application = result.application;
-          cycleWindows = result.windows || windows;
-        } else if (result.already) {
-          setApplyError('You already have an application for this cycle.');
-          setApplying(false);
-          return;
+      const result = await submitStudentCycleApplication(registration.profile);
+      if (!result.ok) {
+        if (result.already) {
+          setApplyError('You have already submitted an application for this bursary cycle. Duplicate applications are prohibited.');
+        } else {
+          setApplyError(result.reason || 'Could not submit this application.');
         }
-      } catch (ex) {
-        console.warn('DB submission fallback to session application:', ex);
+        return;
       }
 
-      if (!application && cycleGate.window) {
-        application = {
-          id: `app-local-${Date.now()}`,
-          student_profile_id: registration.profile.id,
-          application_window_id: cycleGate.window.id,
-          application_status: 'submitted',
-          institution_name: registration.profile.school_name || 'Institution on file',
-          institution_level: registration.profile.school_level || 'Tertiary',
-          allocated_amount: null,
-          requested_amount: null,
-          fee_balance: null,
-          submitted_at: new Date().toISOString(),
-          created_at: new Date().toISOString()
-        };
-      }
+      const application = result.application;
+      const cycleWindows = result.windows || windows;
 
-      if (application) {
-        let sessionApps = [];
-        try {
-          sessionApps = JSON.parse(sessionStorage.getItem('mcmca_session_applications') || '[]');
-        } catch {
-          sessionApps = [];
-        }
-        sessionStorage.setItem('mcmca_session_applications', JSON.stringify([application, ...sessionApps]));
-
-        update((prev) => ({
-          ...(prev || {}),
-          applications: [application, ...((prev && prev.applications) || [])]
-        }));
-        setApplyOpen(false);
-        setJustFinished(false);
-        setNotice(`Application auto-filled and submitted for ${cycleTitle(application, cycleWindows, application.created_at)}.`);
-      }
+      update((prev) => ({
+        ...(prev || {}),
+        applications: [application, ...((prev && prev.applications) || [])]
+      }));
+      setApplyOpen(false);
+      setJustFinished(false);
+      setNotice(`Application successfully submitted for ${cycleTitle(application, cycleWindows, application.created_at)}.`);
     } catch (err) {
-      setApplyError(err.message || 'Could not submit this application.');
+      setApplyError(err.message || 'Could not submit this application. Please check your connectivity and try again.');
     } finally {
+      submittingLockRef.current = false;
       setApplying(false);
     }
   }
@@ -267,8 +241,18 @@ export function StudentFormsPage() {
                 <li
                   key={step.key}
                   className={`checklist-single-card__row${done ? ' checklist-single-card__row--done' : ''}`}
-                  style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }}
+                  style={{
+                    cursor: alreadyApplied ? 'default' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '14px 20px',
+                    opacity: alreadyApplied ? 0.85 : 1
+                  }}
                   onClick={() => {
+                    if (alreadyApplied) {
+                      return;
+                    }
                     setStartAtKey(step.key);
                     setWizardOpen(true);
                   }}
@@ -294,18 +278,24 @@ export function StudentFormsPage() {
                     <span className={`stitch-status-badge ${done ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
                       {done ? 'Verified' : 'Needed'}
                     </span>
-                    <button
-                      type="button"
-                      className="btn btn--outline"
-                      style={{ padding: '4px 12px', fontSize: 12, borderRadius: 999 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setStartAtKey(step.key);
-                        setWizardOpen(true);
-                      }}
-                    >
-                      {done ? 'Edit' : 'Start'}
-                    </button>
+                    {alreadyApplied ? (
+                      <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600, padding: '4px 10px', background: 'rgba(255,255,255,0.05)', borderRadius: 999 }}>
+                        🔒 Locked
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn--outline"
+                        style={{ padding: '4px 12px', fontSize: 12, borderRadius: 999 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStartAtKey(step.key);
+                          setWizardOpen(true);
+                        }}
+                      >
+                        {done ? 'Edit' : 'Start'}
+                      </button>
+                    )}
                   </div>
                 </li>
               );

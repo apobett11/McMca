@@ -60,6 +60,19 @@ export function MCADashboardPage() {
   const pendingMessagesCount = messages.filter(m => m.status === 'Pending MCA Action').length;
   const approvalRate = applications.length > 0 ? Math.round((approvedCount / applications.length) * 100) : 0;
 
+  // Sub-location and village equity distribution
+  const villageCounts = applications.reduce((acc, a) => {
+    const v = a.village || a.location || 'Other';
+    acc[v] = (acc[v] || 0) + 1;
+    return acc;
+  }, {});
+
+  const villageDistribution = Object.entries(villageCounts).map(([name, count]) => ({
+    name,
+    count,
+    pct: applications.length > 0 ? Math.round((count / applications.length) * 100) : 0
+  })).sort((a, b) => b.count - a.count);
+
   return (
     <MCALayout pageTitle="MCA Executive Dashboard" mcaName={profile.fullName}>
       {/* HERO SECTION */}
@@ -210,133 +223,163 @@ export function MCADashboardPage() {
         </div>
       </section>
 
-      {/* QUICK ACTIONS */}
-      <section className="mca-section" aria-label="Executive Quick Actions">
-        <div className="mca-section__header">
-          <div>
-            <h2 className="mca-section__title">
-              <Icon name="arrowRight" size={18} />
-              Quick Actions
-            </h2>
-            <p className="mca-section__desc">Direct access to daily bursary allocation and oversight workflows</p>
-          </div>
-        </div>
-
-        <div className="mca-quick-actions">
-          <Link to="/mca/applications" className="mca-action-btn mca-action-btn--primary">
-            <Icon name="applications" size={20} />
-            <span>Applications Analytics</span>
-          </Link>
-
-          <Link to="/mca/applications" className="mca-action-btn">
-            <Icon name="calendar" size={20} />
-            <span>Cycle Window &amp; Intake Controls</span>
-          </Link>
-
-          <Link to="/mca/messages" className="mca-action-btn">
-            <Icon name="support" size={20} />
-            <span>Help Desk Messages ({pendingMessagesCount})</span>
-          </Link>
-
-          <button
-            type="button"
-            className="mca-action-btn"
-            onClick={() => {
-              const headers = ['Serial', 'Name', 'School', 'Level', 'Location', 'Polling Station', 'Bursary Amount', 'Status'];
-              const rows = applications.map(a => [a.serial, a.fullName, a.school, a.educationLevel, a.location, a.pollingStation, a.bursaryAmount, a.status]);
-              const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-              const link = document.createElement('a');
-              link.setAttribute('href', encodeURI(csvContent));
-              link.setAttribute('download', `mcmca_bursary_export_${(cycleSettings.cycle || '2026_2027').replace('/', '_')}.csv`);
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }}
-          >
-            <Icon name="upload" size={20} />
-            <span>Export CSV Bursary Report</span>
-          </button>
-        </div>
-      </section>
-
-      {/* RECENT BURSARY APPLICATIONS RECEIVED & VETTED */}
-      <section className="mca-section" aria-label="Recent Bursary Applications">
-        <div className="mca-section__header">
-          <div>
-            <h2 className="mca-section__title">
-              <Icon name="applications" size={20} />
-              Recent Applications Received &amp; Vetted
-            </h2>
-            <p className="mca-section__desc">
-              Latest applicant records across Tendeno / Sorget Ward undergoing verification and allocation.
-            </p>
-          </div>
-          <Link to="/mca/applications" className="mca-btn mca-btn--schedule" style={{ textDecoration: 'none' }}>
-            Open Full Applications Roster ({applications.length}) →
-          </Link>
-        </div>
-
-        <div className="mca-card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-              <thead>
-                <tr style={{ background: 'rgba(15,23,42,0.8)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                  <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Serial / Student</th>
-                  <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Institution / School</th>
-                  <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Level</th>
-                  <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Location / Village</th>
-                  <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Bursary Allocation</th>
-                  <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.slice(0, 8).map((app) => (
-                  <tr key={app.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ fontWeight: 700, color: '#f8fafc' }}>{app.fullName}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#60a5fa' }}>{app.serial}</div>
-                    </td>
-                    <td style={{ padding: '12px 16px', color: '#e2e8f0' }}>
-                      {app.school}
-                    </td>
-                    <td style={{ padding: '12px 16px', color: '#94a3b8' }}>
-                      {app.educationLevel}
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ color: '#cbd5e1' }}>{app.village}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{app.pollingStation}</div>
-                    </td>
-                    <td style={{ padding: '12px 16px', fontWeight: 700, color: '#34d399' }}>
-                      KES {(Number(app.bursaryAmount) || 0).toLocaleString()}
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span
-                        className={`mca-badge ${
-                          app.status === 'Failed'
-                            ? 'mca-badge--cancelled'
-                            : app.status === 'Pending'
-                            ? 'mca-badge--waiting'
-                            : 'mca-badge--done'
-                        }`}
-                      >
-                        {app.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ padding: '14px 16px', background: 'rgba(15,23,42,0.4)', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-              Showing {Math.min(8, applications.length)} of {applications.length} applications in {cycleSettings.cycle || '2026/2027'}
-            </span>
-            <Link to="/mca/applications" style={{ color: '#60a5fa', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
-              View Complete Intake Analytics →
+      {/* GOOGLE STITCH OPERATIONAL OVERSIGHT WORKSTATION */}
+      <div className="mca-workstation-grid">
+        {/* Left Column: Recent Bursary Applications Ledger */}
+        <section className="mca-section" aria-label="Recent Bursary Applications" style={{ marginBottom: 0 }}>
+          <div className="mca-section__header">
+            <div>
+              <h2 className="mca-section__title">
+                <Icon name="applications" size={20} />
+                Recent Applications Received &amp; Vetted
+              </h2>
+              <p className="mca-section__desc">
+                Latest applicant records across Tendeno / Sorget Ward undergoing verification and allocation.
+              </p>
+            </div>
+            <Link to="/mca/applications" className="mca-btn mca-btn--schedule" style={{ textDecoration: 'none' }}>
+              Full Roster ({applications.length}) →
             </Link>
           </div>
+
+          <div className="mca-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(15,23,42,0.8)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                    <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Serial / Student</th>
+                    <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Institution</th>
+                    <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Village</th>
+                    <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Allocation</th>
+                    <th style={{ padding: '12px 16px', color: '#94a3b8', fontWeight: 700 }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {applications.slice(0, 8).map((app) => (
+                    <tr key={app.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ fontWeight: 700, color: '#f8fafc' }}>{app.fullName}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#60a5fa' }}>{app.serial}</div>
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#e2e8f0' }}>
+                        <div>{app.school}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{app.educationLevel}</div>
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ color: '#cbd5e1' }}>{app.village}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{app.pollingStation}</div>
+                      </td>
+                      <td style={{ padding: '12px 16px', fontWeight: 700, color: '#34d399' }}>
+                        KES {(Number(app.bursaryAmount) || 0).toLocaleString()}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span
+                          className={`mca-badge ${
+                            app.status === 'Failed'
+                              ? 'mca-badge--cancelled'
+                              : app.status === 'Pending'
+                              ? 'mca-badge--waiting'
+                              : 'mca-badge--done'
+                          }`}
+                        >
+                          {app.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ padding: '14px 16px', background: 'rgba(15,23,42,0.4)', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                Showing {Math.min(8, applications.length)} of {applications.length} applications
+              </span>
+              <Link to="/mca/applications" style={{ color: '#60a5fa', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>
+                View Intake Analytics →
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Right Column: Ward Locality Equity & Direct Action Workflows */}
+        <div>
+          {/* Locality & Sub-Location Equity Breakdown */}
+          <section className="mca-section" aria-label="Ward Equity Breakdown" style={{ marginBottom: 24 }}>
+            <div className="mca-section__header">
+              <div>
+                <h3 className="mca-section__title" style={{ fontSize: '1.15rem' }}>
+                  <Icon name="check" size={18} />
+                  Locality Equity Breakdown
+                </h3>
+                <p className="mca-section__desc">Distribution of applicants across ward villages</p>
+              </div>
+            </div>
+
+            <div className="mca-card" style={{ padding: '20px 22px' }}>
+              {villageDistribution.slice(0, 6).map((v) => (
+                <div key={v.name} className="mca-equity-bar-wrap">
+                  <div className="mca-equity-bar-head">
+                    <span style={{ fontWeight: 600, color: '#F8FAFC' }}>{v.name}</span>
+                    <span style={{ color: '#94A3B8' }}>{v.count} apps ({v.pct}%)</span>
+                  </div>
+                  <div className="mca-equity-bar-track">
+                    <div className="mca-equity-bar-fill" style={{ width: `${v.pct}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Direct Executive Oversight Workflows */}
+          <section className="mca-section" aria-label="Executive Quick Actions" style={{ marginBottom: 0 }}>
+            <div className="mca-section__header">
+              <div>
+                <h3 className="mca-section__title" style={{ fontSize: '1.15rem' }}>
+                  <Icon name="arrowRight" size={18} />
+                  Ward Direct Workflows
+                </h3>
+                <p className="mca-section__desc">Immediate access to cycle and petition administration</p>
+              </div>
+            </div>
+
+            <div className="mca-quick-actions" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+              <Link to="/mca/applications" className="mca-action-btn mca-action-btn--primary">
+                <Icon name="applications" size={20} />
+                <span>Applications Analytics</span>
+              </Link>
+
+              <Link to="/mca/applications" className="mca-action-btn">
+                <Icon name="calendar" size={20} />
+                <span>Intake Controls</span>
+              </Link>
+
+              <Link to="/mca/messages" className="mca-action-btn">
+                <Icon name="support" size={20} />
+                <span>Help Desk ({pendingMessagesCount})</span>
+              </Link>
+
+              <button
+                type="button"
+                className="mca-action-btn"
+                onClick={() => {
+                  const headers = ['Serial', 'Name', 'School', 'Level', 'Location', 'Polling Station', 'Bursary Amount', 'Status'];
+                  const rows = applications.map(a => [a.serial, a.fullName, a.school, a.educationLevel, a.location, a.pollingStation, a.bursaryAmount, a.status]);
+                  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+                  const link = document.createElement('a');
+                  link.setAttribute('href', encodeURI(csvContent));
+                  link.setAttribute('download', `mcmca_bursary_export_${(cycleSettings.cycle || '2026_2027').replace('/', '_')}.csv`);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+              >
+                <Icon name="upload" size={20} />
+                <span>Export CSV Report</span>
+              </button>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
     </MCALayout>
   );
 }

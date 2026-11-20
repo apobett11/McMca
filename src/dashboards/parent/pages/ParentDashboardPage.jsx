@@ -192,6 +192,8 @@ export function ParentDashboardPage() {
     ? [applicationsCard, documentsCard, addChildCard, messagesCard]
     : [addChildCard, applicationsCard, documentsCard, messagesCard];
 
+  const totalAllocated = applications.reduce((sum, app) => sum + (Number(app.allocated_amount) || 0), 0);
+
   return (
     <ParentLayout pageTitle="Home" parentName={parentName} layout="dashboard">
       {wizardOpen && (
@@ -206,143 +208,34 @@ export function ParentDashboardPage() {
         />
       )}
       <div className="stitch-dashboard">
-        {/* Parent identity hero */}
-        <section className="student-hero">
-          <div className="student-hero__identity">
-            <div className="student-hero__avatar" aria-hidden="true">{initials}</div>
-            <div className="student-hero__copy">
-              <h1 className="student-hero__title">{greeting}, {parentName}</h1>
-              <p className="student-hero__meta">
-                {showSkeleton ? 'Loading your household…' : `${children.length} linked student${children.length === 1 ? '' : 's'}`}
-              </p>
+        {/* 1. Google Stitch Household Command Hero */}
+        <section className="parent-household-hero">
+          <div className="parent-hero__top">
+            <div className="parent-identity-cluster">
+              <div className="parent-avatar-ring" aria-hidden="true">
+                <div className="parent-avatar-inner">{initials}</div>
+              </div>
+              <div className="parent-identity-text">
+                <h1>{greeting}, {parentName}</h1>
+                <div className="parent-identity-meta">
+                  <span className="stitch-status-badge stitch-status-badge--admitted" style={{ fontSize: 11 }}>
+                    Household Guardian
+                  </span>
+                  <span>•</span>
+                  <span>
+                    {showSkeleton
+                      ? 'Loading household…'
+                      : `${children.length} linked student${children.length === 1 ? '' : 's'}`}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="student-hero__readiness">
-            <div className="student-hero__ring" aria-hidden="true">
-              <span>{showSkeleton ? '…' : `${pct}%`}</span>
-            </div>
-            <div>
-              <p className="student-hero__readiness-label">Household</p>
-              <p className="student-hero__readiness-desc">
-                {showSkeleton
-                  ? 'Checking linked students.'
-                  : !complete
-                    ? 'Finish your household steps to add students.'
-                    : children.length
-                      ? `${children.length} linked student${children.length === 1 ? '' : 's'} on file.`
-                      : 'Add a child to start an application.'}
-              </p>
-            </div>
-          </div>
-        </section>
 
-        {/* Quick actions */}
-        <section className="dash-suite">
-          <div className="dash-suite__head">
-            <h2 className="stitch-section-title">Quick actions</h2>
-          </div>
-          <div className="dash-suite__grid">
-            {smartQuickCards.map((item) => {
-              const cardContent = (
-                <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-                    <div className={`dash-suite__icon dash-suite__icon--${item.tone}`} style={{ margin: 0 }}>
-                      <Icon name={item.id === 'add-child' ? 'plus' : item.id === 'applications' ? 'applications' : item.id === 'documents' ? 'documents' : 'support'} size={22} />
-                    </div>
-                    {item.badge && (
-                      <span className={`stitch-status-badge ${item.isRed ? 'stitch-status-badge--declined' : 'stitch-status-badge--admitted'}`} style={{ fontSize: 11 }}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
-                  <p className="dash-suite__card-title" style={{ fontSize: 15, fontWeight: 700 }}>{item.title}</p>
-                  <p className="dash-suite__card-desc" style={{ marginBottom: 12 }}>{item.desc}</p>
-                  <div style={{
-                    padding: '8px 10px',
-                    borderRadius: 10,
-                    background: item.isRed ? 'rgba(239, 68, 68, 0.08)' : 'rgba(255, 255, 255, 0.04)',
-                    border: `1px solid ${item.isRed ? 'rgba(239, 68, 68, 0.25)' : 'rgba(148, 163, 184, 0.12)'}`,
-                    fontSize: 12,
-                    color: item.isRed ? '#F87171' : 'var(--text-muted, #94A3B8)',
-                    marginBottom: 12
-                  }}>
-                    {item.analytics}
-                  </div>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: item.isRed ? '#EF4444' : 'var(--primary, #3B82F6)'
-                  }}>
-                    <span>{item.cta}</span>
-                  </div>
-                </>
-              );
-
-              if (item.onClick) {
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="dash-suite__card luxury-gradient-card"
-                    onClick={item.onClick}
-                    style={{
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      background: item.isRed ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%)' : undefined,
-                      border: item.isRed ? '1.5px solid rgba(239, 68, 68, 0.45)' : undefined,
-                      boxShadow: item.isRed ? '0 4px 20px rgba(239, 68, 68, 0.18)' : undefined,
-                      font: 'inherit',
-                      width: '100%',
-                      padding: 20
-                    }}
-                  >
-                    {cardContent}
-                  </button>
-                );
-              }
-
-              return (
-                <Link
-                  key={item.id}
-                  to={item.to}
-                  className="dash-suite__card luxury-gradient-card"
-                  style={{
-                    textDecoration: 'none',
-                    padding: 20,
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                >
-                  {cardContent}
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        {actionNotice ? (
-          <div className="notice" style={{ marginBottom: 16, background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }}>
-            <p style={{ margin: 0, color: 'var(--text, #111827)' }}>{actionNotice}</p>
-          </div>
-        ) : null}
-
-        {/* Consolidated single card: ranges, checklist, and applications */}
-        <section className="dash-single-card">
-          <div className="dash-single-card__head">
-            <div>
-              <h2 className="stitch-section-title" style={{ margin: 0 }}>Registration & Household Overview</h2>
-              <p className="field__help" style={{ margin: '4px 0 0' }}>
-                Complete every household step before adding a student and applying for bursaries.
-              </p>
-            </div>
-            <div className="btn-row">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <RefreshButton onClick={refresh} busy={refreshing} />
               <button
                 type="button"
-                className="btn btn--primary"
+                className="btn-parent-add-child"
                 onClick={handleAddChildClick}
                 disabled={!complete || hasIncompleteChild}
                 title={
@@ -354,246 +247,407 @@ export function ParentDashboardPage() {
                 }
               >
                 <Icon name="plus" size={18} />
-                Add a child
+                <span>Add Dependent Child</span>
               </button>
             </div>
           </div>
 
-          {/* Analytics cards with thin progress ranges inside card */}
-          <div className="dash-analytics-strips" style={{ margin: 0, padding: 16, borderBottom: '1px solid var(--glass-border)' }}>
-            <div className="dash-strip-card">
-              <div className="dash-strip-card__head">
-                <div>
-                  <span className="dash-strip-card__label">Linked Students & Applications</span>
-                  <h3 className="dash-strip-card__val">
-                    {children.length} {children.length === 1 ? 'Student' : 'Students'} · {applications.length} {applications.length === 1 ? 'App' : 'Apps'}
-                  </h3>
-                </div>
-                <span className={`stitch-status-badge ${children.length > 0 ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
-                  {children.length > 0 ? 'Linked' : 'No students'}
-                </span>
-              </div>
-              <div className="dash-strip-card__track" role="progressbar" aria-valuenow={children.length > 0 ? 100 : 0} aria-valuemin="0" aria-valuemax="100">
-                <div
-                  className="dash-strip-card__fill dash-strip-card__fill--gold"
-                  style={{ width: `${children.length > 0 ? 100 : 0}%` }}
-                />
-              </div>
-              <div className="dash-strip-card__foot">
-                <span>{children.length > 0 ? `${children.length} student${children.length === 1 ? '' : 's'} registered` : 'Add your children'}</span>
-                <span>{children.length > 0 ? 'Active' : '0%'}</span>
-              </div>
+          {/* 4-Item Household Aggregate Metric Strip */}
+          <div className="parent-metrics-strip">
+            <div className="parent-metric-tile">
+              <span className="parent-metric-lbl">Linked Students</span>
+              <div className="parent-metric-val">{children.length}</div>
+              <span className="parent-metric-sub">
+                Target: {targetInSchool || children.length} in school
+              </span>
             </div>
 
-            <div className="dash-strip-card">
-              <div className="dash-strip-card__head">
-                <div>
-                  <span className="dash-strip-card__label">Household Form Steps</span>
-                  <h3 className="dash-strip-card__val">
-                    {doneCount} of {steps.length} Steps
-                  </h3>
-                </div>
-                <span className={`stitch-status-badge ${complete ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
-                  {complete ? 'Complete' : `${steps.length - doneCount} Needed`}
-                </span>
+            <div className="parent-metric-tile">
+              <span className="parent-metric-lbl">Household Readiness</span>
+              <div className={`parent-metric-val ${complete ? 'parent-metric-val--emerald' : 'parent-metric-val--indigo'}`}>
+                {pct}%
               </div>
-              <div className="dash-strip-card__track" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100">
-                <div
-                  className={`dash-strip-card__fill ${complete ? 'dash-strip-card__fill--green' : 'dash-strip-card__fill--gold'}`}
-                  style={{ width: `${pct}%` }}
-                />
+              <span className="parent-metric-sub">
+                {doneCount} of {steps.length} steps verified
+              </span>
+            </div>
+
+            <div className="parent-metric-tile">
+              <span className="parent-metric-lbl">Bursary Records</span>
+              <div className="parent-metric-val">{applications.length}</div>
+              <span className="parent-metric-sub">
+                Active cycle submissions
+              </span>
+            </div>
+
+            <div className="parent-metric-tile">
+              <span className="parent-metric-lbl">Total Grants Awarded</span>
+              <div className="parent-metric-val parent-metric-val--emerald">
+                {formatMoney(totalAllocated)}
               </div>
-              <div className="dash-strip-card__foot">
-                <span>{complete ? 'Every step on file' : preparednessCopy(doneCount, steps.length)}</span>
-                <span>{pct}%</span>
-              </div>
+              <span className="parent-metric-sub">
+                Cumulative household allocation
+              </span>
             </div>
           </div>
+        </section>
 
-          {error ? (
-            <div className="notice" role="alert" style={{ margin: 16 }}>
-              <strong>Could not load</strong>
-              <p>{error}</p>
-            </div>
-          ) : null}
-
-          {/* Registration Checklist */}
-          <div style={{ padding: '16px 22px 10px', borderBottom: '1px solid rgba(148, 163, 184, 0.12)' }}>
-            <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>Registration Checklist</h3>
-            <p className="field__help" style={{ margin: '4px 0 0' }}>
-              Personal information is pre-checked from registration. Click any step to open and complete it.
-            </p>
+        {actionNotice ? (
+          <div className="notice" style={{ marginBottom: 20, background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)' }}>
+            <p style={{ margin: 0, color: 'var(--text, #F8FAFC)' }}>{actionNotice}</p>
           </div>
+        ) : null}
 
-          {showSkeleton ? (
-            <div className="skeleton-wrap" style={{ padding: 16 }}>
-              <div className="skeleton skeleton--hero" />
-            </div>
-          ) : (
-            <ul className="checklist-single-card__list">
-              {steps.map((step) => {
-                const done = completedKeys.includes(step.key);
-                return (
-                  <li
-                    key={step.key}
-                    className={`checklist-single-card__row${done ? ' checklist-single-card__row--done' : ''}`}
-                    onClick={() => navigate('/parent/documents', { state: { startAtKey: step.key, continueRegistration: true } })}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={done}
-                      onChange={() => {
-                        navigate('/parent/documents', { state: { startAtKey: step.key, continueRegistration: true } });
-                      }}
-                      tabIndex={0}
-                      aria-label={`${step.title} ${done ? 'completed' : 'not completed'}`}
-                      style={{ cursor: 'pointer' }}
-                    />
-                    <span className="checklist-single-card__title">{step.title}</span>
-                    <span className={`stitch-status-badge ${done ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
-                      {done ? 'Done' : 'Needed'}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-
-          {/* Applications inside single card */}
-          <div className="dash-single-card__head" style={{ borderTop: '1px solid var(--glass-border)' }}>
+        {/* 2. Dependent Students Grid */}
+        <section className="parent-section-wrap">
+          <div className="parent-section-head">
             <div>
-              <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>Applications & Linked Students</h3>
-              <p className="field__help" style={{ margin: '4px 0 0' }}>
-                {children.length > 0
-                  ? 'Bursary applications and records for your linked students.'
-                  : 'Track cycle applications and submission status for your children.'}
+              <h2 className="parent-section-title">Dependent Students ({children.length})</h2>
+              <p className="parent-section-desc">
+                Individual dossiers, school records, and bursary applications for your children.
               </p>
             </div>
-            {sortedApps.length > 0 && (
-              <Link className="btn btn--outline" to="/parent/applications" style={{ borderRadius: 999 }}>
-                View all history
-              </Link>
+            {children.length > 0 && (
+              <button
+                type="button"
+                className="btn btn--outline btn--compact"
+                onClick={handleAddChildClick}
+                disabled={!complete || hasIncompleteChild}
+                style={{ borderRadius: 999 }}
+              >
+                <Icon name="plus" size={14} />
+                <span>Add Another Child</span>
+              </button>
             )}
           </div>
 
           {showSkeleton ? (
-            <div className="skeleton-wrap" style={{ padding: 16 }}>
+            <div className="skeleton-wrap" style={{ padding: 24 }}>
               <div className="skeleton skeleton--hero" />
             </div>
           ) : children.length === 0 ? (
-            <div className="dash-apps-empty" style={{ padding: '36px 20px', textAlign: 'center' }}>
+            <div className="dash-apps-empty" style={{
+              background: 'var(--par-surface, #0F172A)',
+              border: '1.5px solid var(--par-border, rgba(255,255,255,0.08))',
+              borderRadius: 'var(--par-radius-xl, 22px)',
+              padding: '40px 24px',
+              textAlign: 'center'
+            }}>
               <div style={{
-                width: 52,
-                height: 52,
+                width: 56,
+                height: 56,
                 borderRadius: '50%',
-                background: 'rgba(239, 68, 68, 0.12)',
-                color: '#EF4444',
+                background: 'rgba(99, 102, 241, 0.15)',
+                color: '#818CF8',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: 14
+                marginBottom: 16
               }}>
-                <Icon name="plus" size={26} />
+                <Icon name="plus" size={28} />
               </div>
-              <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>
-                No students linked yet
+              <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: '#F8FAFC' }}>
+                No Dependent Students Linked Yet
               </h3>
-              <p className="dash-apps-empty__msg" style={{ maxWidth: 440, margin: '0 auto 18px', color: 'var(--text-muted, #94A3B8)' }}>
-                You have no students linked yet. Add your student children to submit and track their bursary applications.
+              <p style={{ maxWidth: 460, margin: '0 auto 20px', color: '#94A3B8', fontSize: 14 }}>
+                Add your school-going children to track their verification, upload required documents, and submit bursary applications.
               </p>
               <button
                 type="button"
-                className="btn btn--primary"
+                className="btn-parent-add-child"
                 onClick={handleAddChildClick}
-                style={{ borderRadius: 999, display: 'inline-flex', width: 'auto', padding: '10px 24px' }}
               >
                 <Icon name="plus" size={18} />
-                Add a child
+                <span>Add First Dependent Child</span>
               </button>
             </div>
-          ) : sortedApps.length === 0 ? (
-            <div style={{ padding: 16 }}>
-              <p className="field__help" style={{ marginTop: 0 }}>
-                {children.length} linked student{children.length === 1 ? '' : 's'} registered. Continue their records or submit bursary applications.
-              </p>
-              <div className="student-cards-grid">
-                {children.map((child) => {
-                  const name = joinFullName({
-                    firstName: child.first_name,
-                    middleName: child.middle_name,
-                    lastName: child.last_name
-                  });
-                  return (
-                    <article key={child.id} className="linked-student-card">
-                      <div className="linked-student-card__head">
-                        <div className="linked-student-card__avatar linked-student-card__avatar--blue" aria-hidden="true">
-                          {name.charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="linked-student-card__name">{name}</h3>
-                          <p className="linked-student-card__school">{child.school_name || 'School not added yet'}</p>
-                        </div>
-                      </div>
-                      <div className="linked-student-card__actions" style={{ marginTop: 12 }}>
-                        <Link className="btn btn--primary btn--compact" to={`/parent/children/${child.id}`}>
-                          <Icon name="applications" size={16} />
-                          Continue record
-                        </Link>
-                        <Link className="btn btn--secondary btn--compact" to="/parent/applications">
-                          <Icon name="documents" size={16} />
-                          Applications
-                        </Link>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
           ) : (
-            <div>
-              <div className="stitch-apps-table" style={{ border: 'none', borderRadius: 0 }}>
-                <table style={{ minWidth: 560 }}>
-                  <thead>
-                    <tr>
-                      <th>Student</th>
-                      <th>Cycle</th>
-                      <th>Institution</th>
-                      <th>Level</th>
-                      <th>Status</th>
-                      <th>Allocated</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedApps.map((app) => {
-                      const child = children.find((c) => c.id === app.student_profile_id);
-                      const name = child ? joinFullName({
-                        firstName: child.first_name,
-                        middleName: child.middle_name,
-                        lastName: child.last_name
-                      }) : 'Student';
-                      const status = getStatusConfig(app.application_status);
-                      return (
-                        <tr key={app.id}>
-                          <td data-label="Student" style={{ fontWeight: 600 }}>{name}</td>
-                          <td data-label="Cycle">{cycleTitle(app, windows, app.created_at)}</td>
-                          <td data-label="Institution">{app.institution_name || '—'}</td>
-                          <td data-label="Level">{levelLabel(app.institution_level)}</td>
-                          <td data-label="Status">
-                            <span className={`stitch-status-badge ${statusClass(app.application_status)}`}>
-                              {status.label}
-                            </span>
-                          </td>
-                          <td data-label="Allocated">{formatMoney(app.allocated_amount)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+            <div className="parent-children-grid">
+              {children.map((child) => {
+                const name = joinFullName({
+                  firstName: child.first_name,
+                  middleName: child.middle_name,
+                  lastName: child.last_name
+                });
+                const childApps = applications.filter((a) => a.student_profile_id === child.id);
+                return (
+                  <article key={child.id} className="parent-child-card">
+                    <div>
+                      <div className="parent-child-top">
+                        <div className="parent-child-identity">
+                          <div className="parent-child-avatar">
+                            {name.charAt(0) || 'S'}
+                          </div>
+                          <div>
+                            <div className="parent-child-name">{name}</div>
+                            <div className="parent-child-school">
+                              {child.school_name || 'Institution not specified'}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`stitch-status-badge ${child.school_name ? 'stitch-status-badge--admitted' : 'stitch-status-badge--review'}`} style={{ fontSize: 11 }}>
+                          {child.school_name ? 'Verified' : 'Pending'}
+                        </span>
+                      </div>
+
+                      <div style={{
+                        marginTop: 14,
+                        padding: '10px 12px',
+                        borderRadius: 10,
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: 12,
+                        color: 'var(--par-text-secondary, #94A3B8)'
+                      }}>
+                        <span>Level: <strong style={{ color: '#F8FAFC' }}>{levelLabel(child.institution_level)}</strong></span>
+                        <span>Applications: <strong style={{ color: '#F8FAFC' }}>{childApps.length}</strong></span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                      <Link
+                        className="btn btn--primary btn--compact"
+                        to={`/parent/children/${child.id}`}
+                        style={{ flex: 1, justifyContent: 'center' }}
+                      >
+                        <Icon name="applications" size={16} />
+                        <span>Manage Dossier</span>
+                      </Link>
+                      <Link
+                        className="btn btn--outline btn--compact"
+                        to="/parent/applications"
+                        style={{ flex: 1, justifyContent: 'center' }}
+                      >
+                        <Icon name="documents" size={16} />
+                        <span>Applications</span>
+                      </Link>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
+
+        {/* 3. Two-Column Operational Split */}
+        <div className="student-grid">
+          {/* Left Column: Applications Ledger */}
+          <div className="student-stage-col">
+            <section className="dash-single-card">
+              <div className="dash-single-card__head">
+                <div>
+                  <h2 className="stitch-section-title" style={{ margin: 0 }}>Household Bursary Ledger</h2>
+                  <p className="field__help" style={{ margin: '4px 0 0' }}>
+                    Cycle applications and grant disbursements for your linked students.
+                  </p>
+                </div>
+                {sortedApps.length > 0 && (
+                  <Link className="btn btn--outline btn--compact" to="/parent/applications" style={{ borderRadius: 999 }}>
+                    View full ledger →
+                  </Link>
+                )}
+              </div>
+
+              {showSkeleton ? (
+                <div className="skeleton-wrap" style={{ padding: 20 }}>
+                  <div className="skeleton skeleton--hero" />
+                </div>
+              ) : sortedApps.length === 0 ? (
+                <div style={{ padding: '36px 20px', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 12px', color: '#94A3B8', fontSize: 14 }}>
+                    No bursary applications have been filed for this household cycle yet.
+                  </p>
+                  <Link
+                    to="/parent/applications"
+                    className="btn btn--secondary btn--compact"
+                    style={{ borderRadius: 999, display: 'inline-flex' }}
+                  >
+                    Submit an Application
+                  </Link>
+                </div>
+              ) : (
+                <div className="stitch-apps-table" style={{ border: 'none', borderRadius: 0 }}>
+                  <table style={{ minWidth: 520 }}>
+                    <thead>
+                      <tr>
+                        <th>Student</th>
+                        <th>Cycle</th>
+                        <th>Institution</th>
+                        <th>Status</th>
+                        <th>Allocated</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedApps.map((app) => {
+                        const child = children.find((c) => c.id === app.student_profile_id);
+                        const name = child ? joinFullName({
+                          firstName: child.first_name,
+                          middleName: child.middle_name,
+                          lastName: child.last_name
+                        }) : 'Student';
+                        const status = getStatusConfig(app.application_status);
+                        return (
+                          <tr key={app.id}>
+                            <td data-label="Student" style={{ fontWeight: 600, color: '#F8FAFC' }}>{name}</td>
+                            <td data-label="Cycle">{cycleTitle(app, windows, app.created_at)}</td>
+                            <td data-label="Institution">{app.institution_name || '—'}</td>
+                            <td data-label="Status">
+                              <span className={`stitch-status-badge ${statusClass(app.application_status)}`}>
+                                {status.label}
+                              </span>
+                            </td>
+                            <td data-label="Allocated" style={{ fontWeight: 700, color: '#10B981' }}>
+                              {formatMoney(app.allocated_amount)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </div>
+
+          {/* Right Column: Household Registration Checklist & Quick Direct Suite */}
+          <div className="student-stage-col">
+            <section className="dash-single-card" style={{ marginBottom: 20 }}>
+              <div className="dash-single-card__head">
+                <div>
+                  <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.05rem' }}>
+                    Household Readiness Checklist
+                  </h3>
+                  <p className="field__help" style={{ margin: '4px 0 0' }}>
+                    {doneCount} of {steps.length} requirements fulfilled. Click any item to edit.
+                  </p>
+                </div>
+                <span className={`stitch-status-badge ${complete ? 'stitch-status-badge--admitted' : 'stitch-status-badge--review'}`}>
+                  {complete ? 'Complete' : `${steps.length - doneCount} Needed`}
+                </span>
+              </div>
+
+              {showSkeleton ? (
+                <div className="skeleton-wrap" style={{ padding: 16 }}>
+                  <div className="skeleton skeleton--hero" />
+                </div>
+              ) : (
+                <ul className="checklist-single-card__list">
+                  {steps.map((step) => {
+                    const done = completedKeys.includes(step.key);
+                    return (
+                      <li
+                        key={step.key}
+                        className={`checklist-single-card__row${done ? ' checklist-single-card__row--done' : ''}`}
+                        onClick={() => navigate('/parent/documents', { state: { startAtKey: step.key, continueRegistration: true } })}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={done}
+                          onChange={() => {
+                            navigate('/parent/documents', { state: { startAtKey: step.key, continueRegistration: true } });
+                          }}
+                          tabIndex={0}
+                          aria-label={`${step.title} ${done ? 'completed' : 'not completed'}`}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <span className="checklist-single-card__title" style={{ color: done ? '#94A3B8' : '#F8FAFC' }}>
+                          {step.title}
+                        </span>
+                        <span className={`stitch-status-badge ${done ? 'stitch-status-badge--admitted' : 'stitch-status-badge--withdrawn'}`}>
+                          {done ? 'Done' : 'Needed'}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+
+            {/* Quick Actions Navigation Suite */}
+            <section className="dash-suite">
+              <div className="dash-suite__head">
+                <h3 className="stitch-section-title" style={{ fontSize: '1.05rem', margin: 0 }}>Quick Direct Tools</h3>
+              </div>
+              <div className="dash-suite__grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+                {smartQuickCards.map((item) => {
+                  const cardContent = (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                        <div className={`dash-suite__icon dash-suite__icon--${item.tone}`} style={{ margin: 0 }}>
+                          <Icon name={item.id === 'add-child' ? 'plus' : item.id === 'applications' ? 'applications' : item.id === 'documents' ? 'documents' : 'support'} size={20} />
+                        </div>
+                        {item.badge && (
+                          <span className={`stitch-status-badge ${item.isRed ? 'stitch-status-badge--declined' : 'stitch-status-badge--admitted'}`} style={{ fontSize: 10 }}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                      <p className="dash-suite__card-title" style={{ fontSize: 14, fontWeight: 700, margin: '0 0 4px', color: '#F8FAFC' }}>{item.title}</p>
+                      <p className="dash-suite__card-desc" style={{ marginBottom: 10, fontSize: 12 }}>{item.desc}</p>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: item.isRed ? '#EF4444' : 'var(--par-accent-indigo-light, #818CF8)',
+                        marginTop: 'auto'
+                      }}>
+                        <span>{item.cta}</span>
+                      </div>
+                    </>
+                  );
+
+                  if (item.onClick) {
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className="dash-suite__card"
+                        onClick={item.onClick}
+                        style={{
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          background: item.isRed ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(15, 23, 42, 0.8) 100%)' : 'var(--par-surface, #0F172A)',
+                          border: item.isRed ? '1.5px solid rgba(239, 68, 68, 0.45)' : '1px solid var(--par-border, rgba(255,255,255,0.08))',
+                          font: 'inherit',
+                          width: '100%',
+                          padding: 16,
+                          borderRadius: 14
+                        }}
+                      >
+                        {cardContent}
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={item.id}
+                      to={item.to}
+                      className="dash-suite__card"
+                      style={{
+                        textDecoration: 'none',
+                        padding: 16,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        background: 'var(--par-surface, #0F172A)',
+                        border: '1px solid var(--par-border, rgba(255,255,255,0.08))',
+                        borderRadius: 14
+                      }}
+                    >
+                      {cardContent}
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          </div>
+        </div>
       </div>
 
       {addChildModalOpen && parent ? (

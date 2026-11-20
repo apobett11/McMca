@@ -231,81 +231,110 @@ export function ChiefDashboardPage() {
     >
       <div className="chief-dashboard-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-        {/* Hero Banner */}
-        <section className="dash-single-card" style={{ padding: '24px 28px', background: 'var(--surface-elevated)' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #d97706, #f59e0b)',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: '1.25rem',
-                  boxShadow: '0 4px 14px rgba(217, 119, 6, 0.3)'
-                }}
-              >
-                {profile?.fullName ? profile.fullName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() : 'CH'}
+        {/* 1. Google Stitch Administrative Command Hero */}
+        <section className="chief-command-hero">
+          <div className="chief-hero__top">
+            <div className="chief-identity-cluster">
+              <div className="chief-avatar-ring" aria-hidden="true">
+                <div className="chief-avatar-inner">
+                  {profile?.fullName ? profile.fullName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() : 'CH'}
+                </div>
               </div>
-              <div>
-                <h1 style={{ margin: 0, fontSize: '1.45rem', color: 'var(--text)' }}>
-                  {greeting}, {profile?.fullName || 'Chief'}.
-                </h1>
-                <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.9rem' }}>
-                  {profileComplete
-                    ? `${profile.ward} · Location: ${profile.location} · Sub-Location: ${profile.subLocation}`
-                    : 'Personal credentials and administrative jurisdiction setup required.'}
-                </p>
+              <div className="chief-identity-text">
+                <h1>{greeting}, {profile?.fullName || 'Chief'}</h1>
+                <div className="chief-identity-meta">
+                  <span className="chief-badge-gold">Administrative Chief Officer</span>
+                  <span>•</span>
+                  <span>
+                    {profileComplete
+                      ? `${profile.ward} · Location: ${profile.location} · Sub-Location: ${profile.subLocation}`
+                      : 'Administrative credentials and jurisdiction setup required'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <RefreshButton busy={refreshing} onClick={handleRefresh} />
               {profileComplete ? (
                 <>
-                  <span className="badge badge--success" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
-                    ● Ward Active
-                  </span>
                   <button
                     type="button"
-                    className="btn btn--secondary"
+                    className="btn btn--outline btn--compact"
                     onClick={() => setIsEditingProfile(!isEditingProfile)}
-                    style={{ fontSize: '0.82rem', padding: '6px 12px' }}
+                    style={{ borderRadius: 999 }}
                   >
-                    {isEditingProfile ? 'Close Edit' : 'Edit Profile'}
+                    {isEditingProfile ? 'Close Jurisdiction Form' : 'Edit Jurisdiction'}
                   </button>
+                  <Link to="/chief/applications" className="btn-chief-primary">
+                    <Icon name="applications" size={18} />
+                    <span>Vetting Queue ({underReviewApps})</span>
+                  </Link>
                 </>
               ) : (
-                <span className="badge badge--error" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>
+                <span className="stitch-status-badge stitch-status-badge--declined" style={{ padding: '6px 14px' }}>
                   Setup Required
                 </span>
               )}
+            </div>
+          </div>
+
+          {/* 4-Item Executive Vetting Telemetry */}
+          <div className="chief-telemetry-grid">
+            <div className="chief-telemetry-tile">
+              <div className="chief-telemetry-lbl">Ward Applications</div>
+              <div className="chief-telemetry-val">{totalApps}</div>
+              <div className="chief-telemetry-sub">{approvedApps} Approved · {rejectedApps} Rejected</div>
+            </div>
+
+            <div className="chief-telemetry-tile">
+              <div className="chief-telemetry-lbl">
+                <span>In Vetting Review</span>
+                {underReviewApps > 0 && <span className="card-update-dot" title="Pending review" />}
+              </div>
+              <div className="chief-telemetry-val chief-telemetry-val--gold">{underReviewApps}</div>
+              <div className="chief-telemetry-sub">{appProcessedPct}% Cycle Processed</div>
+            </div>
+
+            <div className="chief-telemetry-tile">
+              <div className="chief-telemetry-lbl">
+                <span>Flagged / Mismatches</span>
+                {suspiciousApps > 0 && <span className="card-update-dot" title="Flagged case" />}
+              </div>
+              <div className={`chief-telemetry-val ${suspiciousApps > 0 ? 'chief-telemetry-val--rose' : 'chief-telemetry-val--emerald'}`}>
+                {suspiciousApps}
+              </div>
+              <div className="chief-telemetry-sub">{suspiciousApps > 0 ? 'ID location discrepancy' : 'Zero discrepancies'}</div>
+            </div>
+
+            <div className="chief-telemetry-tile">
+              <div className="chief-telemetry-lbl">
+                <span>Ward Appeals</span>
+                {pendingAppeals > 0 && <span className="card-update-dot" title="Pending appeals" />}
+              </div>
+              <div className="chief-telemetry-val chief-telemetry-val--emerald">{totalAppeals}</div>
+              <div className="chief-telemetry-sub">{pendingAppeals} In Queue · {resolvedAppeals} Resolved</div>
             </div>
           </div>
         </section>
 
         {/* Profile Success Message */}
         {profileSuccessMsg && (
-          <div style={{ padding: '14px 18px', borderRadius: 8, background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ade80', fontSize: '0.9rem' }}>
+          <div style={{ padding: '14px 18px', borderRadius: 12, background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ade80', fontSize: '0.9rem' }}>
             ✓ {profileSuccessMsg}
           </div>
         )}
 
         {/* REQUIREMENT 1: If personal info is NOT complete (or chief clicks edit), render personal information setup */}
         {(!profileComplete || isEditingProfile) && (
-          <section className="dash-single-card" style={{ padding: '24px 28px', background: 'var(--surface-elevated)' }}>
+          <section className="dash-single-card" style={{ padding: '24px 28px', background: 'var(--chief-surface, #101C38)', border: '1.5px solid var(--chief-border, rgba(255,255,255,0.08))' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
               <div>
-                <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <h2 className="stitch-section-title" style={{ margin: 0, fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 10, color: '#F8FAFC' }}>
                   <Icon name="profile" size={22} />
                   {profileComplete ? 'Personal Information' : 'Chief Personal Registration'}
                 </h2>
-                <p style={{ margin: '4px 0 0', color: 'var(--text-2, #94a3b8)', fontSize: '0.85rem' }}>
+                <p style={{ margin: '4px 0 0', color: '#94A3B8', fontSize: '0.85rem' }}>
                   {profileComplete
                     ? 'Review and manage your personal credentials and assigned administrative jurisdiction.'
                     : 'You need to complete registration of personal details to access the applications.'}
@@ -462,332 +491,187 @@ export function ChiefDashboardPage() {
           <div
             className="dash-single-card"
             style={{
-              padding: '18px 24px',
+              padding: '20px 24px',
               display: 'flex',
               alignItems: 'center',
               gap: 14,
-              background: 'rgba(217, 119, 6, 0.08)',
-              border: '1px solid rgba(217, 119, 6, 0.25)',
-              borderRadius: '0.85rem'
+              background: 'rgba(233, 195, 73, 0.08)',
+              border: '1px solid rgba(233, 195, 73, 0.25)',
+              borderRadius: '1rem'
             }}
           >
-            <Icon name="info" size={22} style={{ color: '#d97706', flexShrink: 0 }} />
-            <span style={{ fontSize: '0.92rem', color: 'var(--text)' }}>
-              You need to complete registration of personal details to access the applications.
+            <Icon name="info" size={24} style={{ color: '#E9C349', flexShrink: 0 }} />
+            <span style={{ fontSize: '0.92rem', color: '#F8FAFC' }}>
+              You need to complete registration of personal details and jurisdiction to unlock the full vetting workstation.
             </span>
           </div>
         ) : (
-          /* REQUIREMENT 3: General into THIN RANGES, then structured ANALYTICS below */
-          <>
-            {/* THIN RANGES (like student dashboard) */}
-            <div className="dash-analytics-strips" style={{ margin: 0 }}>
-              {/* Applications Strip Card */}
-              <div className="dash-strip-card">
-                <div className="dash-strip-card__head">
+          /* 2. Google Stitch Operational Two-Column Workstation */
+          <div className="chief-stage-grid">
+            {/* Left Column: Primary Vetting Operations */}
+            <div>
+              {/* Urgent Inconsistency & Flagged Verification Card */}
+              <section className="chief-card">
+                <div className="chief-card-head">
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span className="dash-strip-card__label">Ward Applications</span>
-                      {(underReviewApps > 0 || suspiciousApps > 0) && (
-                        <span className="card-update-dot" title="Pending applications" />
-                      )}
-                    </div>
-                    <h3 className="dash-strip-card__val">
-                      {totalApps} Total Applications
+                    <h3 className="chief-card-title">
+                      <span style={{ color: '#EF4444' }}>●</span>
+                      Urgent Verification Notices
                     </h3>
+                    <p className="chief-card-desc">
+                      Applicants flagged for national ID or geographic boundary discrepancies
+                    </p>
                   </div>
-                  <span className={`stitch-status-badge ${underReviewApps > 0 ? 'stitch-status-badge--review' : 'stitch-status-badge--admitted'}`}>
-                    {underReviewApps > 0 ? `${underReviewApps} In Review` : 'All Reviewed'}
-                  </span>
-                </div>
-                <div className="dash-strip-card__track" role="progressbar" aria-valuenow={appProcessedPct} aria-valuemin="0" aria-valuemax="100">
-                  <div
-                    className="dash-strip-card__fill dash-strip-card__fill--gold"
-                    style={{ width: `${appProcessedPct}%` }}
-                  />
-                </div>
-                <div className="dash-strip-card__foot">
-                  <span>{approvedApps} Approved · {rejectedApps} Rejected</span>
-                  <span>{appProcessedPct}% Processed</span>
-                </div>
-              </div>
-
-              {/* Appeals Strip Card */}
-              <div className="dash-strip-card">
-                <div className="dash-strip-card__head">
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span className="dash-strip-card__label">Ward Appeals</span>
-                      {pendingAppeals > 0 && (
-                        <span className="card-update-dot" title="Pending appeals" />
-                      )}
-                    </div>
-                    <h3 className="dash-strip-card__val">
-                      {totalAppeals} Appeals
-                    </h3>
-                  </div>
-                  <span className={`stitch-status-badge ${pendingAppeals > 0 ? 'stitch-status-badge--review' : 'stitch-status-badge--admitted'}`}>
-                    {pendingAppeals} Pending
-                  </span>
-                </div>
-                <div className="dash-strip-card__track" role="progressbar" aria-valuenow={appealResolvedPct} aria-valuemin="0" aria-valuemax="100">
-                  <div
-                    className="dash-strip-card__fill dash-strip-card__fill--green"
-                    style={{ width: `${appealResolvedPct}%` }}
-                  />
-                </div>
-                <div className="dash-strip-card__foot">
-                  <span>{resolvedAppeals} Resolved · {pendingAppeals} In Queue</span>
-                  <span>{appealResolvedPct}% Resolved</span>
-                </div>
-              </div>
-
-              {/* Suspicious Cases Strip Card */}
-              <div className="dash-strip-card">
-                <div className="dash-strip-card__head">
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span className="dash-strip-card__label" style={{ color: suspiciousApps > 0 ? '#ef4444' : undefined }}>
-                        Suspicious Applications
-                      </span>
-                      {suspiciousApps > 0 && (
-                        <span className="card-update-dot" title="Action required" />
-                      )}
-                    </div>
-                    <h3 className="dash-strip-card__val">
-                      {suspiciousApps} Flagged Cases
-                    </h3>
-                  </div>
-                  <span className={`stitch-status-badge ${suspiciousApps > 0 ? 'stitch-status-badge--declined' : 'stitch-status-badge--admitted'}`}>
-                    {suspiciousApps > 0 ? 'ID Mismatch' : 'Clean'}
-                  </span>
-                </div>
-                <div className="dash-strip-card__track" role="progressbar" aria-valuenow={totalApps > 0 ? Math.round((suspiciousApps / totalApps) * 100) : 0}>
-                  <div
-                    className="dash-strip-card__fill"
-                    style={{
-                      width: `${totalApps > 0 ? Math.round((suspiciousApps / totalApps) * 100) : 0}%`,
-                      background: 'linear-gradient(90deg, #f59e0b, #ef4444)'
-                    }}
-                  />
-                </div>
-                <div className="dash-strip-card__foot">
-                  <span>Individual review required</span>
-                  <Link to="/chief/applications" style={{ color: '#d97706', fontWeight: 600, textDecoration: 'none' }}>
-                    View &gt;
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* BELOW THAT: THE ANALYTICS CAREFULLY CRAFTED INTO SECTIONS */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
-
-              {/* Section 1: Key Performance Metrics */}
-              <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
-                <h3 className="stitch-section-title" style={{ margin: '0 0 16px', fontSize: '1.1rem' }}>
-                  Processing Telemetry
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Approval Rate</span>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#10b981', marginTop: 4 }}>{approvalRatePct}%</div>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{approvedApps} approved of {totalApps}</span>
-                  </div>
-
-                  <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', position: 'relative' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Pending Inquiries</span>
-                      {pendingReplyCount > 0 && <span className="card-update-dot" title="Unanswered inquiries" />}
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 700, color: pendingReplyCount > 0 ? '#f59e0b' : '#10b981', marginTop: 4 }}>
-                      {pendingReplyCount}
-                    </div>
-                    <Link to="/chief/messages" style={{ fontSize: '0.72rem', color: '#d97706', textDecoration: 'none' }}>
-                      To be replied &gt;
+                  {suspiciousApps > 0 && (
+                    <Link to="/chief/applications" className="btn btn--outline btn--compact" style={{ borderRadius: 999 }}>
+                      View all ({suspiciousApps}) →
                     </Link>
-                  </div>
-
-                  <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)', position: 'relative' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Suspicious Rate</span>
-                      {suspiciousApps > 0 && <span className="card-update-dot" title="Flagged cases" />}
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 700, color: suspiciousApps > 0 ? '#ef4444' : '#10b981', marginTop: 4 }}>
-                      {totalApps > 0 ? Math.round((suspiciousApps / totalApps) * 100) : 0}%
-                    </div>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>ID location mismatch</span>
-                  </div>
-
-                  <div style={{ padding: 14, borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Avg Turnaround</span>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text)', marginTop: 4 }}>1.6 Days</div>
-                    <span style={{ fontSize: '0.72rem', color: '#10b981' }}>Within target</span>
-                  </div>
-                </div>
-              </section>
-
-              {/* Section 2: Village & Sub-Location Distribution */}
-              <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.1rem' }}>
-                    Village Distribution
-                  </h3>
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{villageCounts.length} Localities</span>
+                  )}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {villageCounts.map((v) => (
-                    <div key={v.name}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: 4 }}>
-                        <span style={{ fontWeight: 500, color: 'var(--text)' }}>{v.name}</span>
-                        <span style={{ color: '#94a3b8' }}>{v.count} apps ({v.pct}%)</span>
-                      </div>
-                      <div style={{ width: '100%', height: 6, borderRadius: 4, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-                        <div style={{ width: `${v.pct}%`, height: '100%', borderRadius: 4, background: '#d97706' }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* Section 3: Quick Action Workflows (Applications -> Appeals -> Messages -> Profile) */}
-              <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
-                <h3 className="stitch-section-title" style={{ margin: '0 0 16px', fontSize: '1.1rem' }}>
-                  Verification Workflows
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
-                  {/* 1. Applications */}
-                  <Link
-                    to="/chief/applications"
-                    className="btn btn--secondary"
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '16px 10px',
-                      textAlign: 'center',
-                      borderRadius: 12,
-                      position: 'relative'
-                    }}
-                  >
-                    {(underReviewApps > 0 || suspiciousApps > 0) && (
-                      <span className="btn-update-dot-badge" title="Pending applications" />
-                    )}
-                    <Icon name="applications" size={24} />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Applications</span>
-                  </Link>
-
-                  {/* 2. Appeals */}
-                  <Link
-                    to="/chief/appeals"
-                    className="btn btn--secondary"
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '16px 10px',
-                      textAlign: 'center',
-                      borderRadius: 12,
-                      position: 'relative'
-                    }}
-                  >
-                    {pendingAppeals > 0 && (
-                      <span className="btn-update-dot-badge" title="Pending appeals" />
-                    )}
-                    <Icon name="documents" size={24} />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Appeals</span>
-                  </Link>
-
-                  {/* 3. Messages (next to profile) */}
-                  <Link
-                    to="/chief/messages"
-                    className="btn btn--secondary"
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '16px 10px',
-                      textAlign: 'center',
-                      borderRadius: 12,
-                      position: 'relative',
-                      borderColor: pendingReplyCount > 0 ? '#f59e0b' : undefined
-                    }}
-                  >
-                    {pendingReplyCount > 0 && (
-                      <span className="btn-update-dot-badge" title="Unanswered messages" />
-                    )}
-                    <Icon name="bell" size={24} />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>
-                      Messages {pendingReplyCount > 0 && `(${pendingReplyCount})`}
-                    </span>
-                  </Link>
-
-                  {/* 4. Area Profile */}
-                  <Link
-                    to="/chief/profile"
-                    className="btn btn--secondary"
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 10px', textAlign: 'center', borderRadius: 12 }}
-                  >
-                    <Icon name="profile" size={24} />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Area Profile</span>
-                  </Link>
-                </div>
-              </section>
-
-              {/* Section 4: Urgent Alerts & Inconsistencies */}
-              <section className="dash-single-card" style={{ padding: 24, background: 'var(--surface-elevated)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <h3 className="stitch-section-title" style={{ margin: 0, fontSize: '1.1rem' }}>
-                      Urgent Inconsistency Notices
-                    </h3>
-                    {suspiciousApps > 0 && <span className="card-update-dot" title="Attention required" />}
-                  </div>
-                  <Link to="/chief/applications" style={{ fontSize: '0.8rem', color: '#d97706', textDecoration: 'none' }}>
-                    View all &gt;
-                  </Link>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {applications.filter((a) => a.isSuspicious).slice(0, 3).map((app) => (
-                    <div
-                      key={app.id}
-                      style={{
-                        padding: '10px 14px',
-                        borderRadius: 8,
-                        background: 'rgba(239, 68, 68, 0.08)',
-                        borderLeft: '3px solid #ef4444',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
-                    >
+                <div>
+                  {applications.filter((a) => a.isSuspicious).slice(0, 4).map((app) => (
+                    <div key={app.id} className="chief-inconsistency-item">
                       <div>
-                        <strong style={{ fontSize: '0.88rem', color: 'var(--text)' }}>{app.fullName}</strong>
-                        <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#ef4444' }}>
-                          ID location &apos;{app.idLocation}&apos; ≠ &apos;{app.location}&apos;
+                        <div className="chief-inconsistency-name">{app.fullName}</div>
+                        <p className="chief-inconsistency-detail">
+                          ID Location: &apos;{app.idLocation}&apos; ≠ Stated: &apos;{app.location}&apos;
                         </p>
                       </div>
                       <Link
                         to="/chief/applications"
                         className="btn btn--table"
-                        style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                        style={{ fontSize: '0.78rem', padding: '6px 12px', whiteSpace: 'nowrap' }}
                       >
-                        Inspect
+                        Inspect Dossier →
                       </Link>
                     </div>
                   ))}
                   {suspiciousApps === 0 && (
-                    <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>No suspicious cases detected.</p>
+                    <div style={{ padding: '24px 16px', textAlign: 'center', color: '#94A3B8', fontSize: '0.9rem' }}>
+                      <span style={{ color: '#10B981', fontWeight: 600 }}>✓ Zero flagged discrepancies</span> detected in your ward.
+                    </div>
                   )}
                 </div>
               </section>
 
+              {/* Locality & Sub-Location Distribution Card */}
+              <section className="chief-card">
+                <div className="chief-card-head">
+                  <div>
+                    <h3 className="chief-card-title">Ward Locality Distribution</h3>
+                    <p className="chief-card-desc">{villageCounts.length} Localities across your jurisdiction</p>
+                  </div>
+                </div>
+
+                <div>
+                  {villageCounts.map((v) => (
+                    <div key={v.name} className="chief-locality-row">
+                      <div className="chief-locality-info">
+                        <span style={{ fontWeight: 600, color: '#F8FAFC' }}>{v.name}</span>
+                        <span style={{ color: '#94A3B8' }}>{v.count} apps ({v.pct}%)</span>
+                      </div>
+                      <div className="chief-locality-track">
+                        <div className="chief-locality-bar" style={{ width: `${v.pct}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
             </div>
-          </>
+
+            {/* Right Column: Processing Telemetry & Workflow Access */}
+            <div>
+              {/* Processing Telemetry */}
+              <section className="chief-card">
+                <div className="chief-card-head">
+                  <div>
+                    <h3 className="chief-card-title">Processing Telemetry</h3>
+                    <p className="chief-card-desc">Vetting turnaround velocity and approval rates</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div style={{ padding: 14, borderRadius: 12, background: 'var(--chief-surface-soft)', border: '1px solid var(--chief-border)' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 700 }}>Approval Rate</span>
+                    <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#10B981', marginTop: 4 }}>{approvalRatePct}%</div>
+                    <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>{approvedApps} approved of {totalApps}</span>
+                  </div>
+
+                  <div style={{ padding: 14, borderRadius: 12, background: 'var(--chief-surface-soft)', border: '1px solid var(--chief-border)' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 700 }}>Avg Turnaround</span>
+                    <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#F8FAFC', marginTop: 4 }}>1.6 Days</div>
+                    <span style={{ fontSize: '0.72rem', color: '#10B981' }}>Well within SLA</span>
+                  </div>
+
+                  <div style={{ padding: 14, borderRadius: 12, background: 'var(--chief-surface-soft)', border: '1px solid var(--chief-border)' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 700 }}>Discrepancy Rate</span>
+                    <div style={{ fontSize: '1.45rem', fontWeight: 800, color: suspiciousApps > 0 ? '#EF4444' : '#10B981', marginTop: 4 }}>
+                      {totalApps > 0 ? Math.round((suspiciousApps / totalApps) * 100) : 0}%
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>ID location mismatch</span>
+                  </div>
+
+                  <div style={{ padding: 14, borderRadius: 12, background: 'var(--chief-surface-soft)', border: '1px solid var(--chief-border)' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 700 }}>Pending Inquiries</span>
+                    <div style={{ fontSize: '1.45rem', fontWeight: 800, color: pendingReplyCount > 0 ? '#F59E0B' : '#10B981', marginTop: 4 }}>
+                      {pendingReplyCount}
+                    </div>
+                    <Link to="/chief/messages" style={{ fontSize: '0.72rem', color: '#E9C349', textDecoration: 'none' }}>
+                      To be replied →
+                    </Link>
+                  </div>
+                </div>
+              </section>
+
+              {/* Direct Verification Workflows Hub */}
+              <section className="chief-card">
+                <div className="chief-card-head">
+                  <div>
+                    <h3 className="chief-card-title">Administrative Workflows</h3>
+                    <p className="chief-card-desc">Direct access to vetting registers and appeals</p>
+                  </div>
+                </div>
+
+                <div className="chief-action-tiles">
+                  <Link to="/chief/applications" className="chief-action-tile">
+                    {(underReviewApps > 0 || suspiciousApps > 0) && <span className="chief-dot-indicator" />}
+                    <div className="chief-action-tile__icon">
+                      <Icon name="applications" size={24} />
+                    </div>
+                    <span className="chief-action-tile__title">Vetting Queue</span>
+                    <span className="chief-action-tile__sub">{underReviewApps} awaiting baraza</span>
+                  </Link>
+
+                  <Link to="/chief/appeals" className="chief-action-tile">
+                    {pendingAppeals > 0 && <span className="chief-dot-indicator" />}
+                    <div className="chief-action-tile__icon">
+                      <Icon name="documents" size={24} />
+                    </div>
+                    <span className="chief-action-tile__title">Appeals Desk</span>
+                    <span className="chief-action-tile__sub">{pendingAppeals} unresolved</span>
+                  </Link>
+
+                  <Link to="/chief/messages" className="chief-action-tile">
+                    {pendingReplyCount > 0 && <span className="chief-dot-indicator" />}
+                    <div className="chief-action-tile__icon">
+                      <Icon name="bell" size={24} />
+                    </div>
+                    <span className="chief-action-tile__title">Office Inquiries</span>
+                    <span className="chief-action-tile__sub">{pendingReplyCount} pending reply</span>
+                  </Link>
+
+                  <Link to="/chief/profile" className="chief-action-tile">
+                    <div className="chief-action-tile__icon">
+                      <Icon name="profile" size={24} />
+                    </div>
+                    <span className="chief-action-tile__title">Area Profile</span>
+                    <span className="chief-action-tile__sub">Ward jurisdiction</span>
+                  </Link>
+                </div>
+              </section>
+            </div>
+          </div>
         )}
 
       </div>
